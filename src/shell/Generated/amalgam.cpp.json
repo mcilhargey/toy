@@ -1,0 +1,34 @@
+{
+	"project": "toyshell.cpp",
+	"target": "toyshell.cpp",
+	"sources": [
+		"shell/Shell.cpp",
+		"shell/Generated/Module.cpp",
+		"shell/Generated/Types.cpp"
+	],
+	"include_paths": [
+        ""
+	],
+    "includes_map": {
+		"shell/": "toyshell.h",
+		"obj/": "mudobj.h",
+		"math/": "mudmath.h",
+		"util/": "toyutil.h",
+		"core/": "toycore.h",
+		"db/": "toydb.h",
+		"ui/": "mudui.h",
+		"uio/": "muduio.h",
+		"gfx/": "mudgfx.h",
+		"visu/": "toyvisu.h",
+		"edit/": "mudedit.h",
+		"block/": "toyblock.h",
+		"gen/": "mudgen.h"
+    },
+	"clean_strings": [
+		"//  Copyright (c) 2016 Hugo Amiard hugo.amiard@laposte.net",
+		"//  This software is provided 'as-is' under the zlib License, see the LICENSE.txt file.",
+		"//  This notice and the license may not be removed or altered from any source distribution.",
+		"/* mud */"
+	]
+}
+

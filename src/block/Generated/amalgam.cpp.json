@@ -1,0 +1,37 @@
+{
+	"project": "toyblock.cpp",
+	"target": "toyblock.cpp",
+	"sources": [
+		"block/Block.cpp",
+		"block/Chunk.cpp",
+		"block/Element.cpp",
+		"block/Elements.cpp",
+		"block/Sector.cpp",
+		"block/VisuBlock.cpp",
+		"block/Generated/Module.cpp",
+		"block/Generated/Types.cpp"
+	],
+	"include_paths": [
+        ""
+	],
+    "includes_map": {
+		"block/": "toyblock.h",
+		"obj/": "mudobj.h",
+		"math/": "mudmath.h",
+		"geom/": "mudgeom.h",
+		"util/": "toyutil.h",
+		"core/": "toycore.h",
+		"ui/": "mudui.h",
+		"uio/": "muduio.h",
+		"gfx/": "mudgfx.h",
+		"visu/": "toyvisu.h",
+		"edit/": "mudedit.h"
+    },
+	"clean_strings": [
+		"//  Copyright (c) 2016 Hugo Amiard hugo.amiard@laposte.net",
+		"//  This software is provided 'as-is' under the zlib License, see the LICENSE.txt file.",
+		"//  This notice and the license may not be removed or altered from any source distribution.",
+		"/* mud */"
+	]
+}
+

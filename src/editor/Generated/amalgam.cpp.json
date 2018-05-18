@@ -1,0 +1,43 @@
+{
+	"project": "toyeditor.cpp",
+	"target": "toyeditor.cpp",
+	"sources": [
+		"editor/Editor.cpp",
+		"editor/main.cpp",
+		"editor/Controller/CameraController.cpp",
+		"editor/Controller/FPSCameraController.cpp",
+		"editor/Controller/RTSCameraController.cpp",
+		"editor/Edit/EditActions.cpp",
+		"editor/Edit/Editor.cpp",
+		"editor/Edit/ReactiveEdit.cpp",
+		"editor/Edit/Viewport.cpp",
+		"editor/Editor/Brush.cpp",
+		"editor/Editor/Editor.cpp",
+		"editor/Editor/Toolbox.cpp",
+		"editor/Generated/Module.cpp",
+		"editor/Generated/Types.cpp"
+	],
+	"include_paths": [
+        ""
+	],
+    "includes_map": {
+		"editor/": "toyeditor.h",
+		"obj/": "mudobj.h",
+		"math/": "mudmath.h",
+		"geom/": "mudgeom.h",
+		"lang/": "mudlang.h",
+		"util/": "toyutil.h",
+		"core/": "toycore.h",
+		"ui/": "mudui.h",
+		"uio/": "muduio.h",
+		"gfx/": "mudgfx.h",
+		"visu/": "toyvisu.h"
+    },
+	"clean_strings": [
+		"//  Copyright (c) 2016 Hugo Amiard hugo.amiard@laposte.net",
+		"//  This software is provided 'as-is' under the zlib License, see the LICENSE.txt file.",
+		"//  This notice and the license may not be removed or altered from any source distribution.",
+		"/* mud */"
+	]
+}
+

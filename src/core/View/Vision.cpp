@@ -1,0 +1,87 @@
+//  Copyright (c) 2018 Hugo Amiard hugo.amiard@laposte.net
+//  This software is provided 'as-is' under the zlib License, see the LICENSE.txt file.
+//  This notice and the license may not be removed or altered from any source distribution.
+
+
+#include <core/View/Vision.h>
+
+#include <core/Entity/Entity.h>
+#include <core/Camera/Camera.h>
+
+#include <core/View/View.h>
+
+#include <core/Medium/VisualMedium.h>
+#include <core/Medium/SoundMedium.h>
+#include <core/WorldPage/WorldPage.h>
+
+#include <core/Player/Player.h>
+#include <core/World/World.h>
+
+#include <core/Core.h>
+
+using namespace mud; namespace toy
+{
+	Vision::Vision(World& world)
+		: m_world(world)
+	{
+		m_entities.observe(*this);
+	}
+
+	Vision::~Vision()
+	{
+		m_entities.unobserve(*this);
+	}
+
+	void Vision::addView(View& view)
+	{
+		m_views.add(view);
+		view.store().observe(m_entities);
+	}
+
+	void Vision::handleAdd(Entity& owned)
+	{
+		if(owned.isa<Camera>())
+			m_cameras.add(owned.part<Camera>());
+	}
+
+	void Vision::handleRemove(Entity& owned)
+	{
+		if(owned.isa<Camera>())
+			m_cameras.remove(owned.part<Camera>());
+	}
+
+	Camera& Vision::addCamera(const vec3& position, float lensDistance, bool planar)
+	{
+		UNUSED(planar);
+		Camera& camera = m_world.origin().constructNested<OCamera>(position, lensDistance, 0.1f, 300.f).part<Camera>();
+		//m_owneds.add(camera.m_entity);
+		//m_cameras.add(camera);
+		return camera;
+	}
+
+	PlayerVision::PlayerVision(Player& player, World& world)
+		: Vision(world)
+		//, m_ownedView(*this, "owned", player.m_owneds)
+		//, m_visualView(*this, VisualMedium::me(), player.m_owneds)
+		//, m_soundView(*this, SoundMedium::me(), player.m_owneds)
+		//, m_worldView(*this, WorldMedium::me(), player.m_owneds)
+		//, m_bufferView(*this, WorldMedium::me(), player.m_owneds)
+	{
+		UNUSED(player);
+	}
+
+	OmniVision::OmniVision(World& world)
+		: Vision(world)
+		, m_store()
+		, m_view(*this, "omni", m_store)
+	{
+		m_origin.observe(m_store);
+		m_origin.add(world.origin());
+	}
+
+	OmniVision::~OmniVision()
+	{
+		m_origin.remove(m_world.origin());
+		m_origin.unobserve(m_store);
+	}
+}

@@ -1,0 +1,39 @@
+{
+	"project": "space.cpp",
+	"target": "space.cpp",
+	"sources": [
+		"space/Dice.cpp",
+		"space/ex_space.cpp",
+		"space/Generator.cpp",
+		"space/Scene.cpp",
+		"space/Ui.cpp",
+		"space/Generated/Module.cpp",
+		"space/Generated/Types.cpp"
+	],
+	"include_paths": [
+        ""
+	],
+    "includes_map": {
+		"space/": "space.h",
+		"obj/": "mudobj.h",
+		"math/": "mudmath.h",
+		"util/": "toyutil.h",
+		"core/": "toycore.h",
+		"db/": "toydb.h",
+		"ui/": "mudui.h",
+		"uio/": "muduio.h",
+		"gfx/": "mudgfx.h",
+		"visu/": "toyvisu.h",
+		"edit/": "mudedit.h",
+		"block/": "toyblock.h",
+		"gen/": "mudgen.h",
+		"shell/": "toyshell.h"
+    },
+	"clean_strings": [
+		"//  Copyright (c) 2016 Hugo Amiard hugo.amiard@laposte.net",
+		"//  This software is provided 'as-is' under the zlib License, see the LICENSE.txt file.",
+		"//  This notice and the license may not be removed or altered from any source distribution.",
+		"/* mud */"
+	]
+}
+

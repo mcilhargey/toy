@@ -1,0 +1,35 @@
+{
+	"project": "ex_05_character.cpp",
+	"target": "ex_05_character.cpp",
+	"sources": [
+		"05_character/05_character.cpp",
+		"05_character/Generated/Module.cpp",
+		"05_character/Generated/Types.cpp"
+	],
+	"include_paths": [
+        ""
+	],
+    "includes_map": {
+		"ex_05_character/": "ex_05_character.h",
+		"obj/": "mudobj.h",
+		"math/": "mudmath.h",
+		"util/": "toyutil.h",
+		"core/": "toycore.h",
+		"db/": "toydb.h",
+		"ui/": "mudui.h",
+		"uio/": "muduio.h",
+		"gfx/": "mudgfx.h",
+		"visu/": "toyvisu.h",
+		"edit/": "mudedit.h",
+		"block/": "toyblock.h",
+		"gen/": "mudgen.h",
+		"shell/": "toyshell.h"
+    },
+	"clean_strings": [
+		"//  Copyright (c) 2016 Hugo Amiard hugo.amiard@laposte.net",
+		"//  This software is provided 'as-is' under the zlib License, see the LICENSE.txt file.",
+		"//  This notice and the license may not be removed or altered from any source distribution.",
+		"/* mud */"
+	]
+}
+
