@@ -1,6 +1,13 @@
 # toy
-toy is a small, hackable, code oriented, modular c++ game engine  
-write portable games from scratch using all of toy, or assemble your own engine and editor using toy modules
+toy is a **small, simple, code oriented, modular** *c++ game engine*.  
+
+toy puts the emphasis on games made of **simple, expressive native c++ code** extended through **tools, editors and scripting**, to design full featured 2d or 3d games in **fast iterations**.
+
+Focused on **versatility** at the core, it gives full control over its **expressive rendering and user interface systems**, making it suitable to build **any kind of game**.  
+Designed for **quick iterations** and experimentation, it is deeply **hackable**, entirely **scriptable**, and provides a **fully programmable 3d renderer**, giving you direct access to *shaders, materials and render paths*.  
+As a collection of game programming **building blocks**, it also aims to foster an ecosystem of *simple minimal reusable components* for everyone, and it is suited for **building your own game technology**.
+
+On top of these fundamentals, toy adds plenty of game programming systems such as physics, a navigation system, procedural generation algorithms, many tools, and more.
 
 # examples
 here are 3 live toy demo games:
@@ -23,7 +30,7 @@ overarching principles:
 - **modular**, each functionality is enclosed in a small, simple, easy to understand code building block
 - **extensible**, as a collection of modules, toy can be used to build your own game technology out of a subset of components fitting your use case, complemented by your own functionalities
 - **game code first**, toy is first and foremost meant to write games in native c++ code, directly, effortlessly, in direct contact with the fundamental systems
-- **versatile**, typical engines are often biased towards specific kinds of games (platformers, shooters), toy on the other hand has been designed from the start with unconventional or complex games in mind, such as real time strategy games or role playing games. this is mostly enabled by its emphasis on native game code, and the powerful user interface and rendering systems.
+- **versatile**, typical engines are often biased towards specific kinds of games (platformers, shooters), toy on the other hand has been designed from the start with unconventional or complex games in mind, such as *real time strategy games* or*role playing games*. this is mostly enabled by its emphasis on native game code, and the powerful user interface and rendering systems.
 - **tools second**, reflection automatically extends your game core code for seamless scripting, editing, inspection of your game objects, types and procedures in the built-in tools/editor. 
 - **custom tools**, the modularity coupled with the beauty of the reflection and ui system, makes writing your own tools one of the strikingly easy things enabled by toy
 - **educative**, toy is meant to be taken apart and studied, each technical solution aims to be a "most common denominator" that can be studied as the most minimal solution to a given problem
@@ -40,7 +47,7 @@ features:
 - navigation
 
 # intent
-toy stems from the curious wandering mind of a child: how do you make a game ? what's the machinery behind it ? how complex is it ? what are all the individual steps to put a game experience together ? can it be simple ? can all these steps be simple ? can I understand each of them ? can I design a game myself, using some building blocks and armed with that understanding ?
+toy stems from the curious wandering mind of a child: **how do you make a game** ? what's the **machinery** behind it ? how **complex** is it ? what are all the **individual steps** to put a game experience together ? can it be **simple** ? can **all these steps be simple** ? can I **understand** each of them ? can I design a game **myself**, using some **building blocks** and armed with that understanding ?
 
 toy is the result of a quest to demonstrate that the machinery required **can** be simple, given enough effort to make it so; to design such building blocks, and to make them accessible to everyone to write their games, whether they are young beginners, lone coders, indie teams, or AAA teams, with a stack of technology that they can master, understand, adapt, and extend easily.
 
