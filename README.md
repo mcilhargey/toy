@@ -68,7 +68,7 @@ this modularity ensures that toy is **easy to understand and adapt**, the opposi
 ### hackable
 
 ### ecosystem
-the vision of toy is to foster an ecosystem of libraries, of low-level building blocks for building games, which aren't necessarily part of toy itself: for each technical function, toy wants a self-contained, small, minimalist library fullfilling that function. if one exists already, toy uses that one. for example, mud uses: glfw, bgfx, OpenAL, recast, bullet, and many more. toy is only affected by NIH syndrome when such focused and minimal components don't exist yet.
+the vision of toy is to foster an **ecosystem** of **low-level building blocks and libraries for building games**, which aren't *necessarily* part of toy itself: for each technical function, toy wants a **self-contained, small, minimalist library fullfilling that function**. if one exists already, toy uses that one. for example, mud uses: [glfw](), [bgfx](), [OpenAL](), [recast](), [bullet](), and many more. toy is only affected by NIH syndrome when such focused and minimal components **don't exist yet**.
 
 ### code first
 toy puts native code at the forefront of the development of your game. toy is first and foremost meant to write games in native c++ code, directly, effortlessly, in direct contact with the fundamental systems. this ensures that toy is on the cutting edge, both in performance and versatility, and a fit for both big traditional development teams as well as single indie developers.
