@@ -32,8 +32,8 @@ overarching principles:
 - **versatile**, typical engines are often biased towards specific kinds of games (platformers, shooters), toy on the other hand has been designed from the start with unconventional or complex games in mind, such as *real time strategy games* or *role playing games*. this is mostly enabled by its emphasis on native game code, and the powerful user interface and rendering systems.
 - **tools second**, reflection automatically extends your game core code for seamless scripting, editing, inspection of your game objects, types and procedures in the built-in tools/editor. 
 - **custom tools**, the modularity coupled with the beauty of the reflection and ui system, makes writing your own tools one of the strikingly easy things enabled by toy
-- **educative**, toy is meant to be taken apart and studied, each technical solution aims to be a "most common denominator" that can be studied as the most minimal solution to a given problem
-- **fast iteration**
+- **educative**, toy is meant to be taken apart and studied, each technical solution aims to be a "most common denominator", a potential example of a minimal solution to a given problem
+- **fast iteration**, providing seamless bindings of both built-in systems and game code to various scripting languages, as well as an experimental hot-reload of native code, the aim is to bring iteration speed to the maximum possible
 
 features:
 - **mud** is the low-level library providing most of the base features behind **toy**, in separate modules
