@@ -61,9 +61,9 @@ in doing so, toy hopes to be studied by aspiring game developers, and hopes to s
 in general, toy is allergic to "inversion of control" object-oriented designs, and prefers top-down, high-level-to-low-level imperative control flows. this as well as other design decisions allows toy to fit in a whopping 80 thousands lines of code. many engines similar in scope go in the >500 kloc range.
 
 ### modular
-every component of toy is hosted in a **clearly separated module** solving **one specific task**. most of these are part of the [mud]() library, which is the **foundation layer** of toy, with the building blocks common to building applications in general: reflection, serialization, scripting, math, geometry, rendering, user interface, and sound. toy adds modules for **entities, physics, navigation**.
+every component of toy is hosted in a **clearly separated module** solving **one specific task**. most of these are part of the [mud]() library, which is the *foundation* layer of toy, with the building blocks common to building applications in general: reflection, serialization, scripting, math, geometry, rendering, user interface, and sound. toy adds modules for **entities, physics, navigation**.
 
-this modularity ensures that toy is easy to understand and adapt, the opposite of a big ball of mud, and that toy is perfectly suited to be partly incorporated in your own custom game technology.
+this modularity ensures that toy is **easy to understand and adapt**, the opposite of a *big ball of mud*, and that toy is *perfectly suited* to be partly incorporated in your **own custom game technology**.
 
 ### hackable
 
