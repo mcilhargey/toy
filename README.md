@@ -71,20 +71,20 @@ this modularity ensures that toy is **easy to understand and adapt**, the opposi
 the vision of toy is to foster an **ecosystem** of **low-level building blocks and libraries for building games**, which aren't *necessarily* part of toy itself: for each technical function, toy wants a **self-contained, small, minimalist library fullfilling that function**. if one exists already, toy uses that one. for example, mud uses: [glfw](), [bgfx](), [OpenAL](), [recast](), [bullet](), and many more. toy is only affected by NIH syndrome when such focused and minimal components **don't exist yet**.
 
 ### code first
-toy puts native code at the forefront of the development of your game. toy is first and foremost meant to write games in native c++ code, directly, effortlessly, in direct contact with the fundamental systems. this ensures that toy is on the cutting edge, both in performance and versatility, and a fit for both big traditional development teams as well as single indie developers.
+toy puts **native code** at the forefront of the development of your game. toy is first and foremost meant to write games in native c++ code, directly, effortlessly, **in direct contact with the fundamental systems**. this ensures that toy is on the cutting edge, both in **performance and versatility**, and a fit for both big traditional development teams as well as single indie developers.
 
-typical engines are often biased towards specific kinds of games (platformers, shooters). that bias is created by the tooling, and of the editor worflow. toy, by putting the emphasis on native code, and direct access to its powerful user interface and rendering systems, is designed from the start with unconventional or complex games in mind, such as real time strategy games or role playing games. 
+typical engines are often biased towards specific kinds of games (platformers, shooters). that bias is created by the tooling, and of the editor worflow. toy, by putting the emphasis on native code, and **direct access to its powerful user interface and rendering systems**, is designed from the start with unconventional or complex games in mind, such as real time strategy games or role playing games. 
 
 toy will provide minimalist templates demonstrating how each type of game can be easily implemented. until then the primary source of information is the code of the examples, which illustrate how a game archetype is easily assembled by connecting the different systems.
 
-this doesn't mean that toy doesn't include scripting: on the contrary, toy automatically extends both built-in systems, and user code through the reflection system, to ensure complete and seamless access of through both text scripts and visual scripts. if you want, toy gives you the ability to code your game completely in a scripting language.
+this doesn't mean that toy doesn't include scripting: on the contrary, toy automatically extends both built-in systems, and user code through the reflection system, to ensure **complete and seamless access of through both text scripts and visual scripts**. if you want, toy gives you the ability to code your game **completely in a scripting language**.
 
 ### tools second
 toy powerful reflection system automatically extends your game core code for **seamless scripting, editing, inspection** of your game objects, types and procedures in the built-in tools/editor. 
 
 in toy, there is no such thing as a monolithic editor: tools are independent reusable blocks, using the expressive strength of the ui system, to provide user operations for specific components (for example, manipulating scene entities), or, using the power of reflection, operating in a generic manner on any object.
 
-this approach is key to empowering development teams, by enabling them to **design and use their own custom suite of editors**tailored to the **needs of the specific game they are working on**. an editor, in that design, is simply a collection of tools bound together by an overarching user interface managing global state and credentials.
+this approach is key to empowering development teams, by enabling them to **design and use their own custom suite of editors** tailored to the **needs of the specific game they are working on**. an editor, in that design, is simply a collection of tools bound together by an overarching user interface managing global state and credentials.
 
 toy provides a range of tools, such as a **scene outliner, a generic object inspector, a text script editor, a visual script editor**, and others. a team that doesn't need any custom tools can just build the editor template provided by toy, which bundles together all those built-in tools in a nice sleek editor.
 
