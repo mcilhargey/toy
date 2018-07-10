@@ -56,6 +56,7 @@ in general, toy is allergic to "inversion of control" object-oriented designs, a
 
 ### modular
 every component of toy is hosted in a clearly separated module solving one specific task. most of these are part of the mud library, which is the foundation layer of toy, with the building blocks common to building applications in general: reflection, serialization, scripting, math, geometry, rendering, user interface, and sound. toy adds modules for entities, physics, navigation.
+
 this modularity ensures that toy is easy to understand and adapt, the opposite of a big ball of mud, and that toy is perfectly suited to be partly incorporated in your own custom game technology.
 
 ### hackable
