@@ -23,8 +23,10 @@ overarching principles:
 - **modular**, each functionality is enclosed in a small, simple, easy to understand code building block
 - **extensible**, as a collection of modules, toy can be used to build your own game technology out of a subset of components fitting your use case, complemented by your own functionalities
 - **game code first**, toy is first and foremost meant to write games in native c++ code, directly, effortlessly, in direct contact with the fundamental systems
-- **tools second**, the modularity coupled with the beauty of the reflection and ui system, makes writing your own tools one of the strikingly easy things enabled by toy
-- **educative**, toy is meant to be taken apart and studied, the solution aims to be a "most common denominator" that can be studied as the simplest solution to achieve a given end
+- **versatile**, typical engines are often biased towards specific kinds of games (platformers, shooters), toy on the other hand has been designed from the start with unconventional or complex games in mind, such as real time strategy games or role playing games. this is mostly enabled by its emphasis on native game code, and the powerful user interface and rendering systems.
+- **tools second**, reflection automatically extends your game core code for seamless scripting, editing, inspection of your game objects, types and procedures in the built-in tools/editor. 
+- **custom tools**, the modularity coupled with the beauty of the reflection and ui system, makes writing your own tools one of the strikingly easy things enabled by toy
+- **educative**, toy is meant to be taken apart and studied, each technical solution aims to be a "most common denominator" that can be studied as the most minimal solution to a given problem
 - **fast iteration**
 
 features:
@@ -47,33 +49,32 @@ toy strives for education and accessibility of game development techniques and k
 
 in doing so, toy hopes to be studied by many aspiring game developers, and hopes to show them a potential example of how some typical game engine design mistakes can be avoided by selecting slightly different idioms.
 
-### for games
-
 ### simple
 simplicity is the core and most important principle underlying toy. toy aims to lower the quantity of information necessary to define a specific game to its lowest possible value. by reducing the complexity of the technology needed to make a game, both user-facing and underlying, toy sets to reduce the cognitive overhead that can cripple down many projects progress.
 
 in general, toy is allergic to "inversion of control" object-oriented designs, and prefers top-down, high-level-to-low-level imperative control flows. this as well as other design decisions allows toy to fit in a whopping 80 thousands lines of code. many engines similar in scope go in the >500 kloc range.
 
+### modular
+every component of toy is hosted in a clearly separated module solving one specific task. most of these are part of the mud library, which is the foundation layer of toy, with the building blocks common to building applications in general: reflection, serialization, scripting, math, geometry, rendering, user interface, and sound. toy adds modules for entities, physics, navigation.
+this modularity ensures that toy is easy to understand and adapt, the opposite of a big ball of mud, and that toy is perfectly suited to be partly incorporated in your own custom game technology.
+
 ### hackable
-### modular 
-every component can be replaced
-the simplest possible paradigm for writing ui. this allows writing tools for toy to be unbelievably simple.
-toy is perfectly suited to making your own tools
+
+### ecosystem
+the vision of toy is to foster an ecosystem of libraries, of low-level building blocks for building games, which aren't necessarily part of toy itself: for each technical function, toy wants a self-contained, small, minimalist library fullfilling that function. if one exists already, toy uses that one. for example, mud uses: glfw, bgfx, OpenAL, recast, bullet, and many more. toy is only affected by NIH syndrome when such focused and minimal components don't exist yet.
 
 ### code first
-toy puts native code at the forefront of the development of your game. that way, the user remains in total control , the primary and preferred way of putting a game together is through assembling your own native, using
-each game has their specific requirements, and each development team consists of at least one coder capable of reading through toy examples and putting an application together.
+toy puts native code at the forefront of the development of your game. toy is first and foremost meant to write games in native c++ code, directly, effortlessly, in direct contact with the fundamental systems. this ensures that toy is on the cutting edge, both in performance and versatility, and a fit for both big traditional development teams as well as single indie developers.
 
-this design decision makes toy a perfect fit for teams that want control over the 
+typical engines are often biased towards specific kinds of games (platformers, shooters). that bias is created by the tooling, and of the editor worflow. toy, by putting the emphasis on native code, and direct access to its powerful user interface and rendering systems, is designed from the start with unconventional or complex games in mind, such as real time strategy games or role playing games. 
 
-By combining systems both high and low level,
-luxe is like a toolbox, and a game is the connection of these into a whole.
-When configuring a type of project to reuse (like a 2D platformer or 3D first person project), luxe provides outlines, which jump start projects into predefined workflows. Outlines are where custom workflows are defined above the engine level.
+toy will provide minimalist templates demonstrating how each type of game can be easily implemented. until then the primary source of information is the code of the examples, which illustrate how a game archetype is easily assembled by connecting the different systems.
 
-luxe provides pieces that snap together,
-ready to make games.
+this doesn't mean that toy doesn't include scripting: on the contrary, toy automatically extends both built-in systems, and user code through the reflection system, to ensure complete and seamless access of through both text scripts and visual scripts. if you want, toy gives you the ability to code your game completely in a scripting language.
 
 ### tools second
+toy powerful reflection system automatically extends your game core code for seamless scripting, editing, inspection of your game objects, types and procedures in the built-in tools/editor. 
+
 in toy, there is no such thing as a monolithic editor: tools are independent reusable blocks, using the expressive strength of the ui system, to provide user operations for specific components (for example, manipulating scene entities), or, using the power of reflection, operating in a generic manner on any object.
 
 this approach is key to empowering development teams, by enabling them to design and use their own custom suite of editors tailored to the needs of the specific game they are working on. an editor, in that design, is simply a collection of tools bound together by an overarching user interface managing global state and credentials.
