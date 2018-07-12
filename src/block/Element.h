@@ -4,14 +4,14 @@
 
 #pragma once
 
-#include <obj/Proto.h>
-#include <obj/Util/Global.h>
+#include <proto/Proto.h>
+#include <infra/Global.h>
 #include <math/Colour.h>
 #include <math/Grid.h>
 #include <math/Math.h>
 #include <core/Entity/Entity.h>
 #include <core/Physic/Scope.h>
-#include <block/Generated/Forward.h>
+#include <block/Forward.h>
 
 /* std */
 #include <vector>
@@ -21,35 +21,35 @@ using namespace mud; namespace toy
 {
 	using string = std::string;
 
-	enum _refl_ MatterState : unsigned int
+	enum class refl_ MatterState : unsigned int
 	{
-		STATE_SOLID,
-		STATE_LIQUID,
-		STATE_GAS,
-		STATE_PLASMA
+		Solid,
+		Liquid,
+		Gas,
+		Plasma
 	};
 
-	class _refl_ TOY_BLOCK_EXPORT Element
+	class refl_ TOY_BLOCK_EXPORT Element
 	{
 	public:
-		_constr_ Element(cstring name, MatterState state, Colour colour);
+		constr_ Element(cstring name, MatterState state, Colour colour);
 
-		_attr_ Id m_id;
-		_attr_ string m_name;
-		_attr_ MatterState m_matterState;
-		_attr_ Colour m_colour;
+		attr_ Id m_id;
+		attr_ string m_name;
+		attr_ MatterState m_state;
+		attr_ Colour m_colour;
 	};
 
-	class _refl_ TOY_BLOCK_EXPORT Heap : public Construct
+	class refl_ TOY_BLOCK_EXPORT Heap : public Complex
 	{
 	public:
-		_constr_ Heap(Id id, Entity& parent, const vec3& position, Element& element, float radius);
+		constr_ Heap(Id id, Entity& parent, const vec3& position, Element& element, float radius);
 
-		_comp_ _attr_ Entity m_entity;
-		_attr_ _link_  Element& m_element;
-		_attr_ float m_radius;
+		comp_ attr_ Entity m_entity;
+		attr_ link_  Element& m_element;
+		attr_ float m_radius;
 
-		//_attr_ Array<Chunk>& chunks() { return m_chunks; }
+		//attr_ Array<Chunk>& chunks() { return m_chunks; }
 
 	protected:
 		//Array<Chunk> m_chunks;

@@ -3,7 +3,7 @@
 //  This notice and the license may not be removed or altered from any source distribution.
 
 
-#include <core/Generated/Types.h>
+#include <core/Types.h>
 #include <core/Event/EventSignal.h>
 
 #include <core/Entity/Entity.h>
@@ -15,17 +15,17 @@
 
 using namespace mud; namespace toy
 {
-	EventEmitter::EventEmitter(Entity& entity)
+	EventEmitter::EventEmitter(Entity& entity, EventRelay& event_relay)
 		: Emitter(entity)
 	{
-		entity.part<EventRelay>().appendEventTube(*this);
+		event_relay.appendEventTube(*this);
 	}
 
-	EventReceptor::EventReceptor(Entity& entity)
+	EventReceptor::EventReceptor(Entity& entity, EventRelay& event_relay)
 		: Receptor(entity)
 		, EventTubeEnd()
 	{
-		entity.part<EventRelay>().appendEventTubeEnd(*this);
+		event_relay.appendEventTubeEnd(*this);
 	}
 
 	void EventReceptor::addScope(Medium& medium, float radius, CollisionGroup group)
@@ -39,12 +39,12 @@ using namespace mud; namespace toy
 		scope.m_scope.unobserve(*this);
 	}
 
-	void EventReceptor::handleAdd(Entity& entity)
+	void EventReceptor::handle_add(Entity& entity)
 	{
 		this->bind(entity.part<EventEmitter>());
 	}
 
-	void EventReceptor::handleRemove(Entity& entity)
+	void EventReceptor::handle_remove(Entity& entity)
 	{
 		this->unbind(entity.part<EventEmitter>());
 	}

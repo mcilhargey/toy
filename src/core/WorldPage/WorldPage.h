@@ -4,25 +4,26 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Complex.h>
+#include <proto/Complex.h>
 #include <core/Store/Array.h>
-#include <obj/Util/Global.h>
-#include <obj/Util/Updatable.h>
+#include <infra/Global.h>
+#include <infra/Updatable.h>
 #include <math/Vec.h>
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 #include <core/Physic/Medium.h>
 #include <core/Physic/Collider.h>
 
-/* std */
+#ifndef MUD_CPP_20
 #include <memory>
+#include <atomic>
+#endif
 
 using namespace mud; namespace toy
 {
-	class _refl_ TOY_CORE_EXPORT WorldMedium : public Medium, public LazyGlobal<WorldMedium>
+	class refl_ TOY_CORE_EXPORT WorldMedium : public Medium, public LazyGlobal<WorldMedium>
 	{
 	public:
-		_constr_ WorldMedium();
+		constr_ WorldMedium();
 	};
 
 	/* A WorldPage has : 
@@ -32,19 +33,19 @@ using namespace mud; namespace toy
 		- adjacent worldpages
 	*/
 
-	class _refl_ TOY_CORE_EXPORT WorldPage : public NonCopy, public ColliderObject, public Updatable, public StoreObserver<Entity>
+	class refl_ TOY_CORE_EXPORT WorldPage : public NonCopy, public ColliderObject, public Updatable, public StoreObserver<Entity>
     {
 	public:
-		_constr_ WorldPage(Entity& entity, Emitter& emitter, bool open, const vec3& extents);
+		constr_ WorldPage(Entity& entity, Emitter& emitter, bool open, const vec3& extents);
         ~WorldPage();
 
-		_attr_ Entity& m_entity;
-		_attr_ Emitter& m_emitter;
-		_attr_ _mut_ bool m_open;
-		_attr_ vec3 m_extents;
-		_attr_ World& m_world;
-		_attr_ size_t m_last_rebuilt = 0;
-		_attr_ size_t m_updated = 0;
+		attr_ Entity& m_entity;
+		attr_ Emitter& m_emitter;
+		attr_ mut_ bool m_open;
+		attr_ vec3 m_extents;
+		attr_ World& m_world;
+		attr_ size_t m_last_rebuilt = 0;
+		attr_ std::atomic<size_t> m_updated = { 0 };
 
 		std::vector<string> m_geometry_filter;
 
@@ -52,24 +53,21 @@ using namespace mud; namespace toy
 
 		EmitterScope& m_scope;
 
-		Geometry& geom() { return *m_geom; }
+		std::vector<Geometry> m_chunks;
+		std::vector<object_ptr<Solid>> m_solids;
 
 		virtual void next_frame(size_t tick, size_t delta) final;
 
-		virtual void addContact(Collider& object);
-		virtual void removeContact(Collider& object);
+		virtual void add_contact(Collider& object);
+		virtual void remove_contact(Collider& object);
 
-		virtual void handleAdd(Entity& entity);
-		virtual void handleRemove(Entity& entity);
+		virtual void handle_add(Entity& entity);
+		virtual void handle_remove(Entity& entity);
 
-		_meth_ void buildGeometry();
-		_meth_ void updateGeometry();
+		meth_ void build_geometry();
+		meth_ void update_geometry();
 
-		_meth_ void groundPoint(const vec3& position, bool relative, vec3& outputPoint);
-		_meth_ void raycastGround(const vec3& from, const vec3& to, vec3& groundPoint);
-
-    private:
-		object_ptr<Geometry> m_geom;
-		object_ptr<Solid> m_ground;
+		meth_ void ground_point(const vec3& position, bool relative, vec3& outputPoint);
+		meth_ void raycast_ground(const vec3& from, const vec3& to, vec3& ground_point);
     };
 }

@@ -5,7 +5,7 @@
 #pragma once
 
 /* toy */
-#include <obj/NonCopy.h>
+#include <infra/NonCopy.h>
 #include <obj/Unique.h>
 #include <db/Generated/Forward.h>
 #include <util/Loader/DataLoader.h>
@@ -20,7 +20,7 @@ using namespace mud; namespace toy
 {
 	using string = std::string;
 
-    class _refl_ TOY_DB_EXPORT SqliteDatabase : public NonCopy, public DataSource
+    class refl_ TOY_DB_EXPORT SqliteDatabase : public NonCopy, public DataSource
     {
     public:
         SqliteDatabase(cstring path);

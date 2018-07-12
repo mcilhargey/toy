@@ -4,88 +4,101 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Util/Updatable.h>
+#include <infra/Updatable.h>
 #include <math/Vec.h>
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 #include <core/Physic/CollisionGroup.h>
 #include <core/Physic/CollisionShape.h>
 #include <core/Entity/EntityObserver.h>
 #include <core/Movable/MotionState.h>
 
-/* std */
+#ifndef MUD_CPP_20
 #include <memory>
+#endif
 
 using namespace mud; namespace toy
 {
-	class _refl_ TOY_CORE_EXPORT ColliderImpl
+	struct TOY_CORE_EXPORT Collision
 	{
-	public:
-		typedef std::vector<Collider*> ContactList;
+		Collision() {}
+		Collision(Collider* first, Collider* second, const vec3& hit_point) : m_first(first), m_second(second), m_hit_point(hit_point) {}
+		Collider* m_first = nullptr;
+		Collider* m_second = nullptr;
+		vec3 m_hit_point = Zero3;
+	};
 
+	class refl_ TOY_CORE_EXPORT ColliderImpl : public MotionSource
+	{
 	public:
 		virtual ~ColliderImpl() {}
 
         //virtual void update() = 0;
-		virtual void forceUpdate() = 0;
+		virtual void force_update() = 0;
 
-		virtual void updateTransform(const vec3& position, const quat& rotation) = 0;
+		virtual void update_transform(const vec3& position, const quat& rotation) = 0;
+		virtual void update_motion(const vec3& linear_velocity, const vec3& angular_velocity) = 0;
+		virtual void update_transform() = 0;
 
-		virtual void project(const vec3& position, ContactList& collisions, short int mask) = 0;
-		virtual void raycast(Collider& other, ContactList& obstacles, short int mask) = 0;
+		virtual void project(const vec3& position, std::vector<Collision>& collisions, short int mask) = 0;
+		virtual void raycast(const vec3& position, std::vector<Collision>& collisions, short int mask) = 0;
+		virtual Collision raycast(const vec3& position, short int mask) = 0;
 
-		virtual void setForce(const vec3& force) = 0;
-		virtual void setTorque(const vec3& torque) = 0;
+		virtual vec3 linear_velocity() = 0;
+		virtual vec3 angular_velocity() = 0;
+
+		virtual void set_linear_velocity(const vec3& force) = 0;
+		virtual void set_angular_velocity(const vec3& torque) = 0;
+		virtual void set_angular_factor(const vec3& factor) = 0;
+
+		virtual void set_force(const vec3& force) = 0;
+		virtual void set_torque(const vec3& torque) = 0;
+
+		virtual void impulse(const vec3& force, const vec3& point) = 0;
+
+		virtual void impulse_force(const vec3& force) = 0;
+		virtual void impulse_torque(const vec3& torque) = 0;
 	};
 
-	class _refl_ TOY_CORE_EXPORT ColliderObject
+	class refl_ TOY_CORE_EXPORT ColliderObject
 	{
 	public:
 		virtual ~ColliderObject() {}
-		virtual void addContact(Collider& object) { UNUSED(object); }
-		virtual void removeContact(Collider& object) { UNUSED(object); }
+		virtual void add_contact(Collider& object) { UNUSED(object); }
+		virtual void remove_contact(Collider& object) { UNUSED(object); }
 	};
 
-    class _refl_ TOY_CORE_EXPORT Collider : public NonCopy, public Updatable, public HookObserver, public MotionSource
+    class refl_ TOY_CORE_EXPORT Collider : public NonCopy, public Updatable, public HookObserver
     {
 	public:
-		typedef std::vector<Collider*> ContactList;
-
-	public:
-        Collider(Entity& entity, ColliderObject& object, const CollisionShape& collisionShape, Medium& medium, CollisionGroup group, bool init = true);
+		Collider(Entity& entity, ColliderObject& object, const CollisionShape& collision_shape, Medium& medium, CollisionGroup group, bool init = true);
         virtual ~Collider();
 
 		Entity& m_entity;
 		ColliderObject& m_object;
-		CollisionShape m_collisionShape;
+		CollisionShape m_collision_shape;
 		Medium& m_medium;
 		CollisionGroup m_group;
 
 		SubPhysicWorld& m_world;
 		object_ptr<ColliderImpl> m_impl;
 
-		MotionState m_motionState;
+		MotionState m_motion_state;
 
 		void init();
 
 		void next_frame(size_t tick, size_t delta);
 
-		void forceUpdate();
-
-		virtual void updateTransform(const vec3& position, const quat& rotation);
-		virtual void handleMoved() {}
-		
-		void project(const vec3& position, ContactList& collisions, short int mask);
-		void raycast(Collider& other, ContactList& obstacles, short int mask);
-
 		virtual void unhooked();
 		virtual void hooked();
+
+		ColliderImpl* operator->() { return m_impl.get(); }
+		const ColliderImpl* operator->() const { return m_impl.get(); }
     };
 
-	class _refl_ TOY_CORE_EXPORT Solid : public Collider
+	class refl_ TOY_CORE_EXPORT Solid : public Collider
 	{
 	public:
-		Solid(Entity& entity, ColliderObject& object, const CollisionShape& collisionShape, Medium& medium, CollisionGroup group, bool isstatic, float mass = 0.f);
+		Solid(Entity& entity, ColliderObject& object, const CollisionShape& collision_shape, Medium& medium, CollisionGroup group, bool isstatic, float mass = 0.f);
 		~Solid();
 
 		bool m_static;

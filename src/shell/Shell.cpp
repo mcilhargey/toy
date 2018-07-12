@@ -1,8 +1,12 @@
 
 #include <shell/Shell.h>
 
-#include <mud/mud.h>
 #include <toy/toy.h>
+#include <toy/Modules.h>
+
+#include <ui-vg/VgVg.h>
+
+#include <edit/Edit/Viewport.h>
 
 #if MUD_PLATFORM_EMSCRIPTEN
 #include <emscripten/emscripten.h>
@@ -39,32 +43,33 @@ using namespace mud; namespace toy
 	Game::~Game()
 	{}
 
-	GameState::GameState(User& user, VisuSystem& visuSystem, Game& game)
-		: m_vision(make_object<OmniVision>(*game.m_world))
-		, m_scene(make_object<VisuScene>(*m_vision, visuSystem))
+	GameScene& Game::add_scene()
+	{
+		m_scenes.emplace_back(make_unique<GameScene>(*m_user, *m_shell->m_visu_system, *this, m_player));
+		return *m_scenes.back();
+	}
+
+	GameScene::GameScene(User& user, VisuSystem& visu_system, Game& game, Ref player)
+		: m_scene(make_object<VisuScene>(visu_system))
 		, m_selection(user.m_selection)
-		, m_camera(m_vision->addCamera(vec3(10.f, 0.f, 10.f), 25.f, true))
+		, m_camera(game.m_world->origin().construct<OCamera>(vec3(10.f, 0.f, 10.f), 25.f, 0.1f, 300.f).m_camera)
 		//, m_camera(m_vision->addCamera(vec3(0.f, 0.f, -25.f), 25.f, true))
 		, m_game(game)
+		, m_player(player)
 	{
-		m_camera.setLensAngle(M_PI / 4.f);
-		m_scene->m_scene_state = this;
+		m_scene->m_player = player;
+		m_scene->m_scene.m_user = player;
+		m_camera.setLensAngle(c_pi / 4.f);
 	}
 
-	GameState::~GameState()
+	GameScene::~GameScene()
 	{}
 
-	void game_viewport(Widget& parent, GameState& game)
+	Viewer& game_viewport(Widget& parent, GameScene& game)
 	{
-		Viewer& self = scene_viewport(parent, game.m_scene->m_scene, game.m_gfx_camera, game.m_selection);
+		Viewer& self = scene_viewport(parent, *game.m_scene, game.m_camera, game.m_selection);
 		game.m_viewer = &self;
-	}
-
-	void game_screen(Widget& parent, GameState& game)
-	{
-		Widget& self = ui::layout(parent);
-		game_viewport(self, game);
-		//console_view(parent, game);
+		return self;
 	}
 
 	GameShell::GameShell(array<cstring> resource_paths, int argc, char *argv[])
@@ -73,17 +78,20 @@ using namespace mud; namespace toy
 		, m_core(make_object<Core>())
 		, m_interpreter()
 		, m_visu_system(make_object<VisuSystem>(resource_paths))
-		, m_editor(*m_visu_system->m_gfx_system)
+		, m_editor(*m_visu_system)
 		, m_game(m_user, *m_visu_system->m_gfx_system)
 	{
-		System::instance().load_modules({ &mudobj::module(), &mudmath::module(), &mudgeom::module(), &mudlang::module(), &toyutil::module(), &toycore::module() });
-		System::instance().load_modules({ &mudui::module(), &mudgfx::module() });
+		System::instance().load_modules({ &mud_obj::m(), &mud_math::m(), &mud_geom::m(), &mud_lang::m(), &toy_util::m(), &toy_core::m() });
+		System::instance().load_modules({ &mud_ui::m(), &mud_gfx::m(), &mud_gfx_pbr::m(), &mud_gfx_obj::m(), &mud_gfx_gltf::m(), &mud_gfx_ui::m() });
 
-		//toyvisu::module().set_visu_module(*m_visu_system);
+		//toyvisu::m().set_visu_module(*m_visu_system);
 
-		System::instance().load_modules({ &toyvisu::module() });
-		System::instance().load_modules({ &toyblock::module(), &mudgen::module(), &mudedit::module() });
+		System::instance().load_modules({ &toy_visu::m() });
+		System::instance().load_modules({ &toy_block::m(), &mud_procgen::m(), &mud_tool::m() });
 		//this->connectDb("database.sqlite");
+
+		// @todo this should be automatically done by math module
+		register_math_conversions();
 
 		m_interpreter = make_object<LuaInterpreter>();
 
@@ -98,21 +106,17 @@ using namespace mud; namespace toy
 
 
 #if 0
-	void GameShell::launchGame()
+	void GameShell::launch_game()
 	{
-		string shellPath = m_exec_path + "/" + "shell";
-		System::instance().launchProcess(shellPath, m_game_name);
+		string shell_path = m_exec_path + "/" + "shell";
+		System::instance().launch_process(shell_path, m_game_name);
 	}
 #endif
 
 	void GameShell::launch(const string& module_path)//name, bool start)
 	{
-		UNUSED(module_path);
-		//m_game_name = name;
-		//m_game_path = m_exec_path + "/" + name;
-		//m_game_module = &as<GameModule>(*System::instance().openModule(name));
-		////m_game_module = &as<GameModule>(*System::instance().loadModule(m_game_path));
-		//
+		this->load(module_path);
+
 		//if(m_game_module)
 		//	this->loadGame(*m_game_module, start);
 	}
@@ -121,8 +125,24 @@ using namespace mud; namespace toy
 	{
 		m_visu_system->init();
 
-		m_ui_window = &m_visu_system->m_gfx_system->create_window("toy EditorCore", 1600, 900, false, nullptr);//&m_user);
-		//m_ui_window = &m_visuSystem->m_gfx_system->create_window("toy EditorCore", 1280, 720, false, &m_user);
+		m_context = m_visu_system->m_gfx_system->create_context("mud EditorCore", 1600, 900, false);
+		//m_context = m_gfx_system.create_context("mud EditorCore", 1280, 720, false);
+		GfxContext& context = as<GfxContext>(*m_context);
+
+#if defined MUD_VG_VG
+		m_vg = make_object<VgVg>(m_resource_path.c_str(), &m_visu_system->m_gfx_system->m_allocator);
+#elif defined MUD_VG_NANOVG
+		m_vg = make_object<VgNanoBgfx>(m_resource_path.c_str());
+#endif
+		context.m_reset_vg = [&] { return m_vg->load_texture(context.m_target->m_diffuse.idx); };
+
+		m_ui_window = make_unique<UiWindow>(*m_context, *m_vg);
+
+		pipeline_pbr(*m_visu_system->m_gfx_system, *m_visu_system->m_gfx_system->m_pipeline);
+		m_visu_system->m_gfx_system->init_pipeline();
+
+		static ImporterOBJ obj_importer(*m_visu_system->m_gfx_system);
+		static ImporterGltf gltf_importer(*m_visu_system->m_gfx_system);
 
 		//string stylesheet = "minimal.yml";
 		string stylesheet = "vector.yml";
@@ -134,17 +154,42 @@ using namespace mud; namespace toy
 		m_ui = m_ui_window->m_root_sheet.get();
 	}
 
-	void GameShell::run(GameModule& game_module, size_t iterations)
+	void GameShell::load(GameModule& game_module)
 	{
 		m_game_module = &game_module;
 		m_game_module->m_on_init(*this, m_game);
 
 		System::instance().load_module(*game_module.m_module);
 
-		if(m_game_module->m_on_start)
-			m_game_module->m_on_start(*this, m_game);
-		m_core->section(0).addTask(m_game.m_world);
+		//if(m_game_module->m_on_start)
+		//	m_game_module->m_on_start(*this, m_game);
+		//
+		//m_core->section(0).add_task(m_game.m_world);
+		//
+		//m_game_module->m_on_pump(*this, m_game);
+	}
 
+	void GameShell::load(const string& module_name)
+	{
+		Module* module = system().open_module((m_exec_path + "/" + module_name).c_str());
+		if(module == nullptr)
+		{
+			printf("ERROR: could not locate/load module %s\n", module_name.c_str());
+			return;
+		}
+
+		GameCallback init  = (GameCallback)module_function(*module, (module_name + "_init").c_str());
+		GameCallback start = (GameCallback)module_function(*module, (module_name + "_start").c_str());
+		GameCallback pump  = (GameCallback)module_function(*module, (module_name + "_pump").c_str());
+		SceneCallback scene = (SceneCallback)module_function(*module, (module_name + "_scene").c_str());
+
+		m_game_module_alloc = make_unique<GameModule>(*module, init, start, pump, scene);
+
+		this->load(*m_game_module_alloc);
+	}
+
+	void GameShell::run(size_t iterations)
+	{
 #ifdef MUD_PLATFORM_EMSCRIPTEN
 		g_app = this;
 		//g_iterations = iterations;
@@ -155,12 +200,70 @@ using namespace mud; namespace toy
 #endif
 	}
 
+	void GameShell::run_game(GameModule& module, size_t iterations)
+	{
+		this->load(module);
+		m_pump = [&](GameShell& app, Game& game) { m_game_module->m_on_pump(app, game); };
+		this->run(iterations);
+	}
+
+	void GameShell::run_editor(GameModule& module, size_t iterations)
+	{
+		this->load(module);
+		m_pump = [&](GameShell& app, Game& game) { this->pump_editor(); };
+		this->run(iterations);
+	}
+
+	void GameShell::run_game(const string& module_name, size_t iterations)
+	{
+		this->load(module_name);
+		m_pump = [&](GameShell& app, Game& game) { m_game_module->m_on_pump(app, game); };
+		this->run(iterations);
+	}
+
+	void GameShell::run_editor(const string& module_path, size_t iterations)
+	{
+		this->load(module_path);
+		m_pump = [&](GameShell& app, Game& game) { this->pump_editor(); };
+		this->run(iterations);
+	}
+
 	bool GameShell::pump()
 	{
-		m_game_module->m_on_pump(*this, m_game);
+		bool pursue = m_ui_window->input_frame();
 		m_core->next_frame();
-		Animator::me().next_frame(0, 0);
-		return m_visu_system->next_frame();
+		m_pump(*this, m_game);
+		m_ui_window->render_frame();
+		pursue &= m_visu_system->next_frame();
+		return pursue;
+	}
+
+	void GameShell::pump_editor()
+	{
+		Widget& ui = m_ui->begin();
+		toy::editor(ui, m_editor);
+
+		m_game.m_screen = m_editor.m_screen;
+		m_editor.m_edited_world = m_game.m_world;
+
+		if(!m_game.m_world)
+		{
+			m_game_module->m_on_start(*this, m_game);
+			m_game_module->m_on_pump(*this, m_game);
+			return;
+		}
+
+		if(m_editor.m_run_game)
+			m_game_module->m_on_pump(*this, m_game);
+		else if(m_game.m_scenes.size() > 0)
+			game_viewport(*m_game.m_screen, *m_game.m_scenes[0]);
+	}
+
+	GameScene& GameShell::add_scene()
+	{
+		GameScene& scene = m_game.add_scene();
+		m_game_module->m_on_scene(*this, scene);
+		return scene;
 	}
 
 	void GameShell::save()
@@ -172,16 +275,18 @@ using namespace mud; namespace toy
 	World& GameShell::loadWorld(Id id)
 	{
 		//if(GlobalLoader::me().getLoader(type<World>()).dataLoader().check(id, "id", var(id)))
-		World& world = as<World>(val<Construct>(GlobalLoader::me().getLoader(type<World>()).load(id)).m_stem);
-		GlobalLoader::me().getLoader(type<Entity>()).fill(&world.origin(), world.m_id);
+		Ref ref = GlobalLoader::me().getLoader(type<World>()).load(id);
+		//World& world = as<World>(val<Complex>(ref));
+		World& world = val<World>(ref);
+		GlobalLoader::me().getLoader(type<Entity>()).fill(Ref(&world.origin()), world.m_id);
 		return world;
 	}
 
 	void GameShell::destroyWorld()
 	{
-		Construct& construct = *m_game.m_world->m_construct;
-		GlobalPool::me().pool(m_game.m_world->m_prototype).destroy(&construct);
-		m_core->section(0).removeTask(m_game.m_world);
+		Complex& complex = m_game.m_world->m_complex;
+		GlobalPool::me().pool(complex.m_prototype.m_type).destroy(Ref(&complex));
+		m_core->section(0).remove_task(m_game.m_world);
 		m_game.m_world = nullptr;
 	}
 

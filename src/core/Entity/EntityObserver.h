@@ -4,8 +4,7 @@
 
 #pragma once
 
-/* toy */
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 #include <core/Store/StoreObserver.h>
 
 using namespace mud; namespace toy

@@ -199,7 +199,7 @@
         "padding" : [32, 6, 8, 6]
     },
     {   
-        "selector" : "Tooltip, ToolButton, ExpandboxBody",
+        "selector" : "Element, Tooltip, ToolButton, ExpandboxBody",
         "padding" : [4]
     },
     {   

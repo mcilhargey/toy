@@ -2,16 +2,16 @@
 //  This software is provided 'as-is' under the zlib License, see the LICENSE.txt file.
 //  This notice and the license may not be removed or altered from any source distribution.
 
-#include <util/Generated/Types.h>
+#include <util/Types.h>
 #include <util/Procedure.h>
 
-#include <obj/Complex.h>
-#include <obj/Reflect/Method.h>
+#include <proto/Complex.h>
+#include <refl/Method.h>
 
 using namespace mud; namespace toy
 {
 	ProcedureType::ProcedureType(Type& type)
-		: m_type(type), m_index(index(type, this))
+		: m_type(type), m_index(index(type, Ref(this)))
 	{}
 
 	ProcedureType::~ProcedureType()

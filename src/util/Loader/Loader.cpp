@@ -3,31 +3,31 @@
 //  This notice and the license may not be removed or altered from any source distribution.
 
 
-#include <util/Generated/Types.h>
+#include <util/Types.h>
 #include <util/Loader/Loader.h>
 
-#include <obj/Memory/ObjectPool.h>
+#include <pool/ObjectPool.h>
 
 #include <util/Loader/DataLoader.h>
 #include <util/Loader/MemberLoader.h>
 
-#include <obj/Reflect/Injector.h>
-#include <obj/Reflect/Class.h>
+#include <refl/Injector.h>
+#include <refl/Class.h>
 
-#include <obj/Complex.h>
+#include <proto/Complex.h>
 
 #include <set>
 
 using namespace mud; namespace toy
 {
 	GlobalLoader::GlobalLoader()
-		: m_loaders(MUD_MAX_TYPES)
+		: m_loaders(c_max_types)
 	{}
 
 	void GlobalLoader::clear()
 	{
 		m_loaders.clear();
-		m_loaders.resize(MUD_MAX_TYPES);
+		m_loaders.resize(c_max_types);
 	}
 
 	void GlobalLoader::setDataSource(DataSource& dataSource)
@@ -50,7 +50,7 @@ using namespace mud; namespace toy
 		, m_autoId(false)
 		, m_dataId(false)
 	{
-		if(type.m_class->m_members.empty() || strcmp(type.m_class->m_members[0].m_name, "id") != 0)
+		if(cls(type).m_members.empty() || strcmp(cls(type).m_members[0].m_name, "id") != 0)
 			m_dataId = true;
 		if(m_dataId && is_root_type(type))
 			m_autoId = true;
@@ -115,32 +115,32 @@ using namespace mud; namespace toy
 		, m_batchCounter(0)
 		, m_protoIndex(0)
 	{
-		this->setupObject(parent, member);
+		this->setup_object(parent, member);
 	}
 
 	ObjectLoader::~ObjectLoader()
 	{}
 
-	void ObjectLoader::setupObject(Loader* parent, Member* loader_member)
+	void ObjectLoader::setup_object(Loader* parent, Member* loader_member)
 	{
 		this->setup(parent, loader_member);
 
 		m_injectors.emplace_back(m_type);
 
-		for(Type* type : m_type.m_class->m_prototypes)
-			if(type->m_class->m_constructors.size() > size_t(ConstructorIndex::ProtoParts))
-				m_injectors.emplace_back(*type, type->m_class->m_constructors[size_t(ConstructorIndex::ProtoParts)]);
+		//for(Type* type : cls(m_type).m_prototypes)
+		//	if(cls(*type).m_constructors.size() > size_t(ConstructorIndex::ProtoParts))
+		//		m_injectors.emplace_back(*type, cls(*type).m_constructors[size_t(ConstructorIndex::ProtoParts)]);
 
 		m_injector = &m_injectors.front();
 		m_args = m_injector->m_args;
 
-		Constructor& constructor = *m_type.m_class->constructor(m_type.m_class->m_members.size());
-		for(Param& param : constructor.m_params)
+		const Constructor& constructor = *cls(m_type).constructor(cls(m_type).m_members.size());
+		for(const Param& param : constructor.m_params)
 		{
 			if(param.m_index == 0)
 				continue;
 
-			Member& member = m_type.m_class->member(param.m_name);
+			Member& member = cls(m_type).member(param.m_name);
 			bool partstem = (!is_root_type(m_type) && param.m_index == 0);
 			bool link = member.is_link() || partstem;
 
@@ -165,15 +165,15 @@ using namespace mud; namespace toy
 		}
 
 		std::set<Type*> parts;
-		for(Prototype* prototype : m_type.m_class->m_prototypes)
-			for(Type* part : prototype->m_parts)
-				parts.insert(part);
+		//for(Prototype* prototype : cls(m_type).m_prototypes)
+		//	for(Type* part : prototype->m_parts)
+		//		parts.insert(part);
 
 		for(Type* part : parts)
-			if(part->m_kind != TypeKind::Prototype)
+			if(g_prototypes[part->m_id] == nullptr)
 				m_subloaders.push_back(make_object<PartLoader>(*this, *part));
 
-		for(Member& member : m_type.m_class->m_members)
+		for(Member& member : cls(m_type).m_members)
 		{
 			if(member.is_structure() && (is_sequence(*member.m_type)))
 				m_subloaders.push_back(make_object<StructureLoader>(*this, member, m_subloaders.size()));
@@ -250,8 +250,8 @@ using namespace mud; namespace toy
 	{
 		Loader::parseNext();
 
-		if(m_type.m_class->m_prototypes.size() > 0)
-			this->parsePrototype();
+		//if(cls(m_type).m_prototypes.size() > 0)
+		//	this->parsePrototype();
 
 		for(auto& loader : m_subloaders)
 			loader->parseNext();
@@ -263,7 +263,7 @@ using namespace mud; namespace toy
 		m_prototype = &val<Prototype>(m_args[m_protoIndex]);
 
 		for(Injector& injector : m_injectors)
-			if(&injector.m_type == m_prototype)
+			if(g_prototypes[injector.m_type.m_id])
 			{
 				m_injector = &injector;
 				m_args = m_injector->m_args;
@@ -282,7 +282,7 @@ using namespace mud; namespace toy
 
 		// compute poolSector from input arguments for chunked allocation
 		// size_t poolSector 
-		return m_injector->inject(GlobalPool::me().pool(*m_prototype));
+		return m_injector->inject(GlobalPool::me().pool(m_prototype->m_type));
 	}
 
 
@@ -386,7 +386,7 @@ using namespace mud; namespace toy
 			++depth;
 		for(size_t i = 0; i < depth; ++i)
 			printf("  ");
-		printf("%s %s : %s\n", message, m_type.m_name, m_type.m_meta->m_type_class == TypeClass::Complex ? val<Complex>(object).m_prototype.m_name : "");
+		printf("%s %s : %s\n", message, m_type.m_name, meta(m_type).m_type_class == TypeClass::Complex ? val<Complex>(object).m_prototype.m_type.m_name : "");
 	}
 
 
@@ -402,7 +402,7 @@ using namespace mud; namespace toy
 	{
 		if(m_parent->m_prototype->has_part(m_type))
 		{
-			m_args = m_parent->m_injector->args(m_type);
+			//m_args = m_parent->m_injector->args(m_type);
 			ObjectLoader::parseNext();
 		}
 	}

@@ -37,16 +37,16 @@ using namespace mud; namespace toy
 	{
 		if(m_emitter->m_medium.m_occlusions)
 		{
-			std::vector<Collider*> occluding;
+			std::vector<Collision> occluding;
 
-			m_emitter->raycast(*m_receptor, occluding, CM_OBSTACLE);
+			m_emitter->m_impl->raycast(m_receptor->m_entity.m_position, occluding, CM_OBSTACLE);
 
 			m_occluding.clear();
 
-			for(Collider* coll : occluding)
-				m_occluding.push_back(static_cast<ObstacleBody*>(coll));
+			for(const Collision& coll : occluding)
+				m_occluding.push_back(static_cast<ObstacleBody*>(coll.m_second));
 
-			m_strength = m_emitter->m_medium.computeThroughput(*m_emitter, *m_receptor, m_occluding);
+			m_strength = m_emitter->m_medium.throughput(*m_emitter, *m_receptor, m_occluding);
 
 			if(m_strength > 0.f && !m_on)
 				this->on();

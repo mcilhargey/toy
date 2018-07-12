@@ -59,7 +59,7 @@ using namespace mud; namespace toy
 	}
 
 	static void subdivide(BoundsItem* items, int nitems, int imin, int imax, int trisPerChunk,int& curNode, rcChunkyTriMeshNode* nodes, const int maxNodes,
-						  int& curTri, int* outTris, const uint16_t* inTris)
+						  int& curTri, int* outTris, const uint32_t* inTris)
 	{
 		int inum = imax - imin;
 		int icur = curNode;
@@ -80,7 +80,7 @@ using namespace mud; namespace toy
 
 			for(int i = imin; i < imax; ++i)
 			{
-				const uint16_t* src = &inTris[items[i].i * 3];
+				const uint32_t* src = &inTris[items[i].i * 3];
 				int* dst = &outTris[curTri * 3];
 				curTri++;
 				dst[0] = static_cast<int>(src[0]);
@@ -120,7 +120,7 @@ using namespace mud; namespace toy
 		}
 	}
 
-	bool rcCreateChunkyTriMesh(const float* verts, const uint16_t* tris, int ntris, int trisPerChunk, rcChunkyTriMesh* cm)
+	bool rcCreateChunkyTriMesh(const float* verts, const uint32_t* tris, int ntris, int trisPerChunk, rcChunkyTriMesh* cm)
 	{
 		int nchunks = (ntris + trisPerChunk - 1) / trisPerChunk;
 
@@ -141,7 +141,7 @@ using namespace mud; namespace toy
 
 		for(int i = 0; i < ntris; i++)
 		{
-			const uint16_t* t = &tris[i * 3];
+			const uint32_t* t = &tris[i * 3];
 			BoundsItem& it = items[i];
 			it.i = i;
 			// Calc triangle XZ bounds.

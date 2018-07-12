@@ -4,62 +4,62 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Util/Updatable.h>
-#include <obj/NonCopy.h>
+#include <infra/Updatable.h>
+#include <infra/NonCopy.h>
 #include <math/Vec.h>
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 
-/* std */
+#ifndef MUD_CPP_20
 #include <atomic>
+#endif
 
 using namespace mud; namespace toy
 {
-	TOY_CORE_EXPORT bool spin_2d(Entity& entity, const vec3& axis, const vec3& target, float velocity, float time_step);
-	TOY_CORE_EXPORT bool lookat_2d(Entity& entity, const vec3& axis, const vec3& target, float velocity, float time_step);
-	TOY_CORE_EXPORT bool move_2d(Entity& entity, const vec3& target, float velocity, float time_step);
-	TOY_CORE_EXPORT bool move_2d(Movable& movable, const vec3& target, float velocity, float time_step);
-	TOY_CORE_EXPORT bool steer_2d(Entity& entity, const vec3& target, float velocity, float time_step);
-	TOY_CORE_EXPORT bool steer_2d(Movable& movable, const vec3& target, float velocity, float time_step);
-	TOY_CORE_EXPORT bool stick_2d(Entity& entity, const vec3& target, float velocity, float time_step);
-	TOY_CORE_EXPORT bool track_2d(Entity& entity, const vec3& target, float velocity, float time_step);
+	TOY_CORE_EXPORT bool spin_2d(Entity& entity, const vec3& axis, const vec3& target, float velocity, float time_step, float margin = 0.1f);
+	TOY_CORE_EXPORT bool lookat_2d(Entity& entity, const vec3& axis, const vec3& target, float velocity, float time_step, float margin = 0.1f);
+	TOY_CORE_EXPORT bool move_2d(Entity& entity, const vec3& target, float velocity, float time_step, float margin = 0.1f);
+	TOY_CORE_EXPORT bool move_2d(Movable& movable, const vec3& target, float velocity, float time_step, float margin = 0.1f);
+	TOY_CORE_EXPORT bool steer_2d(Entity& entity, const vec3& target, float velocity, float time_step, float margin = 0.1f);
+	TOY_CORE_EXPORT bool steer_2d(Movable& movable, const vec3& target, float velocity, float time_step, float margin = 0.1f);
+	TOY_CORE_EXPORT bool stick_2d(Entity& entity, const vec3& target, float velocity, float time_step, float margin = 0.1f);
+	TOY_CORE_EXPORT bool track_2d(Entity& entity, const vec3& target, float velocity, float time_step, float margin = 0.1f);
 
-	class _refl_ TOY_CORE_EXPORT Movable : public NonCopy, public Updatable
+	class refl_ TOY_CORE_EXPORT Movable : public NonCopy, public Updatable
 	{
 	public:
-		_constr_ Movable(Entity& entity);
+		constr_ Movable(Entity& entity);
 		~Movable();
 
-		_attr_ Entity& m_entity;
+		attr_ Entity& m_entity;
+
+		MotionState* m_motion_state = nullptr;
 
 		vec3 m_linear_velocity = Zero3;
 		vec3 m_angular_velocity = Zero3;
 
-		vec3 m_direction = Zero3;
+		vec3 m_direction = -Z3;
 		vec3 m_acceleration = Zero3;
 
 		bool m_moving = false;
 		vec3 m_previous_position;
 
-		void setMovement(const vec3& position, const quat& rotation, const vec3& relLinVel, const vec3& relAngVel);
+		vec3 m_max_linear_velocity = Zero3;
 
-        void setLinearVelocity(const vec3& linVel);
-		void modifyLinearVelocity(const vec3& linVel);
+		size_t m_updated = 0;
+		size_t m_acceleration_updated = 0;
+		size_t m_last_tick = 0;
 
-        void setAngularVelocity(const vec3& angVel);
-		void modifyAngularVelocity(const vec3& angVel);
+		void set_movement(const vec3& position, const quat& rotation, const vec3& linear_velocity, const vec3& angular_velocity);
 
-		void setAcceleration(const vec3& acceleration, const vec3& maxLinVel);
-		void modifyAcceleration(const vec3& acceleration); 
+        void set_linear_velocity(const vec3& velocity);
+		void modify_linear_velocity(const vec3& velocity);
+
+        void set_angular_velocity(const vec3& velocity);
+		void modify_angular_velocity(const vec3& velocity);
+
+		void set_acceleration(const vec3& acceleration, const vec3& maxLinVel);
+		void modify_acceleration(const vec3& acceleration); 
 
         void next_frame(size_t tick, size_t delta);
-
-	protected:
-
-		vec3 m_maxLinearVelocity = Zero3;
-
-		size_t m_movementUpdated = 0;
-		size_t m_accelerationUpdated = 0;
-		size_t m_lastTick = 0;
 	};
 }

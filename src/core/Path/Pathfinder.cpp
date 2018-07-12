@@ -33,14 +33,14 @@ using namespace mud; namespace toy
 
 	void Pathfinder::nearestValid(vec3& destination, float margin)
 	{
-		//m_worldPage.groundPoint(destination, true, destination);
+		//m_world_page.ground_point(destination, true, destination);
 
 		float extents[3] = { 0.f, margin, 0.f };
 		dtPolyRef polyLref;
 		m_query->findNearestPoly(&destination[0], extents, m_filter.get(), &polyLref, &destination[0]);
 		//printf("navdestination : " << destination[0] << " , " << destination[1] << " , " << destination[2] << std::endl;
 
-		//m_worldPage.groundPoint(destination, true, destination);
+		//m_world_page.ground_point(destination, true, destination);
 
 		//printf("destination : " << destination[0] << " , " << destination[1] << " , " << destination[2] << std::endl;
 	}

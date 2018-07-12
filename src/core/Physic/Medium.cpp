@@ -25,7 +25,7 @@ using namespace mud; namespace toy
 		return m_masks[group];
 	}
 
-	float Medium::computeThroughput(EmitterScope& emitter, ReceptorScope& receptor, std::vector<ObstacleBody*>& occluding)
+	float Medium::throughput(EmitterScope& emitter, ReceptorScope& receptor, std::vector<ObstacleBody*>& occluding)
 	{
 		UNUSED(emitter); UNUSED(receptor);
 

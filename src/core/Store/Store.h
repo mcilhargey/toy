@@ -4,12 +4,11 @@
 
 #pragma once
 
-/* toy */
 #include <obj/Type.h>
 #include <obj/Any.h>
-#include <obj/Iterable/Iterable.h>
-#include <obj/Iterable/Reverse.h>
-#include <core/Generated/Forward.h>
+#include <refl/Iterable.h>
+#include <infra/Reverse.h>
+#include <core/Forward.h>
 #include <core/Store/StoreObserver.h>
 
 #include <algorithm>
@@ -55,7 +54,7 @@ using namespace mud; namespace toy
 		virtual void add(Ref value) final { self().add(val<T>(value)); }
 		virtual void remove(Ref value) final { self().remove(val<T>(value)); }
 
-		virtual void iterate(const std::function<void(Ref)>& callback) const { self().iterate([this, callback](T& object) { return callback(&object); }); }
+		virtual void iterate(const std::function<void(Ref)>& callback) const { self().iterate([this, callback](T& object) { return callback(Ref(&object)); }); }
 		virtual bool has(Ref object) const { return self().has(val<T>(object)); }
 
 		std::vector<T*> copy() const
@@ -77,7 +76,7 @@ using namespace mud; namespace toy
 			for(auto observer : reverse_adapt(m_observers))
 				if(!observer->handleClear())
 					for(auto& pt : self().store())
-						observer->handleRemove(self().deref(pt));
+						observer->handle_remove(self().deref(pt));
 
 			self().store().clear();
 		}
@@ -94,7 +93,7 @@ using namespace mud; namespace toy
 		{
 			m_observers.push_back(&observer);
 			for(auto& pt : self().store())
-				observer.handleAdd(self().deref(pt));
+				observer.handle_add(self().deref(pt));
 		}
 
 		void unobserve(StoreObserver<T>& observer, bool notify = false)
@@ -102,19 +101,19 @@ using namespace mud; namespace toy
 			vector_remove(m_observers, &observer);
 			if(notify)
 				for(auto& pt : self().store())
-					observer.handleRemove(self().deref(pt));
+					observer.handle_remove(self().deref(pt));
 		}
 
 		void notifyAdd(T& object)
 		{
 			for(auto& observer : m_observers)
-				observer->handleAdd(object);
+				observer->handle_add(object);
 		}
 
 		void notifyRemove(T& object)
 		{
 			for(auto& observer : reverse_adapt(m_observers))
-				observer->handleRemove(object);
+				observer->handle_remove(object);
 		}
 
 		void resize(size_t size) { UNUSED(size); }

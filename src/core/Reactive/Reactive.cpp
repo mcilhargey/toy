@@ -38,12 +38,12 @@ using namespace mud; namespace toy
 		: m_entity(entity)
 		, m_controller(nullptr)
 	{
-		entity.m_world.addTask(this, short(Task::State));
+		entity.m_world.add_task(this, short(Task::State));
 	}
 
 	Reactive::~Reactive()
 	{
-		m_entity.m_world.removeTask(this, short(Task::State));
+		m_entity.m_world.remove_task(this, short(Task::State));
 	}
 
 	void Reactive::add(object_ptr<Behavior> behavior)

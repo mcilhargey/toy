@@ -5,104 +5,102 @@
 -- if yacc is not found it will generate an empty glcpp-lexer.c file
 
 group "3rdparty"
-dofile(path.join(MUD_DIR, "scripts/3rdparty/ogg/ogg.lua"))
-dofile(path.join(MUD_DIR, "scripts/3rdparty/vorbis/vorbis.lua"))
-dofile(path.join(MUD_DIR, "scripts/3rdparty/vorbis/vorbisfile.lua"))
 dofile(path.join(TOY_DIR, "scripts/3rdparty/bullet.lua"))
 
 dofile(path.join(MUD_DIR, "scripts/mud.lua"))
 
-group "lib"
-if _OPTIONS["toy-libs"] then
-    group "lib/toy"
-    print 'CACA'
-    dofile(path.join(TOY_DIR, "scripts/toy_core.lua"))
-    if _OPTIONS["toy-sound"] then
-        dofile(path.join(TOY_DIR, "scripts/toy_snd.lua"))
+function toy_core()
+	includedirs {
+        path.join(TOY_3RDPARTY_DIR, "recast", "Recast", "Include"),
+        path.join(TOY_3RDPARTY_DIR, "recast", "Detour", "Include"),
+        path.join(TOY_3RDPARTY_DIR, "bullet", "src"),
+	}
+
+	files {
+        path.join(TOY_3RDPARTY_DIR, "recast", "Recast", "Include", "*.h"),
+        path.join(TOY_3RDPARTY_DIR, "recast", "Recast", "Source", "*.cpp"),
+        
+        path.join(TOY_3RDPARTY_DIR, "recast", "Detour", "Include", "*.h"),
+        path.join(TOY_3RDPARTY_DIR, "recast", "Detour", "Source", "*.cpp"),
+	}
+    
+    links {
+        "LinearMath",
+        "BulletCollision",
+        "BulletDynamics",
+	}
+end
+
+function uses_toy_core()
+	includedirs {
+        TOY_SRC_DIR,
+	}
+
+    links {
+        "LinearMath",
+        "BulletCollision",
+        "BulletDynamics",
+    }
+end
+
+function toy_visu()
+    if not _OPTIONS["sound"] then
+        removefiles {
+            path.join(TOY_VISU_DIR, "Sound", "**.h"),
+            path.join(TOY_VISU_DIR, "Sound", "**.cpp"), 
+        }
     end
-    dofile(path.join(TOY_DIR, "scripts/toy_edit.lua"))
-    dofile(path.join(TOY_DIR, "scripts/toy_visu.lua"))
-    dofile(path.join(TOY_DIR, "scripts/toy_block.lua"))
-    dofile(path.join(TOY_DIR, "scripts/toy_gen.lua"))
-    dofile(path.join(TOY_DIR, "scripts/toy_shell.lua"))
+end
+
+toy = {}
+
+--                           base   name        root path    sub path   decl        self decl       decl transitive     dependencies
+toy.util        = mud_module("toy", "util",     TOY_SRC_DIR, "util",    nil,        nil,            nil,                { mud.obj, mud.math })
+toy.core        = mud_module("toy", "core",     TOY_SRC_DIR, "core",    nil,        toy_core,       uses_toy_core,      { mud.obj, mud.proto, mud.math, mud.geom, toy.util })
+if _OPTIONS["sound"] then
+    toy.visu    = mud_module("toy", "visu",     TOY_SRC_DIR, "visu",    nil,        toy_visu,       nil,                { mud.obj, mud.snd, mud.gfx, toy.util, toy.core })
+else
+    toy.visu    = mud_module("toy", "visu",     TOY_SRC_DIR, "visu",    nil,        toy_visu,       nil,                { mud.obj, mud.gfx, toy.util, toy.core })
+end
+toy.editor      = mud_module("toy", "editor",   TOY_SRC_DIR, "editor",  nil,        nil,            nil,                { mud.obj, toy.util, toy.core, toy.visu }) -- table.merge(mud.all, 
+toy.block       = mud_module("toy", "block",    TOY_SRC_DIR, "block",   nil,        nil,            nil,                { mud.obj, toy.core, toy.visu, toy.edit })
+
+toy.modules = { toy.util, toy.core, toy.visu, toy.editor, toy.block }
+table.extend(toy.modules, mud_refls({ toy.util, toy.core, toy.visu, toy.editor, toy.block }, FORCE_REFL_PROJECTS))
+
+toy.core.aliases = { ['toy::string'] = 'std::string' }
+
+toy.shell       = mud_module("toy", "shell",    TOY_SRC_DIR, "shell",   nil,        nil,            nil,                table.merge(mud.all, { toy.core, toy.visu, toy.edit, toy.block }))
+table.insert(toy.modules, toy.shell)
+table.insert(toy.modules, mud_refl(toy.shell, false))
+
+group "lib"
+if _OPTIONS["as-libs"] then
+    group "lib/toy"
+        for _, m  in ipairs(toy.modules) do
+            m.decl(m, true)
+        end
     group "lib"
 else
-    function uses_toy()
-        includedirs {
-            path.join(TOY_SRC_DIR),
-        }
-        
-        if project().name ~= "toy" then
-            links { "toy" }
+    project "toy"
+        if MUD_STATIC then
+            kind "StaticLib"
+        else
+            kind "SharedLib"
         end
         
-        links {
-            "LinearMath",
-            "BulletCollision",
-            "BulletDynamics",
-        }
-        
-        uses_mud_gfx()
-        uses_mud()
-    end
-
-    project "toy"
-        kind "SharedLib"
-        
-        includedirs {
-            path.join(TOY_SRC_DIR),
-            path.join(TOY_3RDPARTY_DIR, "recast", "Recast", "Include"),
-            path.join(TOY_3RDPARTY_DIR, "recast", "Detour", "Include"),
-            path.join(TOY_3RDPARTY_DIR, "bullet", "src"),
-            path.join(MUD_3RDPARTY_DIR, "sqlite3"),
-        }
-
-        mud_module("util",   TOY_SRC_DIR, "util",   "TOY_UTIL")
-        mud_module("db",     TOY_SRC_DIR, "db",     "TOY_DB")
-        mud_module("core",   TOY_SRC_DIR, "core",   "TOY_CORE")
-        mud_module("visu",   TOY_SRC_DIR, "visu",   "TOY_VISU")
-        mud_module("editor", TOY_SRC_DIR, "editor", "TOY_EDITOR")
-        mud_module("block",  TOY_SRC_DIR, "block",  "TOY_BLOCK")
-        mud_module("shell",  TOY_SRC_DIR, "shell",  "TOY_SHELL")
+        for _, m  in ipairs(toy.modules) do
+            m.decl(m, false)
+        end
         
         files {
             path.join(TOY_SRC_DIR, "toy",    "**.h"),
-            path.join(MUD_3RDPARTY_DIR, "sqlite3", "*.c"),
-            path.join(TOY_3RDPARTY_DIR, "recast", "Recast", "Include", "*.h"),
-            path.join(TOY_3RDPARTY_DIR, "recast", "Recast", "Source", "*.cpp"),
-            path.join(TOY_3RDPARTY_DIR, "recast", "Detour", "Include", "*.h"),
-            path.join(TOY_3RDPARTY_DIR, "recast", "Detour", "Source", "*.cpp"),
         }
-        
-        removefiles {
-            path.join(TOY_EDITOR_DIR, "main.cpp"),
-        }
-    
-        defines { "TOY_LIB" }
-        
-        uses_toy()
-
-        configuration { "sound" }
-            defines { "TOY_SOUND" }
-            
-        configuration {}
 end
 
-function toy_binary(name)
-    mud_binary(name)
-    
-    configuration { "not linux", "not asmjs" }
-        defines {
-            "TOY_RESOURCE_PATH=\"" .. path.join(TOY_DIR, "data") .. "/\"",
-        }
-
-    configuration { "linux", "not asmjs" }
-        defines {
-            "TOY_RESOURCE_PATH=\\\"" .. path.join(TOY_DIR, "data") .. "/\\\"",
-        }
-
-	configuration {}
-end
+toy.all = {}
+table.extend(toy.all, mud.all)
+table.extend(toy.all, toy.modules)
 
 group "bin"
-dofile(path.join(TOY_DIR, "scripts/shell.lua"))
+--dofile(path.join(TOY_DIR, "scripts/shell.lua"))

@@ -4,10 +4,9 @@
 
 #pragma once
 
-/* toy */
 #include <obj/Ref.h>
-#include <obj/Reflect/Member.h>
-#include <util/Generated/Forward.h>
+#include <refl/Member.h>
+#include <util/Forward.h>
 #include <util/Loader/Loader.h>
 
 using namespace mud; namespace toy
@@ -18,7 +17,7 @@ using namespace mud; namespace toy
 			- load (->ObjectId, <-DataValues)
 	*/
 
-	class _refl_ TOY_UTIL_EXPORT MemberLoader : public Loader
+	class refl_ TOY_UTIL_EXPORT MemberLoader : public Loader
 	{
 	public:
 		MemberLoader(ObjectLoader& parent, Member& member, size_t index);
@@ -27,7 +26,7 @@ using namespace mud; namespace toy
 		virtual void parse(Var& data, Var& arg) { arg = data; }
 
 		virtual void dump(Ref object) { return this->dump(object, m_parent->data()[m_index]); }
-		virtual void dump(Ref object, Var& data) { m_member.get(object, data); }
+		virtual void dump(Ref object, Var& data) { data = m_member.get(object); }
 
 		virtual void erase(Ref object) { UNUSED(object); }
 		virtual void empty(Ref object) { UNUSED(object); }
@@ -37,7 +36,7 @@ using namespace mud; namespace toy
 		size_t m_index;
 	};
 
-	class _refl_ TOY_UTIL_EXPORT TypeLoader : public MemberLoader
+	class refl_ TOY_UTIL_EXPORT TypeLoader : public MemberLoader
 	{
 	public:
 		TypeLoader(ObjectLoader& parent, Member& member, size_t index);
@@ -50,7 +49,7 @@ using namespace mud; namespace toy
 		std::vector<Id> m_ids;
 	};
 
-	class _refl_ TOY_UTIL_EXPORT LinkedLoader : public MemberLoader
+	class refl_ TOY_UTIL_EXPORT LinkedLoader : public MemberLoader
 	{
 	public:
 		LinkedLoader(ObjectLoader& parent, Member& member, size_t index);
@@ -59,7 +58,7 @@ using namespace mud; namespace toy
 		void dump(Ref object, Var& darg);
 	};
 
-	class _refl_ TOY_UTIL_EXPORT OwnedLoader : public ObjectLoader
+	class refl_ TOY_UTIL_EXPORT OwnedLoader : public ObjectLoader
 	{
 	public:
 		OwnedLoader(ObjectLoader& parent, Member& member, size_t index);
@@ -81,7 +80,7 @@ using namespace mud; namespace toy
 		size_t m_index;
 	};
 
-	class _refl_ TOY_UTIL_EXPORT SequenceLoader : public MemberLoader
+	class refl_ TOY_UTIL_EXPORT SequenceLoader : public MemberLoader
 	{
 	public:
 		SequenceLoader(ObjectLoader& parent, Member& member, size_t index);
@@ -97,7 +96,7 @@ using namespace mud; namespace toy
 		object_ptr<Loader> m_elementLoader;
 	};
 
-	class _refl_ TOY_UTIL_EXPORT StructureLoader : public MemberLoader
+	class refl_ TOY_UTIL_EXPORT StructureLoader : public MemberLoader
 	{
 	public:
 		StructureLoader(ObjectLoader& parent, Member& member, size_t index);

@@ -1,7 +1,6 @@
 //  Copyright (c) 2018 Hugo Amiard hugo.amiard@laposte.net
 //  This software is provided 'as-is' under the zlib License, see the LICENSE.txt file.
 //  This notice and the license may not be removed or altered from any source distribution.
-/* toy */
 
 #define TOY_PRIVATE
 #include <core/Bullet/BulletMotionState.h>
@@ -11,22 +10,20 @@
 
 using namespace mud; namespace toy
 {
-    BulletMotionState::BulletMotionState(MotionState& motionState, const vec3& offset)
+    BulletMotionState::BulletMotionState(MotionState& motion_state)
         : btMotionState()
-		, m_motionState(motionState)
-		, m_offset(offset)
+		, m_motion_state(motion_state)
     {}
 
-	void BulletMotionState::getWorldTransform(btTransform& worldTransform) const
+	void BulletMotionState::getWorldTransform(btTransform& transform) const
 	{
-		worldTransform.setOrigin(to_btvec3(m_motionState.m_entity.absolutePosition() + m_offset));
-		worldTransform.setRotation(to_btquat(m_motionState.m_entity.absoluteRotation()));
+		MotionState::Transform t = m_motion_state.transform();
+		transform.setOrigin(to_btvec3(t.m_position));
+		transform.setRotation(to_btquat(t.m_rotation));
 	}
 
     void BulletMotionState::setWorldTransform(const btTransform& transform)
     {
-		quat rotation = to_quat(transform.getRotation()) * inverse(m_motionState.m_entity.m_parent->absoluteRotation());
-		vec3 position = to_vec3(transform.getOrigin()) - m_offset - m_motionState.m_entity.m_parent->absolutePosition();
-		m_motionState.syncTransform(position, rotation);
+		m_motion_state.sync_transform(to_vec3(transform.getOrigin()), to_quat(transform.getRotation()));
     }
 }

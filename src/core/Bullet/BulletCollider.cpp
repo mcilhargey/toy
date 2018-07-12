@@ -4,7 +4,7 @@
 
 #include <core/Bullet/BulletCollider.h>
 
-#include <obj/Util/DispatchDecl.h>
+#include <obj/DispatchDecl.h>
 
 #include <geom/Shapes.h>
 #include <geom/ShapesComplex.h>
@@ -103,16 +103,16 @@ using namespace mud; namespace toy
 		dispatch_branch<Geometry>(*this, &createGeometryShape);
 	};
 
-	BulletShape DispatchBulletShape::dispatch(CollisionShape& collisionShape)
+	BulletShape DispatchBulletShape::dispatch(CollisionShape& collision_shape)
 	{
-		Ref shape = collisionShape.m_shape.get();
+		Ref shape = Ref(collision_shape.m_shape.get());
 		return Dispatch::dispatch(shape); 
 	}
 
 	class ContactCheck : public btCollisionWorld::ContactResultCallback
 	{
 	public:
-		ContactCheck(std::vector<Collider*>& collisions, float margin = 0.f)
+		ContactCheck(std::vector<Collision>& collisions, float margin = 0.f)
 			: m_collisions(collisions)
 			, m_margin(margin)
 		{}
@@ -126,88 +126,114 @@ using namespace mud; namespace toy
 
 		btScalar addSingleResult(btManifoldPoint &cp, const btCollisionObjectWrapper *colObj0, int partId0, int index0, const btCollisionObjectWrapper *colObj1, int partId1, int index1)
 		{
-			UNUSED(colObj0); UNUSED(index0); UNUSED(index1); UNUSED(partId0); UNUSED(partId1);
+			UNUSED(index0); UNUSED(index1); UNUSED(partId0); UNUSED(partId1);
 			if(cp.getDistance() < m_margin)
-				m_collisions.push_back((Collider*)colObj1->m_collisionObject->getUserPointer());
+				m_collisions.push_back({ (Collider*)colObj0->m_collisionObject->getUserPointer(), 
+										 (Collider*)colObj1->m_collisionObject->getUserPointer(),
+										 Zero3 });
 
 			return 0.f;
 		}
 
 	private:
-		std::vector<Collider*>& m_collisions;
+		std::vector<Collision>& m_collisions;
 		float m_margin;
 	};
 
-	BulletCollider::BulletCollider(SubBulletWorld& bulletWorld, Collider& collider, bool create)
-		: m_bulletWorld(bulletWorld)
+	BulletCollider::BulletCollider(SubBulletWorld& bullet_world, Collider& collider, bool create)
+		: m_bullet_world(bullet_world)
 		, m_collider(collider)
-		, m_collisionShape(DispatchBulletShape::me().dispatch(collider.m_collisionShape))
+		, m_collision_shape(DispatchBulletShape::me().dispatch(collider.m_collision_shape))
 	{
 		if(create)
-			this->setupObject(make_unique<btCollisionObject>());
+			this->setup_object(make_unique<btCollisionObject>());
 	}
 
 	BulletCollider::~BulletCollider()
 	{}
 
-	void BulletCollider::setupObject(unique_ptr<btCollisionObject> collisionObject)
+	void BulletCollider::setup_object(unique_ptr<btCollisionObject> collisionObject)
 	{
-		vec3 position = m_collider.m_entity.m_position + m_collider.m_collisionShape.m_center;
+		vec3 position = m_collider.m_entity.m_position + m_collider.m_collision_shape.m_center;
 
-		m_collisionObject = std::move(collisionObject);
-		m_collisionObject->setUserPointer(&m_collider);
-		m_collisionObject->setWorldTransform(btTransform(to_btquat(m_collider.m_entity.m_rotation), to_btvec3(position)));
-		m_collisionObject->setCollisionFlags(0);
-		m_collisionObject->setCollisionShape(m_collisionShape.shape.get());
-		//m_collisionObject->setContactProcessingThreshold(0.1f);
+		m_collision_object = std::move(collisionObject);
+		m_collision_object->setUserPointer(&m_collider);
+		m_collision_object->setWorldTransform(btTransform(to_btquat(m_collider.m_entity.m_rotation), to_btvec3(position)));
+		m_collision_object->setCollisionFlags(0);
+		m_collision_object->setCollisionShape(m_collision_shape.shape.get());
+		//m_collision_object->setContactProcessingThreshold(0.1f);
 	}
 
-	void BulletCollider::updateTransform(const vec3& position, const quat& rotation)
+	void BulletCollider::update_transform(const vec3& position, const quat& rotation)
 	{
-		m_collisionObject->setWorldTransform(btTransform(to_btquat(rotation), to_btvec3(position)));
+		m_collision_object->setWorldTransform(btTransform(to_btquat(rotation), to_btvec3(position)));
 	}
 
-	void BulletCollider::forceUpdate()
+	void BulletCollider::update_transform()
 	{
-		this->updateTransform(m_collider.m_entity.absolutePosition(), m_collider.m_entity.absoluteRotation());
-		m_bulletWorld.m_bulletWorld->updateSingleAabb(m_collisionObject.get());
-		m_bulletWorld.updateContacts();
+		this->update_transform(m_collider.m_entity.absolute_position(), m_collider.m_entity.absolute_rotation());
 	}
 
-	void BulletCollider::project(const vec3& position, ContactList& collisions, short int mask)
+	void BulletCollider::force_update()
 	{
-		btTransform transform(m_collisionObject->getWorldTransform());
-		m_collisionObject->setWorldTransform(btTransform(to_btquat(m_collider.m_entity.m_rotation), to_btvec3(position)));
+		this->update_transform(m_collider.m_entity.absolute_position(), m_collider.m_entity.absolute_rotation());
+		m_bullet_world.m_bullet_world->updateSingleAabb(m_collision_object.get());
+		m_bullet_world.update_contacts();
+	}
+
+	void BulletCollider::project(const vec3& position, std::vector<Collision>& collisions, short int mask)
+	{
+		btTransform transform(m_collision_object->getWorldTransform());
+		m_collision_object->setWorldTransform(btTransform(to_btquat(m_collider.m_entity.m_rotation), to_btvec3(position)));
 
 		ContactCheck callback(collisions);
 		callback.m_collisionFilterGroup = mask;
 		callback.m_collisionFilterMask = mask;
-		//mGhostObject->checkCollideWith();
+		//m_collision_object->checkCollideWith();
 		
-		m_bulletWorld.m_bulletWorld->updateSingleAabb(m_collisionObject.get());
-		m_bulletWorld.m_bulletWorld->contactTest(m_collisionObject.get(), callback);
+		m_bullet_world.m_bullet_world->updateSingleAabb(m_collision_object.get());
+		m_bullet_world.m_bullet_world->contactTest(m_collision_object.get(), callback);
 
-		m_collisionObject->setWorldTransform(transform);
+		m_collision_object->setWorldTransform(transform);
 	}
 
-	void BulletCollider::raycast(Collider& other, ContactList& obstacles, short int mask)
+	void BulletCollider::raycast(const vec3& target, std::vector<Collision>& collisions, short int mask)
 	{
 		btVector3 from = to_btvec3(m_collider.m_entity.m_position);
-		btVector3 to = to_btvec3(other.m_entity.m_position);
+		btVector3 to = to_btvec3(target);
 
 		if(from == to)
 			return;
 
-		btCollisionWorld::AllHitsRayResultCallback rayCallback(from, to);
-		rayCallback.m_collisionFilterMask = mask;
-		rayCallback.m_collisionFilterGroup = btBroadphaseProxy::AllFilter;
-		m_bulletWorld.m_bulletWorld->rayTest(from, to, rayCallback);
-		//printf << "raycast from " << from.x() << " , " << from.y() << " , " << from.z() << " to " << to.x() << " , " << to.y() << " , " << to.z() << std::endl;
+		btCollisionWorld::AllHitsRayResultCallback callback(from, to);
+		callback.m_collisionFilterMask = mask;
+		callback.m_collisionFilterGroup = btBroadphaseProxy::AllFilter;
+		m_bullet_world.m_bullet_world->rayTest(from, to, callback);
+		//printf("raycast from %f, %f, %f to %f, %f, %f\n", from.x(), from.y(), from.z(), to.x(), to.y(), to.z());
 		
-		for(int i = 0; i != rayCallback.m_collisionObjects.size(); ++i)
+		for(int i = 0; i != callback.m_collisionObjects.size(); ++i)
 		{
-			Collider* physic = static_cast<Collider*>(rayCallback.m_collisionObjects[i]->getUserPointer());
-			obstacles.push_back(physic);
+			Collider* physic = static_cast<Collider*>(callback.m_collisionObjects[i]->getUserPointer());
+			collisions.push_back({ &m_collider, physic, to_vec3(callback.m_hitPointWorld[i]) });
 		}
+	}
+
+	Collision BulletCollider::raycast(const vec3& target, short int mask)
+	{
+		btVector3 from = to_btvec3(m_collider.m_entity.m_position);
+		btVector3 to = to_btvec3(target);
+
+		if(from == to)
+			return {};
+
+		btCollisionWorld::ClosestRayResultCallback callback(from, to);
+		callback.m_collisionFilterMask = mask;
+		callback.m_collisionFilterGroup = btBroadphaseProxy::AllFilter;
+		m_bullet_world.m_bullet_world->rayTest(from, to, callback);
+		//printf("raycast from %f, %f, %f to %f, %f, %f\n", from.x(), from.y(), from.z(), to.x(), to.y(), to.z());
+
+		if(callback.m_collisionObject)
+			return { nullptr, static_cast<Collider*>(callback.m_collisionObject->getUserPointer()), to_vec3(callback.m_hitPointWorld) };
+		return {};
 	}
 }

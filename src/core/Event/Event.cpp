@@ -9,9 +9,9 @@
 
 using namespace mud; namespace toy
 {
-	Event::Event(Type& eventType, Entity& source)
+	Event::Event(Type& eventType, EventRelay& source)
 		: m_eventType(eventType)
-		, m_source(source.part<EventRelay>())
+		, m_source(source)
 		, m_intensity()
 		, m_attributes()
 	{

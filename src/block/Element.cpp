@@ -3,7 +3,7 @@
 //  This notice and the license may not be removed or altered from any source distribution.
 
 
-#include <block/Generated/Types.h>
+#include <block/Types.h>
 #include <block/Element.h>
 
 #include <core/Entity/Entity.h>
@@ -16,24 +16,23 @@ using namespace mud; namespace toy
 {
 	bool GroundChunk::filter(Chunk& chunk)
 	{
-		return (chunk.m_element.m_matterState == STATE_GAS
-			 && chunk.neighbour(Side::Down)->m_element.m_matterState == STATE_SOLID);
+		return (chunk.m_element.m_state == MatterState::Gas
+			 && chunk.neighbour(Side::Down)->m_element.m_state == MatterState::Solid);
 	}
 
 	Element::Element(cstring name, MatterState state, Colour colour)
 		: m_name(name)
-		, m_matterState(state)
+		, m_state(state)
 		, m_colour(colour)
 	{}
 
 	Heap::Heap(Id id, Entity& parent, const vec3& position, Element& element, float radius)
-		: Construct(m_entity, proto<Heap>())
-		, m_entity(id, proto<Heap>(), parent, position, ZeroQuat)
+		: Complex(id, type<Heap>(), *this)
+		, m_entity(id, *this, parent, position, ZeroQuat)
 		, m_element(element)
 		, m_radius(radius)
 	{
 		// @5603 : adding to nested only when object is finish -> in prototype
-		this->index(*this);
 		m_entity.m_parent->m_contents.add(m_entity);
 	}
 }

@@ -3,11 +3,12 @@
 //  This notice and the license may not be removed or altered from any source distribution.
 
 #include <visu/VisuScene.h>
+#include <visu/VisuPage.h>
 
 #include <visu/VisuSystem.h>
 #include <visu/VisuModule.h>
 
-#include <obj/Reflect/Member.h>
+#include <refl/Member.h>
 #include <geom/Shapes.h>
 #include <geom/ShapesComplex.h>
 
@@ -40,7 +41,7 @@
 
 #include <snd/SoundManager.h>
 
-#include <obj/Util/Timer.h>
+#include <math/Timer.h>
 
 #define TOY_PRIVATE
 #include <core/Bullet.h>
@@ -62,14 +63,17 @@
 using namespace mud; namespace toy
 {
 #ifdef TOY_PHYSIC_DEBUG_DRAW
-	class VisuScene::PhysicDebugDraw : public btIDebugDraw
+	class PhysicDebugDraw::Impl : public btIDebugDraw
 	{
 	public:
-		PhysicDebugDraw(ImmediateDraw& immediate) : m_immediate(immediate) {}
+		Impl(ImmediateDraw& immediate) : m_immediate(immediate)
+		{
+		}
 
 		virtual void drawLine(const btVector3& from, const btVector3& to, const btVector3& color) final
 		{
-			m_immediate.draw(bxidentity(), { { Symbol(to_colour(color)), Line(to_vec3(from), to_vec3(to)), OUTLINE, Zero3  } });
+			Line line = { to_vec3(from), to_vec3(to) };
+			m_immediate.draw(bxidentity(), ProcShape{ Symbol(to_colour(color)), &line, OUTLINE });
 		}
 
 		virtual void drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color)
@@ -115,79 +119,75 @@ using namespace mud; namespace toy
 			//return DBG_DrawAabb;
 		}
 
+		bool m_enabled = false;
 		ImmediateDraw& m_immediate;
 	};
 #endif
+	
+	PhysicDebugDraw::PhysicDebugDraw(ImmediateDraw& immediate)
+		: m_impl(make_unique<Impl>(immediate))
+	{}
 
-	VisuScene::VisuScene(Vision& vision, VisuSystem& visu_system)
-		: m_vision(vision)
-		, m_world(vision.m_world)
-		, m_visu_system(visu_system)
+	PhysicDebugDraw::~PhysicDebugDraw()
+	{}
+
+	void PhysicDebugDraw::draw_physics(Gnode& parent, World& world, Medium& medium)
+	{
+		SubBulletWorld& bullet_world = as<SubBulletWorld>(world.part<BulletWorld>().sub_world(medium));
+
+		if(!bullet_world.m_bullet_world->getDebugDrawer())
+		bullet_world.m_bullet_world->setDebugDrawer(m_impl.get());
+
+		bullet_world.m_bullet_world->debugDrawWorld();
+	}
+
+	VisuScene::VisuScene(VisuSystem& visu_system)
+		: m_visu_system(visu_system)
 		, m_gfx_system(*visu_system.m_gfx_system)
 		, m_scene(*visu_system.m_gfx_system)
 #ifdef TOY_SOUND
 		, m_snd_manager(*visu_system.m_sound_system)
 #endif
-#ifdef TOY_PHYSIC_DEBUG_DRAW
-		, m_debug_draw(make_unique<PhysicDebugDraw>(*m_scene.m_immediate))
-#endif
     {
-		m_world.addTask(this, short(Task::Graphics));
+#ifdef TOY_SOUND
+		m_scene.m_graph.m_sound_manager = &m_snd_manager;
+#endif
 
 		for(VisuModule* module : visu_system.m_modules)
 			module->startScene(*this);
-
-#ifdef TOY_PHYSIC_DEBUG_DRAW
-		SubBulletWorld& bullet_world = as<SubBulletWorld>(vision.m_world.part<BulletWorld>().getSubWorld(SolidMedium::me()));
-		bullet_world.m_bulletWorld->setDebugDrawer(m_debug_draw.get());
-#endif
 	}
 
 	VisuScene::~VisuScene()
-    {
-		m_world.removeTask(this, short(Task::Graphics));
-    }
+    {}
 
-	void VisuScene::paint_entity(Gnode& parent, Entity& entity)
+	Gnode& VisuScene::entity_node(Gnode& parent, Entity& entity, size_t painter)
 	{
-		Gnode& node = gfx::node(parent, &entity, entity.absolutePosition(), entity.absoluteRotation());
-		for(auto& painter : m_entity_painters)
-			if(painter->m_filterEntity(entity))
-				painter->m_paintEntity(node.sub((void*) painter->m_index), entity);
+		if(m_entities.size() <= entity.m_id)
+			m_entities.resize(entity.m_id * 2);
+		if(m_entities[entity.m_id] == nullptr)
+			m_entities[entity.m_id] = &gfx::node(parent, Ref(&entity), entity.absolute_position(), entity.absolute_rotation());
+		return m_entities[entity.m_id]->sub((void*) painter);
 	}
 
-	void VisuScene::next_frame(size_t tick, size_t delta)
+	void VisuScene::next_frame()
 	{
-#ifdef TOY_PHYSIC_DEBUG_DRAW
-		SubBulletWorld& bullet_world = as<SubBulletWorld>(m_vision.m_world.part<BulletWorld>().getSubWorld(SolidMedium::me()));
-		bullet_world.m_bulletWorld->debugDrawWorld();
-#endif
-
-		UNUSED(tick); UNUSED(delta);
-
 #ifdef TOY_SOUND
-		m_snd_manager.threadUpdate();
+		//m_snd_manager.threadUpdate();
 #endif
 
-		for(VisuCamera& visucamera : m_cameras)
-			update_camera(*visucamera.m_camera, *visucamera.m_gfx_camera);
+		for(size_t i = 0; i < m_entities.size(); ++i)
+			m_entities[i] = nullptr;
 
 		Gnode& root = m_scene.begin();
 
 		for(size_t i = 0; i < m_painters.size(); ++i)
 			m_painters[i]->m_paint(i, *this, root);
-
-		Gnode& entity_node = root.sub((void*) (m_painters.size() + 1));
-		for(auto& entity_num : m_vision.m_entities.store())
-			if(entity_num.first)
-				paint_entity(entity_node.sub((void*) entity_num.first->m_id), *entity_num.first);
 	}
 
-	EntityPainter::EntityPainter(cstring name, size_t index, std::function<bool(Entity&)> filterEntity, std::function<void(Gnode&, Entity&)> paintEntity)
-		: VisuPainter(name, index, {})
-		, m_filterEntity(filterEntity)
-		, m_paintEntity(paintEntity)
-	{}
+	void scene_painters(VisuScene& scene, Array<Entity>& store)
+	{
+		scene.entity_painter<WorldPage>("WorldPage", store, paint_world_page);
+	}
 
 	void paint_selected(Gnode& parent, Entity& entity)
 	{
@@ -209,10 +209,9 @@ using namespace mud; namespace toy
 		gfx::shape(parent, aabb, Symbol(Colour::White));
 	}
 
-	void visu_selection(Gnode& parent, Selection& selection)
+	void paint_selection(Gnode& parent, Selection& selection)
 	{
 		UNUSED(selection);
-		return;
 		Aabb bounds;
 		/*for(Entity* entity : selection.m_entities.store())
 			for(Item* item : parent.m_items)
@@ -225,9 +224,9 @@ using namespace mud; namespace toy
 		gfx::shape(parent, bounds, Symbol(Colour::White));
 	}
 
-	void update_camera(Camera& camera, Camera& gfx_camera)
+	void update_camera(Camera& camera, mud::Camera& gfx_camera)
 	{
-		gfx_camera.set_look_at(camera.m_lensPosition, camera.m_entity.absolutePosition());
+		gfx_camera.set_look_at(camera.m_lensPosition, camera.m_entity.absolute_position());
 
 		gfx_camera.m_near = camera.m_nearClipDistance;
 		gfx_camera.m_far = camera.m_farClipDistance;
@@ -308,19 +307,35 @@ using namespace mud; namespace toy
 	}
 
 #ifdef TOY_SOUND
-	void snd_sound(Gnode& parent, const string& sound, bool loop)
+	void sound(Gnode& parent, const string& sound, bool loop)
 	{
-		if(parent.m_sound) return;
-		parent.m_sound = parent.m_sound_manager->createSound((sound + ".ogg").c_str(), loop, false, [](Sound&) {});
-		if(parent.m_sound)
+		Gnode& self = parent.sub();
+		if(self.m_sound)
 		{
-			parent.m_sound->play();
-			parent.m_sound->enable3D();
+			self.m_sound->set_position(parent.m_attach->m_position);
+			self.m_sound->update3D();
+
+			if(self.m_sound->m_state == Sound::STOPPED)
+			{
+				self.m_sound_manager->destroySound(self.m_sound);
+				self.m_sound = nullptr;
+			}
+			return;
+		}
+
+		string file = "sounds/" + sound + ".ogg";
+		LocatedFile location = parent.m_scene->m_gfx_system.locate_file(file.c_str());
+		self.m_sound = parent.m_sound_manager->createSound((location.m_location + file).c_str(), loop, false, [](Sound&) {});
+
+		if(self.m_sound)
+		{
+			self.m_sound->play();
+			self.m_sound->enable3D();
 		}
 		//sound->stop();
 	}
 #else
-	void snd_sound(Gnode& parent, const string& sound, bool loop)
+	void sound(Gnode& parent, const string& sound, bool loop)
 	{
 		UNUSED(parent); UNUSED(sound); UNUSED(loop);
 	}

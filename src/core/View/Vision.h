@@ -4,36 +4,37 @@
 
 #pragma once
 
-/* toy */
 #include <core/Store/Array.h>
 #include <core/Store/CountStore.h>
 #include <core/Entity/EntityObserver.h>
 #include <core/View/View.h>
-#include <core/Generated/Types.h> // @kludge because of Array
+#include <core/Types.h> // @kludge because of Array
 
 using namespace mud; namespace toy
 {
-	class _refl_ TOY_CORE_EXPORT Vision : public StoreObserver<Entity>
+	class refl_ TOY_CORE_EXPORT Vision : public StoreObserver<Entity>
 	{
 	public:
-		_constr_ Vision(World& world);
+		constr_ Vision(World& world);
 		~Vision();
 
-		_attr_ World& m_world;
+		attr_ World& m_world;
+		attr_ Ref m_player;
 
 		Chained<CountStore<Entity>> m_entities;
 		Array<Camera> m_cameras;
 		Array<View> m_views;
 
-		void handleAdd(Entity& owned);
-		void handleRemove(Entity& owned);
+		void handle_add(Entity& owned);
+		void handle_remove(Entity& owned);
 
 		void addView(View& view);
 
 		Camera& addCamera(const vec3& position, float lensDistance, bool planar);
 	};
 
-	class _refl_ TOY_CORE_EXPORT PlayerVision : public Vision
+#if 0
+	class refl_ TOY_CORE_EXPORT PlayerVision : public Vision
 	{
 	public:
 		PlayerVision(Player& player, World& world);
@@ -44,8 +45,9 @@ using namespace mud; namespace toy
 		//ReceptorView m_worldView;
 		//ReceptorView m_bufferView;
 	};
+#endif
 
-	class _refl_ TOY_CORE_EXPORT OmniVision : public Vision
+	class refl_ TOY_CORE_EXPORT OmniVision : public Vision
 	{
 	public:
 		OmniVision(World& world);

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <toy/Forward.h>
-#include <core/Generated/Forward.h>
-#include <snd/Generated/Forward.h>
-#include <visu/Generated/Forward.h>
-#include <block/Generated/Forward.h>
+#include <core/Forward.h>
+#include <snd/Forward.h>
+#include <visu/Forward.h>
+#include <block/Forward.h>
 #include <shell/Forward.h>

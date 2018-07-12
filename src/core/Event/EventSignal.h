@@ -4,35 +4,35 @@
 
 #pragma once
 
-/* toy */
 #include <core/Store/Array.h>
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 #include <core/Entity/EntityObserver.h>
 
 #include <core/Physic/Scope.h>
 #include <core/Event/EventTube.h>
 
-/* std */
+#ifndef MUD_CPP_20
 #include <algorithm>
 #include <list>
+#endif
 
 using namespace mud; namespace toy
 {
-	class _refl_ TOY_CORE_EXPORT EventEmitter : public Emitter, public EventTube
+	class refl_ TOY_CORE_EXPORT EventEmitter : public Emitter, public EventTube
 	{
 	public:
-		EventEmitter(Entity& entity);
+		EventEmitter(Entity& entity, EventRelay& event_relay);
 	};
 
-	class _refl_ TOY_CORE_EXPORT EventReceptor : public Receptor, public EventTubeEnd, public StoreObserver<Entity>
+	class refl_ TOY_CORE_EXPORT EventReceptor : public Receptor, public EventTubeEnd, public StoreObserver<Entity>
 	{
 	public:
-		EventReceptor(Entity& entity);
+		EventReceptor(Entity& entity, EventRelay& event_relay);
 
 		void addScope(Medium& medium, float radius, CollisionGroup group = CM_RECEPTOR);
 		void removeScope(ReceptorScope& scope);
 
-		void handleAdd(Entity& emitter);
-		void handleRemove(Entity& emitter);
+		void handle_add(Entity& emitter);
+		void handle_remove(Entity& emitter);
 	};
 }

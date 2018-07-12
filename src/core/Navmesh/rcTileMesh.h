@@ -18,7 +18,7 @@
 #ifndef RECASTSAMPLETILEMESH_H
 #define RECASTSAMPLETILEMESH_H
 
-#include <obj/NonCopy.h>
+#include <infra/NonCopy.h>
 #include <obj/Unique.h>
 #include <geom/Mesh.h>
 #include <core/Navmesh/NavGeom.h>

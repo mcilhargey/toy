@@ -4,9 +4,8 @@
 
 #pragma once
 
-/* toy */
 #include <core/Store/Array.h>
-#include <core/Generated/Types.h>
+#include <core/Types.h>
 #include <core/Entity/EntityObserver.h>
 #include <core/Selector/Selection.h>
 
@@ -22,13 +21,13 @@ using namespace mud; namespace toy
 
 	//void selector_actions()
 
-	class _refl_ TOY_CORE_EXPORT Selector : public StoreObserver<Entity>
+	class refl_ TOY_CORE_EXPORT Selector : public StoreObserver<Entity>
 	{
 	public:
-		_constr_ Selector(User& user);
+		constr_ Selector(User& user);
 		~Selector();
 
-		_attr_ User& m_user;
+		attr_ User& m_user;
 
 		Selection m_selection;
 		Selection m_targets;
@@ -39,8 +38,8 @@ using namespace mud; namespace toy
 		void updateActions();
 		void updateMethods();
 
-		void handleAdd(Entity& entity);
-		void handleRemove(Entity& entity);
+		void handle_add(Entity& entity);
+		void handle_remove(Entity& entity);
 		bool handleClear();
 
 		//void execute(ProcedureType& method);

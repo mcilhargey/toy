@@ -33,15 +33,14 @@ using namespace mud; namespace toy
 		, m_extents(extents)
 		, m_world(entity.m_world)
 		, m_scope(emitter.addScope(WorldMedium::me(), Cube(m_extents / 2.f), CM_SOURCE))
-		, m_geom(make_object<Geometry>())
     {
-		entity.m_world.addTask(this, short(Task::World)); // @todo in the long term this should be moved out of the entity's responsibility
+		entity.m_world.add_task(this, short(Task::World)); // @todo in the long term this should be moved out of the entity's responsibility
 		m_entity.m_contents.observe(*this);
 	}
 
     WorldPage::~WorldPage()
     {
-		m_entity.m_world.removeTask(this, short(Task::World)); // @todo in the long term this should be moved out of the entity's responsibility
+		m_entity.m_world.remove_task(this, short(Task::World)); // @todo in the long term this should be moved out of the entity's responsibility
 		m_entity.m_contents.unobserve(*this);
 	}
 
@@ -49,57 +48,57 @@ using namespace mud; namespace toy
 	{
 		UNUSED(tick); UNUSED(delta);
 		if(m_updated > m_last_rebuilt)
-			this->buildGeometry();
+			this->build_geometry();
 	}
 
-	void WorldPage::buildGeometry()
+	void WorldPage::build_geometry()
 	{
 		if(m_build_geometry)
 		{
 			printf("INFO: Rebuilding WorldPage geometry\n");
 
 			m_build_geometry(*this);
-			this->updateGeometry();
-			m_last_rebuilt = m_entity.m_lastTick;
+			this->update_geometry();
+			m_last_rebuilt = m_entity.m_last_tick;
 
-			printf("INFO: Rebuilt WorldPage geometry, %zu vertices\n", m_geom->m_vertices.size());
+			//printf("INFO: Rebuilt WorldPage geometry, %zu vertices\n", m_geom->m_vertices.size());
 		}
 	}
 
-	void WorldPage::updateGeometry()
+	void WorldPage::update_geometry()
 	{
-		if(m_geom->m_triangles.size() > 0)
-			m_ground = make_object<Solid>(m_entity, *this, *m_geom, SolidMedium::me(), CM_GROUND, true);
+		for(Geometry& geom : m_chunks)
+			m_solids.push_back(make_object<Solid>(m_entity, *this, geom, SolidMedium::me(), CM_GROUND, true));
 	}
 
-	void WorldPage::addContact(Collider& object)
+	void WorldPage::add_contact(Collider& object)
 	{
 		UNUSED(object);
 		// these are contacts from the world geometry, so that's not the right place to switch worldpage of an entity
-		//object.m_entity.setParent(m_entity);
+		//object.m_entity.set_parent(m_entity);
 	}
 
-	void WorldPage::removeContact(Collider& object)
+	void WorldPage::remove_contact(Collider& object)
 	{
 		UNUSED(object);
-		//object.m_entity.setParent(*m_entity.m_parent);
+		//object.m_entity.set_parent(*m_entity.m_parent);
 	}
 
-	void WorldPage::handleAdd(Entity& entity)
+	void WorldPage::handle_add(Entity& entity)
 	{
 		UNUSED(entity);
 		//if(!entity.isa<Movable>())
-		//	m_updated = m_entity.m_lastTick;
+		//	m_updated = m_entity.m_last_tick;
 	}
 
-	void WorldPage::handleRemove(Entity& entity)
+	void WorldPage::handle_remove(Entity& entity)
 	{
 		UNUSED(entity);
 		//if(!entity.isa<Movable>())
-		//	m_updated = m_entity.m_lastTick;
+		//	m_updated = m_entity.m_last_tick;
 	}
 
-	void WorldPage::groundPoint(const vec3& position, bool relative, vec3& groundPoint)
+	void WorldPage::ground_point(const vec3& position, bool relative, vec3& ground_point)
 	{
 		// to absolute
 		vec3 start(position.x, -m_extents.y / 2, position.z);
@@ -112,15 +111,15 @@ using namespace mud; namespace toy
 		}
 
 		Ray ray = { start, end, normalize(end - start), normalize(start - end) };
-		groundPoint = m_world.part<PhysicWorld>().groundPoint(ray) - m_entity.m_position;
+		ground_point = m_world.part<PhysicWorld>().ground_point(ray) - m_entity.m_position;
 
-		if(any(isnan(groundPoint)) || any(isinf(groundPoint)))
+		if(any(isnan(ground_point)) || any(isinf(ground_point)))
 			printf("ERROR: raycast ground point failed, position result invalid\n");
 	}
 
-	void WorldPage::raycastGround(const vec3& start, const vec3& end, vec3& groundPoint)
+	void WorldPage::raycast_ground(const vec3& start, const vec3& end, vec3& ground_point)
 	{
 		Ray ray = { start, end, normalize(end - start), normalize(start - end) };
-		groundPoint = m_world.part<PhysicWorld>().groundPoint(ray);
+		ground_point = m_world.part<PhysicWorld>().ground_point(ray);
 	}
 }

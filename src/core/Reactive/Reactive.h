@@ -1,19 +1,18 @@
 //  Copyright (c) 2018 Hugo Amiard hugo.amiard@laposte.net
 //  This software is provided 'as-is' under the zlib License, see the LICENSE.txt file.
 //  This notice and the license may not be removed or altered from any source distribution.
-#ifndef TOY_BEHAVIORAL_H
-#define TOY_BEHAVIORAL_H
 
-/* toy */
-#include <obj/Complex.h>
-#include <obj/NonCopy.h>
+#pragma once
+
+#include <proto/Complex.h>
+#include <infra/NonCopy.h>
 #include <core/Store/Array.h>
-#include <core/Generated/Forward.h>
-#include <obj/Util/Updatable.h>
+#include <core/Forward.h>
+#include <infra/Updatable.h>
 
 using namespace mud; namespace toy
 {
-	class _refl_ TOY_CORE_EXPORT Behavior : public Updatable
+	class refl_ TOY_CORE_EXPORT Behavior : public Updatable
 	{
 	public:
 		enum Priority
@@ -28,7 +27,7 @@ using namespace mud; namespace toy
 		Behavior(Type& type, Reactive& reactive);
 		virtual ~Behavior();
 
-		_attr_ Type& m_type;
+		attr_ Type& m_type;
 		Reactive& m_reactive;
 		bool m_control;
 		bool m_asleep;
@@ -43,20 +42,20 @@ using namespace mud; namespace toy
 
 		virtual cstring name() { return ""; }
 
-		_meth_ void sleep();
-		_meth_ void wake();
+		meth_ void sleep();
+		meth_ void wake();
 
 		bool bypasses(Behavior* other) { return m_priority >= other->m_priority && m_priorityValue > other->m_priorityValue; }
 	};
 
-	class _refl_ TOY_CORE_EXPORT Reactive : public NonCopy, public Updatable
+	class refl_ TOY_CORE_EXPORT Reactive : public NonCopy, public Updatable
 	{
 	public:
-		_constr_ Reactive(Entity& entity);
+		constr_ Reactive(Entity& entity);
         ~Reactive();
 
-		_attr_ Entity& m_entity;
-		_attr_ Behavior* m_controller;
+		attr_ Entity& m_entity;
+		attr_ Behavior* m_controller;
 
 		std::vector<object_ptr<Behavior>> m_behaviors;
 
@@ -78,5 +77,3 @@ using namespace mud; namespace toy
 		std::vector<Behavior*> m_actives;
 	};
 }
-
-#endif

@@ -4,14 +4,14 @@
 
 #pragma once
 
-/* toy */
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 #include <core/Physic/CollisionGroup.h>
 
-/* std */
+#ifndef MUD_CPP_20
 #include <string>
 #include <map>
 #include <vector>
+#endif
 
 using namespace mud; namespace toy
 {
@@ -22,17 +22,16 @@ using namespace mud; namespace toy
     class TOY_CORE_EXPORT Medium
 	{
 	public:
-		Medium(const string& name, bool occlusions = true);
+		Medium(const string& name, bool occlusions = false);
 
 		string m_name;
 		bool m_occlusions;
 		bool m_solid;
 
+		std::map<CollisionGroup, short int> m_masks;
+
 		short int mask(CollisionGroup group);
 
-		virtual float computeThroughput(EmitterScope& emitter, ReceptorScope& receptor, std::vector<ObstacleBody*>& occluding);
-
-	protected:
-		std::map<CollisionGroup, short int> m_masks;
+		virtual float throughput(EmitterScope& emitter, ReceptorScope& receptor, std::vector<ObstacleBody*>& occluding);
 	};
 }

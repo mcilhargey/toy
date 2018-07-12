@@ -8,7 +8,7 @@
 #include <obj/Indexer.h>
 #include <db/SqliteLoader.h>
 
-#include <obj/System/System.h>
+#include <refl/System.h>
 
 #include <algorithm>
 

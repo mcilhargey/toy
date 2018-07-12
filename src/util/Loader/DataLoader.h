@@ -4,12 +4,13 @@
 
 #pragma once
 
-/* toy */
 #include <obj/Var.h>
 #include <obj/Unique.h>
-#include <util/Generated/Forward.h>
+#include <util/Forward.h>
 
+#ifndef MUD_CPP_20
 #include <vector>
+#endif
 
 using namespace mud; namespace toy
 {

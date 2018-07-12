@@ -17,24 +17,24 @@ using namespace mud; namespace toy
     PhysicWorld::PhysicWorld(World& world)
 		: m_world(world)
 	{
-		world.addTask(this, short(Task::Physics));
+		world.add_task(this, short(Task::PhysicsWorld));
 	}
 
     PhysicWorld::~PhysicWorld()
 	{
-		m_world.removeTask(this, short(Task::Physics));
+		m_world.remove_task(this, short(Task::PhysicsWorld));
 	}
 
 	void PhysicWorld::next_frame(size_t tick, size_t delta)
 	{
-		for(auto& kv : m_subWorlds)
+		for(auto& kv : m_subworlds)
 			kv.second->next_frame(tick, delta);
 	}
 
-	SubPhysicWorld& PhysicWorld::getSubWorld(Medium& medium)
+	SubPhysicWorld& PhysicWorld::sub_world(Medium& medium)
 	{
-		if(m_subWorlds.find(&medium) == m_subWorlds.end())
-			m_subWorlds[&medium] = this->createSubWorld(medium);
-		return *m_subWorlds[&medium].get();
+		if(m_subworlds.find(&medium) == m_subworlds.end())
+			m_subworlds[&medium] = this->create_sub_world(medium);
+		return *m_subworlds[&medium].get();
 	}
 }

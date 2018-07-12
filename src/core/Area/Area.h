@@ -4,22 +4,21 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Complex.h>
+#include <proto/Complex.h>
 #include <math/Math.h>
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 #include <core/Physic/Collider.h>
 
 using namespace mud; namespace toy
 {
-	class _refl_ TOY_CORE_EXPORT Area : public ColliderObject
+	class refl_ TOY_CORE_EXPORT Area : public ColliderObject
 	{
 	public:
-		_constr_ Area(Entity& entity, const CollisionShape& shape);
+		constr_ Area(Entity& entity, const CollisionShape& shape);
 		~Area();
 
-		_attr_ inline Entity& entity() { return m_collider.m_entity; }
-		_attr_ inline CollisionShape& shape() { return m_collider.m_collisionShape; }
+		attr_ inline Entity& entity() { return m_collider.m_entity; }
+		attr_ inline CollisionShape& shape() { return m_collider.m_collision_shape; }
 
 		bool checkInside(const vec3& position);
 

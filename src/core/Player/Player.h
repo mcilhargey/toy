@@ -4,31 +4,33 @@
 
 #pragma once
 
-/* toy */
 #include <obj/Ref.h>
 #include <obj/Indexer.h>
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 
-/* std */
+#ifndef MUD_CPP_20
 #include <vector>
+#endif
 
 using namespace mud; namespace toy
 {
 	using string = std::string;
 
-	class _refl_ TOY_CORE_EXPORT User
+	class refl_ TOY_CORE_EXPORT User
 	{
 	public:
 		std::vector<Ref> m_selection;
 	};
 
-	class _refl_ TOY_CORE_EXPORT Player
+#if 0
+	class refl_ TOY_CORE_EXPORT Player
 	{
 	public:
-		_constr_ Player(Id id, const string& name);
+		constr_ Player(Id id, const string& name);
 
-		_attr_ _mut_ Id m_id;
-		_attr_ _mut_ string m_name;
-		_attr_ _mut_ std::vector<Ref> m_selection;
+		attr_ mut_ Id m_id;
+		attr_ mut_ string m_name;
+		attr_ mut_ std::vector<Ref> m_selection;
 	};
+#endif
 }

@@ -4,23 +4,23 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Complex.h>
-#include <core/Generated/Forward.h>
+#include <proto/Complex.h>
+#include <core/Forward.h>
 #include <core/Event/EventTube.h>
 
-/* std */
+#ifndef MUD_CPP_20
 #include <set>
 #include <memory>
+#endif
 
 using namespace mud; namespace toy
 {
-	class _refl_ TOY_CORE_EXPORT EventRelay : public NonCopy
+	class refl_ TOY_CORE_EXPORT EventRelay : public NonCopy
     {
 	public:
-		_constr_ EventRelay(Entity& entity);
+		constr_ EventRelay(Entity& entity);
 
-		_attr_ Entity& m_entity;
+		attr_ Entity& m_entity;
 
 		void subscribeEvent(EventSubscriber& subscriber);
 		void subscribeReceived(EventSubscriber& subscriber);

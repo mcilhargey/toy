@@ -4,10 +4,11 @@
 
 #pragma once
 
-/* toy */
 #include <obj/Ref.h>
 
+#ifndef MUD_CPP_20
 #include <vector>
+#endif
 
 using namespace mud; namespace toy
 {

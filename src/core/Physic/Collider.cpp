@@ -13,33 +13,33 @@
 
 using namespace mud; namespace toy
 {
-    Collider::Collider(Entity& entity, ColliderObject& object, const CollisionShape& collisionShape, Medium& medium, CollisionGroup group, bool init)
+    Collider::Collider(Entity& entity, ColliderObject& object, const CollisionShape& collision_shape, Medium& medium, CollisionGroup group, bool init)
         : m_entity(entity)
 		, m_object(object)
-		, m_collisionShape(collisionShape)
+		, m_collision_shape(collision_shape)
 		, m_medium(medium)
 		, m_group(group)
-		, m_world(entity.m_world.part<PhysicWorld>().getSubWorld(m_medium))
+		, m_world(entity.m_world.part<PhysicWorld>().sub_world(m_medium))
 		, m_impl()
-		, m_motionState(entity, *this)
+		, m_motion_state(entity, collision_shape.m_center)
     {
-		m_entity.m_world.addTask(this, short(Task::Physics));
+		m_entity.m_world.add_task(this, short(Task::Physics)); // @kludge: collider motion states have to be updated (->bullet) before physics step
 
 		if(init)
 		{
-			m_impl = m_world.makeCollider(*this);
+			m_impl = m_world.make_collider(*this);
 			this->init();
 		}
 		
 		// @note : instant contact detection on world inclusion works only if a call to update is done after
 		//	in a non delayed manner it is possible only by calling performDiscreteCollisionDetection on each item add
 		//	in a delayed manner it is possible by updating on the frame after
-		//this->forceUpdate();
+		//this->force_update();
 	}
 
     Collider::~Collider()
     {
-		m_entity.m_world.removeTask(this, short(Task::Physics));
+		m_entity.m_world.remove_task(this, short(Task::Physics));
 
 		if(m_entity.m_hooked)
 			this->unhooked();
@@ -47,53 +47,32 @@ using namespace mud; namespace toy
 
 	void Collider::init()
 	{
-		m_entity.addHookObserver(*this);
+		m_motion_state.m_source = m_impl.get();
+		m_entity.observe_hook(*this);
 	}
 
 	void Collider::next_frame(size_t tick, size_t delta)
 	{
 		UNUSED(delta);
-
-		m_motionState.update(tick);
-	}
-
-	void Collider::updateTransform(const vec3& position, const quat& rotation)
-	{
-		m_impl->updateTransform(position, rotation);
-		this->handleMoved();
-	}
-
-	void Collider::forceUpdate()
-	{
-		m_impl->forceUpdate();
-	}
-
-	void Collider::project(const vec3& position, ContactList& collisions, short int mask)
-	{
-		m_impl->project(position, collisions, mask);
-	}
-
-	void Collider::raycast(Collider& other, ContactList& obstacles, short int mask)
-	{
-		m_impl->raycast(other, obstacles, mask);
+		m_motion_state.update(tick);
 	}
 
 	void Collider::hooked()
 	{
-		m_world.addCollider(*this);
+		m_world.add_collider(*this);
 	}
 
 	void Collider::unhooked()
 	{
-		m_world.removeCollider(*this);
+		m_world.remove_collider(*this);
 	}
 
-	Solid::Solid(Entity& entity, ColliderObject& object, const CollisionShape& collisionShape, Medium& medium, CollisionGroup group, bool isstatic, float mass)
-		: Collider(entity, object, collisionShape, medium, group, false)
+	Solid::Solid(Entity& entity, ColliderObject& object, const CollisionShape& collision_shape, Medium& medium, CollisionGroup group, bool isstatic, float mass)
+		: Collider(entity, object, collision_shape, medium, group, false)
 		, m_static(isstatic)
 		, m_mass(mass)
 	{
-		m_impl = m_world.makeSolid(*this);
+		m_impl = m_world.make_solid(*this);
 		this->init();
 	}
 
@@ -102,11 +81,11 @@ using namespace mud; namespace toy
 
 	void Solid::hooked()
 	{
-		m_world.addSolid(*this);
+		m_world.add_solid(*this);
 	}
 
 	void Solid::unhooked()
 	{
-		m_world.removeSolid(*this);
+		m_world.remove_solid(*this);
 	}
 }

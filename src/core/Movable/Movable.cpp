@@ -1,7 +1,6 @@
 //  Copyright (c) 2018 Hugo Amiard hugo.amiard@laposte.net
 //  This software is provided 'as-is' under the zlib License, see the LICENSE.txt file.
 //  This notice and the license may not be removed or altered from any source distribution.
-/* toy */
 
 #include <core/Movable/Movable.h>
 
@@ -18,6 +17,8 @@
 
 using namespace mud; namespace toy
 {
+	vec3 to_2d(const vec3& vec) { return { vec.x, 0.f, vec.z }; }
+
 	float angle_flat(const vec3& v1, const vec3& v2)
 	{
 		vec3 vec1 = normalize(vec3{ v1.x, 0.f, v1.z });
@@ -26,28 +27,28 @@ using namespace mud; namespace toy
 		return oriented_angle(vec1, vec2, Y3);
 	}
 
-	bool spin_2d(Entity& entity, const vec3& axis, const vec3& target, float velocity, float time_step)
+	bool spin_2d(Entity& entity, const vec3& axis, const vec3& target, float velocity, float time_step, float margin)
 	{
 		UNUSED(time_step);
 		vec3 direction = normalize(target - entity.m_position);
 		float total_angle = angle_flat(entity.front(), direction);
 		float angle = min(sign(total_angle) * velocity, total_angle);
 		quat rotation = rotate(entity.m_rotation, angle, axis);
-		entity.setRotation(rotation);
+		entity.set_rotation(rotation);
 		return angle == total_angle;
 	}
 
-	bool lookat_2d(Entity& entity, const vec3& axis, const vec3& target, float velocity, float time_step)
+	bool lookat_2d(Entity& entity, const vec3& axis, const vec3& target, float velocity, float time_step, float margin)
 	{
 		UNUSED(axis); UNUSED(velocity); UNUSED(time_step);
 		vec3 direction = normalize(target - entity.m_position);
 		float targetAngle = angle_flat(-Z3, direction);
 		quat rotation = angle_axis(targetAngle, Y3);
-		entity.setRotation(rotation);
+		entity.set_rotation(rotation);
 		return true;
 	}
 
-	vec3 project_move_2d(Entity& entity, const vec3& target, float velocity, float time_step)
+	vec3 project_move_2d(Entity& entity, const vec3& target, float velocity, float time_step, float margin)
 	{
 		vec3 direction = normalize(target - entity.m_position);
 		direction.y = 0.f;
@@ -62,144 +63,144 @@ using namespace mud; namespace toy
 			return entity.m_position + movement;
 	}
 
-	bool move_2d(Entity& entity, const vec3& target, float velocity, float time_step)
+	bool move_2d(Entity& entity, const vec3& target, float velocity, float time_step, float margin)
 	{
 		if(target == entity.m_position)
 			return true;
 
-		vec3 position = project_move_2d(entity, target, velocity, time_step);
-		entity.setPosition(position);
+		vec3 position = project_move_2d(entity, target, velocity, time_step, margin);
+		entity.set_position(position);
 		return position == target;
 	}
 
-	bool move_2d(Movable& movable, const vec3& target, float velocity, float time_step)
+	bool move_2d(Movable& movable, const vec3& target, float velocity, float time_step, float margin)
 	{
 		UNUSED(time_step);
 		if(target == movable.m_entity.m_position)
 			return true;
-		movable.setLinearVelocity(normalize(target - movable.m_entity.m_position) * velocity);
+		movable.set_linear_velocity(normalize(target - movable.m_entity.m_position) * velocity);
 		return false;
 	}
 
-	bool steer_2d(Movable& movable, const vec3& target, float velocity, float time_step)
+	vec3 clamp(const vec3& vec, float l)
 	{
-		UNUSED(velocity); UNUSED(time_step);
-		vec3 segment = target - movable.m_entity.absolutePosition();
-		segment.y = 0.f;
+		return length(vec) > l ? normalize(vec) * l : vec;
+	}
 
-		if(all(less(abs(segment), Unit3 * 0.001f)))
+	bool steer_2d(Movable& movable, const vec3& target, float velocity, float time_step, float margin)
+	{
+		UNUSED(time_step);
+		vec3 segment = to_2d(target - movable.m_entity.absolute_position());
+		float distance = length(segment);
+		
+		if(distance < margin)
 			return true;
 
-		const float max_speed = 1.f;
 		const float seek_force = 0.5f;
 		const float approach_radius = 0.35f;
 
-		vec3 desired = length(segment) < approach_radius ? segment / approach_radius * max_speed
-														 : normalize(segment) * max_speed;
-		//vec3 desired = normalize(segment) * max_speed;
+		vec3 desired = segment / distance * velocity;
 		vec3 steer = desired - movable.m_direction;
-		if(length(steer) > seek_force)
-			steer *= seek_force / length(steer);
-		movable.m_acceleration = steer;
+		steer = clamp(steer, seek_force);
 
 		movable.m_direction += steer;
+		movable.m_direction = clamp(movable.m_direction, velocity);
+		if(distance < velocity / 10.f)
+			movable.m_direction = clamp(movable.m_direction, distance + 0.01f);
 
-		if(length(movable.m_direction) > max_speed)
-			movable.m_direction *= max_speed / length(movable.m_direction);
-
-		float angle = oriented_angle(movable.m_direction, -Z3, Y3);
-		movable.m_entity.m_rotation = rotate(ZeroQuat, -angle, Y3);
-		movable.m_linear_velocity = rotate(movable.m_direction, angle, Y3);
+		float angle = oriented_angle(normalize(movable.m_direction), -Z3, Y3);
+		movable.m_entity.set_rotation(rotate(ZeroQuat, -angle, Y3));
+		movable.set_linear_velocity(rotate(movable.m_direction, angle, Y3));
 
 		return false;
 	}
 
-	bool steer_2d(Entity& entity, const vec3& target, float velocity, float time_step)
+	bool steer_2d(Entity& entity, const vec3& target, float velocity, float time_step, float margin)
 	{
-		bool done = spin_2d(entity, Y3, target, 1.f, time_step);
+		bool done = spin_2d(entity, Y3, target, 1.f, time_step, margin);
 		if(true) // m_agent.forecast(project_move_2d(entity, target, velocity, time_step))
-			done &= move_2d(entity, target, velocity, time_step);
+			done &= move_2d(entity, target, velocity, time_step, margin);
 		return done;
 	}
 
-	bool stick_2d(Entity& entity, const vec3& target, float velocity, float time_step)
+	bool stick_2d(Entity& entity, const vec3& target, float velocity, float time_step, float margin)
 	{
 		//if(m_target.moving())
 		//	m_target.stick(m_source);
 
-		spin_2d(entity, Y3, target, 1.f, time_step);
-		move_2d(entity, target, velocity, time_step);
+		spin_2d(entity, Y3, target, 1.f, time_step, margin);
+		move_2d(entity, target, velocity, time_step, margin);
 		return false;
 	}
 
-	bool track_2d(Entity& entity, const vec3& target, float velocity, float time_step)
+	bool track_2d(Entity& entity, const vec3& target, float velocity, float time_step, float margin)
 	{
 		/*if(m_targetMovable && m_targetMovable->m_moving)
 		{
 			if(m_targetManoeuv)
-				m_sticky.setPosition(m_targetManoeuv->m_disq.closest(m_agent.m_disq));
+				m_sticky.set_position(m_targetManoeuv->m_disq.closest(m_agent.m_disq));
 			else
-				m_sticky.setPosition(m_agent.m_disq.attract(m_agent.m_entity.m_position, m_target.m_position, m_distance));
+				m_sticky.set_position(m_agent.m_disq.attract(m_agent.m_entity.m_position, m_target.m_position, m_distance));
 		}*/
 
-		return steer_2d(entity, target, velocity, time_step);
+		return steer_2d(entity, target, velocity, time_step, margin);
 	}
 
 	Movable::Movable(Entity& entity)
 		: m_entity(entity)
         , m_previous_position(m_entity.m_position)
 	{
-		entity.m_world.addTask(this, short(Task::Entity));
+		entity.m_world.add_task(this, short(Task::Entity));
 	}
 
 	Movable::~Movable()
 	{
-		m_entity.m_world.removeTask(this, short(Task::Entity));
+		m_entity.m_world.remove_task(this, short(Task::Entity));
 	}
 
-	void Movable::setMovement(const vec3& position, const quat& rotation, const vec3& relLinVel, const vec3& relAngVel)
+	void Movable::set_movement(const vec3& position, const quat& rotation, const vec3& relLinVel, const vec3& relAngVel)
 	{
-		m_entity.setPosition(position);
-		m_entity.setRotation(rotation);
-		setLinearVelocity(relLinVel);
-		setAngularVelocity(relAngVel);
+		m_entity.set_position(position);
+		m_entity.set_rotation(rotation);
+		set_linear_velocity(relLinVel);
+		set_angular_velocity(relAngVel);
 	}
 
-	void Movable::setAcceleration(const vec3& acceleration, const vec3& maxLinVel)
+	void Movable::set_acceleration(const vec3& acceleration, const vec3& maxLinVel)
 	{
 		m_acceleration = acceleration;
-		m_maxLinearVelocity = maxLinVel;
-		m_accelerationUpdated = m_lastTick+1;
+		m_max_linear_velocity = maxLinVel;
+		m_acceleration_updated = m_last_tick+1;
 	}
 
-	void Movable::modifyAcceleration(const vec3& acceleration)
+	void Movable::modify_acceleration(const vec3& acceleration)
 	{
 		m_acceleration += acceleration;
-		m_accelerationUpdated = m_lastTick+1;
+		m_acceleration_updated = m_last_tick+1;
 	}
 
-    void Movable::setLinearVelocity(const vec3& linVel)
+    void Movable::set_linear_velocity(const vec3& linVel)
 	{
 		m_linear_velocity = linVel;
-        m_movementUpdated = m_lastTick+1;
+		m_updated = m_last_tick+1;
 	}
 
-	void Movable::modifyLinearVelocity(const vec3& linVel)
+	void Movable::modify_linear_velocity(const vec3& linVel)
 	{
 		m_linear_velocity += linVel;
-		m_movementUpdated = m_lastTick+1;
+		m_updated = m_last_tick+1;
 	}
 
-    void Movable::setAngularVelocity(const vec3& angVel)
+    void Movable::set_angular_velocity(const vec3& angVel)
 	{
 		m_angular_velocity = angVel;
-        m_movementUpdated = m_lastTick+1;
+		m_updated = m_last_tick+1;
 	}
 
-	void Movable::modifyAngularVelocity(const vec3& angVel)
+	void Movable::modify_angular_velocity(const vec3& angVel)
 	{
 		m_angular_velocity += angVel;
-		m_movementUpdated = m_lastTick+1;
+		m_updated = m_last_tick+1;
 	}
 
     void Movable::next_frame(size_t tick, size_t delta)
@@ -211,7 +212,8 @@ using namespace mud; namespace toy
 			//	m_linear_velocity = m_maxLinearVelocity;
 		}
 
-		if(m_linear_velocity != Zero3 || m_angular_velocity != Zero3)
+		//if(m_linear_velocity != Zero3 || m_angular_velocity != Zero3)
+		if((m_linear_velocity != Zero3 || m_angular_velocity != Zero3) && m_motion_state == nullptr)
         {
 			m_previous_position = m_entity.m_position;
 
@@ -220,12 +222,12 @@ using namespace mud; namespace toy
 
 			btTransform current(to_btquat(m_entity.m_rotation), to_btvec3(m_entity.m_position));
             btTransform updated;
-            btTransformUtil::integrateTransform(current, linear_vel, angular_vel, float(delta * TICK_INTERVAL), updated);
+            btTransformUtil::integrateTransform(current, linear_vel, angular_vel, float(delta * c_tick_interval), updated);
 
 			if(!linear_vel.isZero())
-				m_entity.setPosition(to_vec3(updated.getOrigin()));
+				m_entity.set_position(to_vec3(updated.getOrigin()));
 			if(!angular_vel.isZero())
-				m_entity.setRotation(to_quat(updated.getRotation()));
+				m_entity.set_rotation(to_quat(updated.getRotation()));
 
 #if 0
 			printf("move entity from (%.2f, %.2f, %.2f) to (%.2f, %.2f, %.2f)\n", m_previous_position.x, m_previous_position.y, m_previous_position.z,
@@ -239,6 +241,6 @@ using namespace mud; namespace toy
 			m_moving = false;
 		}
 
-		m_lastTick = tick;
+		m_last_tick = tick;
     }
 }

@@ -4,22 +4,21 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Complex.h>
-#include <obj/Util/Updatable.h>
-#include <core/Generated/Forward.h>
+#include <proto/Complex.h>
+#include <infra/Updatable.h>
+#include <core/Forward.h>
 #include <core/Store/Array.h>
 #include <core/Action.h>
 
 using namespace mud; namespace toy
 {
-	class _refl_ TOY_CORE_EXPORT Actor : public NonCopy, public Updatable
+	class refl_ TOY_CORE_EXPORT Actor : public NonCopy, public Updatable
 	{
 	public:
-		_constr_ Actor(Entity& entity);
+		constr_ Actor(Entity& entity);
         ~Actor();
 
-		 _attr_ Entity& m_entity;
+		 attr_ Entity& m_entity;
 
 		 Array<ProcedureType> m_actions;
 		 std::vector<object_ptr<Procedure>> m_queued;

@@ -4,16 +4,17 @@
 
 #pragma once
 
-/* toy */
 #include <obj/Util/LocklessQueue.h>
 #include <obj/Unique.h>
-#include <obj/Util/Timer.h>
-#include <core/Generated/Forward.h>
+#include <math/Timer.h>
+#include <core/Forward.h>
 
-/* std */
+#ifndef MUD_CPP_20
 #include <vector>
 #include <thread>
+#include <mutex>
 #include <algorithm>
+#endif
 
 using namespace mud; namespace toy
 {
@@ -23,12 +24,15 @@ using namespace mud; namespace toy
 		Entity = 1,
 		State = 2,
 		Physics = 3,
-		GameObject = 4,
-		Ui = 5,
-		Graphics = 6,
-		Core = 7,
-		Cleanup = 8,
-		Loader = 9
+		PhysicsWorld = 4,
+		GameObject = 5,
+		Ui = 6,
+		Graphics = 7,
+		Core = 8,
+		Cleanup = 9,
+		Loader = 10,
+		Count = 11,
+		Background = 12,
 	};
 
 	/* Threading recap :
@@ -58,7 +62,7 @@ using namespace mud; namespace toy
 					Entity updatePosition
 							updateRotation
 
-				Manoeuvrable next_frame (lock : position)
+				Agent next_frame (lock : position)
 					MotionStrategy update (position)
 
 			TaskSection 2 - MonoThread
@@ -73,7 +77,7 @@ using namespace mud; namespace toy
 				Human next_frame
 	*/
 
-	class _refl_ TOY_CORE_EXPORT TaskSection
+	class refl_ TOY_CORE_EXPORT TaskSection
 	{
 	public:
 		TaskSection(short int id);
@@ -81,65 +85,64 @@ using namespace mud; namespace toy
 
 		virtual void update() = 0;
 		
-		virtual void addTask(Updatable* task) = 0;
-		virtual void removeTask(Updatable* task) = 0;
+		virtual void add_task(Updatable* task) = 0;
+		virtual void remove_task(Updatable* task) = 0;
 
 		short int m_id;
 		Clock m_clock;
-		size_t m_lastTick;
+		size_t m_last_tick;
 	};
 
 	typedef std::function<void()> TaskFunc;
 
-	class _refl_ TOY_CORE_EXPORT QueueSection : public TaskSection
+	class refl_ TOY_CORE_EXPORT QueueSection : public TaskSection
 	{
 	public:
 		QueueSection(short int id);
 
 		void update();
 
-		void addTask(Updatable* task) { UNUSED(task); }
-		void removeTask(Updatable* task) { UNUSED(task); }
+		void add_task(Updatable* task) { UNUSED(task); }
+		void remove_task(Updatable* task) { UNUSED(task); }
 
-		void addTask(TaskFunc task) { m_taskQueue.push(task); }
+		void add_task(TaskFunc task) { m_task_queue.push(task); }
 
 	private:
 		unique_ptr<std::thread> m_thread;
-		LocklessQueue<TaskFunc> m_taskQueue;
+		LocklessQueue<TaskFunc> m_task_queue;
 	};
 
-	class _refl_ TOY_CORE_EXPORT MonoSection : public TaskSection
+	class refl_ TOY_CORE_EXPORT MonoSection : public TaskSection
 	{
 	public:
-		MonoSection(short int id);
+		MonoSection(short int id, bool thread = false);
 
 		void update();
 
-		void addTask(Updatable* task);
-		void removeTask(Updatable* task);
+		void add_task(Updatable* task);
+		void remove_task(Updatable* task);
 
 	private:
-		unique_ptr<std::thread> m_thread;
 		std::vector<Updatable*> m_tasks;
-		std::vector<Updatable*> m_tasksBuffer;
-		//std::vector<Updatable*> m_add;
-		//std::vector<Updatable*> m_remove;
+		std::vector<Updatable*> m_tasks_buffer;
+		std::mutex m_mutex;
+		unique_ptr<std::thread> m_thread;
 	};
 
-	class _refl_ TOY_CORE_EXPORT ParallelSection  : public TaskSection
+	class refl_ TOY_CORE_EXPORT ParallelSection  : public TaskSection
 	{
 	public:
 		ParallelSection(short int id);
 
 		void update();
-		void workerUpdate();
+		void worker_update();
 
 	private:
 		unique_ptr<std::thread> m_thread;
 		std::vector<unique_ptr<std::thread>> m_workers;
 
-		int m_taskCursor;
-		int m_taskQueueSize;
-		LocklessQueue<Updatable*> m_taskQueue;
+		int m_task_cursor;
+		int m_task_queue_size;
+		LocklessQueue<Updatable*> m_task_queue;
 	};
 }

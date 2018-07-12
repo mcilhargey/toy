@@ -4,31 +4,31 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Proto.h>
+#include <proto/Proto.h>
 #include <math/Math.h>
 #include <math/Vec.h>
-#include <obj/NonCopy.h>
-#include <core/Generated/Forward.h>
+#include <infra/NonCopy.h>
+#include <core/Forward.h>
 #include <core/Entity/Entity.h>
 
-/* std */
+#ifndef MUD_CPP_20
 #include <vector>
 #include <memory>
+#endif
 
 using namespace mud; namespace toy
 {
 	typedef unsigned int dtPolyRef;
 
-	class _refl_ TOY_CORE_EXPORT OWaypoint : public Construct
+	class refl_ TOY_CORE_EXPORT OWaypoint : public Complex
 	{
 	public:
-		_constr_ OWaypoint(Id id, Entity& parent, const vec3& position);
+		constr_ OWaypoint(Id id, Entity& parent, const vec3& position);
 
-		_comp_ _attr_ Entity m_entity;
+		comp_ attr_ Entity m_entity;
 	};
 
-    class _refl_ TOY_CORE_EXPORT DetourPath
+    class refl_ TOY_CORE_EXPORT DetourPath
     {
 	public:
 		DetourPath(Entity& entity, Pathfinder& pathfinder, const vec3& origin, const vec3& destination);

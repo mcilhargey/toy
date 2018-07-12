@@ -4,23 +4,24 @@
 
 #pragma once
 
-/* toy */
 #include <geom/Shape.h>
 #include <geom/Symbol.h>
-#include <core/Generated/Forward.h> 
+#include <core/Forward.h> 
 
+#ifndef MUD_CPP_20
 #include <vector>
+#endif
 
 using namespace mud; namespace toy
 {
-	class _refl_ TOY_CORE_EXPORT Symbolic
+	class refl_ TOY_CORE_EXPORT Symbolic
 	{
 	public:
-		_constr_ Symbolic(Entity& entity, std::vector<Symbol> shapes = {});
+		constr_ Symbolic(Entity& entity, std::vector<Symbol> shapes = {});
 
-		_attr_ Entity& m_entity;
-		_attr_ std::vector<Symbol> m_symbols;
-		_attr_ size_t m_updated;
+		attr_ Entity& m_entity;
+		attr_ std::vector<Symbol> m_symbols;
+		attr_ size_t m_updated;
 
 		void clearSymbols();
 		void addSymbol(const Symbol& symbol);

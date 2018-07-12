@@ -4,10 +4,9 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Complex.h>
-#include <obj/Util/Global.h>
-#include <core/Generated/Forward.h>
+#include <proto/Complex.h>
+#include <infra/Global.h>
+#include <core/Forward.h>
 #include <core/Physic/Medium.h>
 #include <core/Physic/Scope.h>
 

@@ -4,15 +4,15 @@
 
 #pragma once
 
-/* toy */
-#include <obj/NonCopy.h>
+#include <infra/NonCopy.h>
 #include <obj/Unique.h>
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 
-/* std */
+#ifndef MUD_CPP_20
 #include <set>
 #include <map>
 #include <string>
+#endif
 
 using namespace mud; namespace toy
 {		

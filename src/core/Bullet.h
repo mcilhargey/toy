@@ -4,8 +4,7 @@
 
 #pragma once
 
-/* toy */
-#include <math/Generated/Forward.h>
+#include <math/Forward.h>
 #include <math/Vec.h>
 #include <math/Colour.h>
 

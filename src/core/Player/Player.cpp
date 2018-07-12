@@ -6,8 +6,10 @@
 
 using namespace mud; namespace toy
 {
+#if 0
 	Player::Player(Id id, const string& name)
 		: m_id(id)
 		, m_name(name)
 	{}
+#endif
 }

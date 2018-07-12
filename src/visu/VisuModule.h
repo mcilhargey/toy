@@ -4,16 +4,15 @@
 
 #pragma once
 
-/* toy */
-#include <obj/System/System.h>
-#include <visu/Generated/Types.h>
+#include <refl/Module.h>
+#include <visu/Types.h>
 
 using namespace mud; namespace toy
 {
-    class _refl_ TOY_VISU_EXPORT VisuModule : public Module
+    class refl_ TOY_VISU_EXPORT VisuModule : public Module
     {
     public:
-		VisuModule(cstring name, Type& type = type<VisuModule>()) : Module(name) { UNUSED(type); }
+		VisuModule(cstring name, Type& type = mud::type<VisuModule>()) : Module(name) { UNUSED(type); }
 
 		virtual void startScene(VisuScene& scene) { UNUSED(scene); }
 

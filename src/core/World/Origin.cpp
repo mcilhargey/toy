@@ -8,7 +8,7 @@
 using namespace mud; namespace toy
 {
 	Origin::Origin(Id id, World& world)
-		: Construct(m_entity, proto<Origin>())
-		, m_entity(id, proto<Origin>(), world, nullptr, Zero3, ZeroQuat)
+		: Complex(id, type<Origin>())
+		, m_entity(id, *this, world, nullptr, Zero3, ZeroQuat)
 	{}
 }

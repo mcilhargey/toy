@@ -4,11 +4,10 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Complex.h>
-#include <obj/Util/Updatable.h>
+#include <proto/Complex.h>
+#include <infra/Updatable.h>
 #include <geom/Shape/ProcShape.h>
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 #include <core/Navmesh/rcTileMesh.h>
 #include <core/Navmesh/NavGeom.h>
 
@@ -22,15 +21,15 @@ using namespace mud; namespace toy
 	TOY_CORE_EXPORT ShapeSize size_shape_triangles(const ProcShape& shape, const NavmeshShape& navmesh);
 	TOY_CORE_EXPORT void draw_shape_triangles(const ProcShape& shape, const NavmeshShape& navmesh, MeshData& data);
 
-	class _refl_ TOY_CORE_EXPORT Navmesh : public rcTileMesh, public Updatable
+	class refl_ TOY_CORE_EXPORT Navmesh : public rcTileMesh, public Updatable
     {
     public:
-		_constr_ Navmesh(World& world);
+		constr_ Navmesh(World& world);
 		~Navmesh();
 
-		_attr_ World& m_world;
-		_attr_ size_t m_updated = 0;
-		_attr_ bool m_dirty = false;
+		attr_ World& m_world;
+		attr_ size_t m_updated = 0;
+		attr_ bool m_dirty = false;
 
 		void update_block(Navblock& navblock);
 
@@ -47,24 +46,26 @@ using namespace mud; namespace toy
 		void _save(const char* path, const dtNavMesh* mesh);
     };
 
-	class _refl_ TOY_CORE_EXPORT Navblock : public Updatable
+	class refl_ TOY_CORE_EXPORT Navblock : public Updatable
 	{
 	public:
-		_constr_ Navblock(Navmesh& navmesh, Entity& entity, WorldPage& worldPage);
+		constr_ Navblock(Navmesh& navmesh, Entity& entity, WorldPage& world_page);
 		~Navblock();
 
-		_attr_ Entity& m_entity;
-		_attr_ WorldPage& m_worldPage;
-		_attr_ Navmesh& m_navmesh;
-		_attr_ size_t m_updated = 0;
+		attr_ Entity& m_entity;
+		attr_ WorldPage& m_world_page;
+		attr_ Navmesh& m_navmesh;
+
+		attr_ bool m_auto_update = false;
+		attr_ size_t m_updated = 0;
 
 		virtual void next_frame(size_t tick, size_t delta) final;
 	};
 
-	class _refl_ TOY_CORE_EXPORT NavmeshShape : public Shape
+	class refl_ TOY_CORE_EXPORT NavmeshShape : public Shape
 	{
 	public:
-		_constr_ NavmeshShape(Navmesh& navmesh);
+		constr_ NavmeshShape(Navmesh& navmesh);
 
 		Navmesh& m_navmesh;
 

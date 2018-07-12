@@ -4,18 +4,22 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Complex.h>
+#include <proto/Complex.h>
 #include <core/Store/StoreObserver.h>
 #include <core/Entity/EntityObserver.h>
-#include <visu/Generated/Forward.h>
+#include <visu/Forward.h>
 
-/* std */
+#ifdef TOY_SOUND
+#include <snd/Forward.h>
+#endif
+
+#ifndef MUD_CPP_20
 #include <map>
+#endif
 
 using namespace mud; namespace toy
 {
-	class _refl_ TOY_VISU_EXPORT SoundSource : public StoreObserver<State>
+	class refl_ TOY_VISU_EXPORT SoundSource : public StoreObserver<State>
 	{
 	public:
 #ifdef TOY_SOUND
@@ -24,14 +28,14 @@ using namespace mud; namespace toy
 		SoundSource(Entity& entity);
 #endif
 
-		_attr_ Entity& m_entity;
+		attr_ Entity& m_entity;
 
 #ifdef TOY_SOUND
 		void soundDestroyed(Sound& sound);
 #endif
 
-		void handleAdd(State& effect);
-		void handleRemove(State& effect);
+		void handle_add(State& effect);
+		void handle_remove(State& effect);
 
 	private:
 		Active& m_active;

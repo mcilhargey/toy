@@ -4,8 +4,8 @@
 
 #include <core/Actor/Actor.h>
 
-#include <obj/Util/Timer.h>
-#include <obj/Iterable/Reverse.h>
+#include <math/Timer.h>
+#include <infra/Reverse.h>
 
 #include <core/Action.h>
 #include <core/Entity/Entity.h>
@@ -23,12 +23,12 @@ using namespace mud; namespace toy
 		, m_queued()
 		, m_execution()
 	{
-		entity.m_world.addTask(this, short(Task::State));
+		entity.m_world.add_task(this, short(Task::State));
 	}
 
 	Actor::~Actor()
 	{
-		m_entity.m_world.removeTask(this, short(Task::State));
+		m_entity.m_world.remove_task(this, short(Task::State));
 
 		m_execution.clear();
 	}
@@ -57,12 +57,12 @@ using namespace mud; namespace toy
 	Procedure& Actor::execute(User* user, ProcedureType& type, Entity& target)
 	{
 		this->halt();
-		return execute(type.instance(user, &m_entity, std::vector<Ref>{ &target }));
+		return execute(type.instance(user, Ref(&m_entity), { Ref(&target) }));
 	}
 
 	Procedure& Actor::queue(User* user, ProcedureType& type, Entity& target)
 	{
-		return queue(type.instance(user, &m_entity, std::vector<Ref>{ &target }));
+		return queue(type.instance(user, Ref(&m_entity), { Ref(&target) }));
 	}
 
 	void Actor::next_frame(size_t tick, size_t delta)
@@ -74,7 +74,7 @@ using namespace mud; namespace toy
 
 		for(int i = m_execution.size() - 1; i >= 0; --i)
 		{
-			m_execution[i]->update(tick, (delta * TICK_INTERVAL));
+			m_execution[i]->update(tick, (delta * c_tick_interval));
 			if(m_execution[i]->done())
 				m_execution.erase(m_execution.begin() + i);
 		}

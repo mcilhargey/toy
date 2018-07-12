@@ -4,18 +4,17 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Proto.h>
-#include <core/Generated/Forward.h>
+#include <proto/Proto.h>
+#include <core/Forward.h>
 #include <core/Entity/Entity.h>
 
 using namespace mud; namespace toy
 {
-	class _refl_ TOY_CORE_EXPORT Origin : public Construct
+	class refl_ TOY_CORE_EXPORT Origin : public Complex
 	{
 	public:
-		_constr_ Origin(Id id, World& world);
+		constr_ Origin(Id id, World& world);
 
-		_comp_ _attr_ Entity m_entity;
+		comp_ attr_ Entity m_entity;
 	};
 }

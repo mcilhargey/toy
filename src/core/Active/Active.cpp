@@ -4,7 +4,7 @@
 
 #include <core/Active/Active.h>
 
-#include <obj/Util/Timer.h>
+#include <math/Timer.h>
 #include <core/Active/Effect.h>
 #include <core/Entity/Entity.h>
 #include <core/World/World.h>
@@ -27,12 +27,12 @@ using namespace mud; namespace toy
     Active::Active(Entity& entity)
 		: m_entity(entity)
     {
-		entity.m_world.addTask(this, 1);
+		entity.m_world.add_task(this, 1);
 	}
 
     Active::~Active()
     {
-		m_entity.m_world.removeTask(this, 1);
+		m_entity.m_world.remove_task(this, 1);
 	}
 
 	void Active::addState(const string& name, int priority, float weight)
@@ -59,7 +59,7 @@ using namespace mud; namespace toy
 
 	void Active::next_frame(size_t tick, size_t delta)
 	{
-		auto func = [tick, delta](Effect& effect) { return !effect.update(tick, (delta * TICK_INTERVAL)); };
+		auto func = [tick, delta](Effect& effect) { return !effect.update(tick, (delta * c_tick_interval)); };
 		Effect* effect = vector_find(m_effects, func);
 		while(effect)
 		{

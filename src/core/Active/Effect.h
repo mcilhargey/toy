@@ -4,10 +4,11 @@
 
 #pragma once
 
-/* toy */
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 
+#ifndef MUD_CPP_20
 #include <string>
+#endif
 
 using namespace mud; namespace toy
 {
@@ -15,10 +16,10 @@ using namespace mud; namespace toy
 
 	class EffectCallback { public: virtual void effectEnded(Effect& effect) = 0; };
 
-	class _refl_ TOY_CORE_EXPORT Effect
+	class refl_ TOY_CORE_EXPORT Effect
 	{
 	public:
-		_constr_ Effect(Active& active, const string& name, float duration = 0.f, bool loop = true);
+		constr_ Effect(Active& active, const string& name, float duration = 0.f, bool loop = true);
 
 		bool update(size_t tick, double step);
 		void stop();

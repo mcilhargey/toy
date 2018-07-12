@@ -3,19 +3,19 @@
 //  This notice and the license may not be removed or altered from any source distribution.
 
 
-#include <util/Generated/Types.h>
+#include <util/Types.h>
 #include <util/Loader/MemberLoader.h>
 
-#include <obj/String/StringConvert.h>
+#include <infra/StringConvert.h>
 
-#include <obj/Iterable/Iterable.h>
-#include <obj/Reflect/Class.h>
-#include <obj/Reflect/Injector.h>
+#include <refl/Iterable.h>
+#include <refl/Class.h>
+#include <refl/Injector.h>
 
 #include <util/Loader/Loader.h>
 #include <util/Loader/DataLoader.h>
 
-#include <obj/String/String.h>
+#include <infra/String.h>
 
 using namespace mud; namespace toy
 {
@@ -149,7 +149,7 @@ using namespace mud; namespace toy
 
 	void SequenceLoader::erase(Ref object)
 	{
-		m_member.meta().m_sequence(m_member.get(object))->iterate([&](Var var) { m_elementLoader->erase(var); });
+		m_member.cls().m_sequence(m_member.get(object))->iterate([&](Var var) { m_elementLoader->erase(var); });
 	}
 
 

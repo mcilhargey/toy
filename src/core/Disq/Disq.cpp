@@ -1,7 +1,6 @@
 //  Copyright (c) 2018 Hugo Amiard hugo.amiard@laposte.net
 //  This software is provided 'as-is' under the zlib License, see the LICENSE.txt file.
 //  This notice and the license may not be removed or altered from any source distribution.
-/* toy */
 
 #include <core/Disq/Disq.h>
 
@@ -195,14 +194,14 @@ using namespace mud; namespace toy
 	float Belt::interval(Contact& before, Contact& after)
 	{
 		float halfspans = before.span / 2 + after.span / 2;
-		return before.angle < after.angle ? after.angle - before.angle - halfspans : 2 * M_PI + after.angle - before.angle - halfspans;
+		return before.angle < after.angle ? after.angle - before.angle - halfspans : 2 * c_pi + after.angle - before.angle - halfspans;
 	}
 
 	void Belt::add(Disq& disq, float span, float angle)
 	{
 		if(m_contacts.empty())
 		{
-			m_contacts.emplace_back(&disq, angle, span, float(2 * M_PI - span));
+			m_contacts.emplace_back(&disq, angle, span, float(2 * c_pi - span));
 		}
 		else
 		{
@@ -210,7 +209,7 @@ using namespace mud; namespace toy
 			Contact* after = this->at(this->next(angle));
 
 			float halfspans = span / 2 + after->span / 2;
-			float interval = angle < after->angle ? after->angle - angle - halfspans : 2 * M_PI + after->angle - angle - halfspans;
+			float interval = angle < after->angle ? after->angle - angle - halfspans : 2 * c_pi + after->angle - angle - halfspans;
 			flatten(interval);
 
 			float rest = after->interval - interval - span;
@@ -241,23 +240,23 @@ using namespace mud; namespace toy
 		, m_radius(radius)
 		, m_height(height)
 	{
-		entity.m_world.addTask(this, short(Task::State));
+		entity.m_world.add_task(this, short(Task::State));
 		
-		this->m_collisionShape.m_margin = -0.1f;
+		this->m_collision_shape.m_margin = -0.1f;
 	}
 
 	Disq::~Disq()
 	{
-		m_entity.m_world.removeTask(this, short(Task::State));
+		m_entity.m_world.remove_task(this, short(Task::State));
 	}
 
-	void Disq::addContact(Collider& collider)
+	void Disq::add_contact(Collider& collider)
 	{
 		UNUSED(collider);
 		//this->contact(static_cast<Disq&>(collider));
 	}
 
-	void Disq::removeContact(Collider& collider)
+	void Disq::remove_contact(Collider& collider)
 	{
 		UNUSED(collider);
 		//this->disconnect(static_cast<Disq&>(collider));
@@ -311,7 +310,7 @@ using namespace mud; namespace toy
 
 	vec3 Disq::randomDir()
 	{
-		return rotate(X3, 0.f /*random100(2 * M_PI)*/, Y3);
+		return rotate(X3, 0.f /*random100(2 * c_pi)*/, Y3);
 	}
 
 	vec3 Disq::attract(const vec3& from, const vec3& to, float range)
@@ -417,27 +416,27 @@ using namespace mud; namespace toy
 
 	bool Disq::collisions(const vec3& pos)
 	{
-		std::vector<Collider*> obstacles;
+		std::vector<Collision> obstacles;
 		this->collisions(pos, obstacles);
 		return (obstacles.size() > 0);
 	}
 	
-	void Disq::collisions(const vec3& pos, std::vector<Collider*>& obstacles)
+	void Disq::collisions(const vec3& pos, std::vector<Collision>& obstacles)
 	{
-		//this->m_collisionShape.setMargin(0.f);
-		Collider::project(pos, obstacles, m_group);
-		//this->m_collisionShape.setMargin(-0.1f);
+		//this->m_collision_shape.setMargin(0.f);
+		m_impl->project(pos, obstacles, m_group);
+		//this->m_collision_shape.setMargin(-0.1f);
 	}
 
 	vec3 Disq::project(const vec3& pos)
 	{
-		std::vector<Collider*> contacts;
+		std::vector<Collision> contacts;
 		this->collisions(pos, contacts);
 
 		if(contacts.size() >= 1)
-			return as<Disq>(*contacts[0]).nearest(*this);
+			return as<Disq>(*contacts[0].m_second).nearest(*this);
 
-		vec3 result = pos - m_entity.m_parent->absolutePosition();
+		vec3 result = pos - m_entity.m_parent->absolute_position();
 
 		printf("Disq::project position %f, %f, %f\n", result.x, result.y, result.z);
 
@@ -446,15 +445,15 @@ using namespace mud; namespace toy
 
 	void Disq::imbed(const vec3& pos)
 	{
-		m_entity.setPosition(pos);
+		m_entity.set_position(pos);
 		this->imbed();
 	}
 
 	void Disq::imbed()
 	{
-		vec3 pos = this->project(m_entity.absolutePosition());
-		m_entity.setPosition(pos);
-		this->forceUpdate();
+		vec3 pos = this->project(m_entity.absolute_position());
+		m_entity.set_position(pos);
+		m_impl->force_update();
 	}
 
 	/*vec3 Disq::slide(float alpha, Disq& anchor)

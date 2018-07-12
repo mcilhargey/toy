@@ -4,61 +4,63 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Complex.h>
+#include <proto/Complex.h>
 #include <core/Store/Array.h>
-#include <obj/Util/Updatable.h>
-#include <obj/Memory/ObjectPool.h>
+#include <infra/Updatable.h>
+#include <pool/ObjectPool.h>
 #include <math/VecOps.h>
 #include <math/Axes.h>
-#include <core/Generated/Forward.h>
-#include <core/Generated/Types.h> // @kludge because of Array<T>
+#include <core/Forward.h>
+#include <core/Types.h> // @kludge because of Array<T>
 #include <core/Entity/EntityObserver.h>
 
-/* std */
+#ifndef MUD_CPP_20
 #include <vector>
 #include <memory>
+#endif
 
 using namespace mud; namespace toy
 {
-	template class _refl_ TOY_CORE_EXPORT Array<Entity>;
+	template class refl_ TOY_CORE_EXPORT Array<Entity>;
 
-	class _refl_ TOY_CORE_EXPORT Entity : public Complex, public Updatable
+	class refl_ TOY_CORE_EXPORT Entity : public Updatable
     {
 	public:
-		_constr_ Entity(Id id, Prototype& prototype, Entity& parent, const vec3& position, const quat& rotation);
-		_constr_ Entity(Id id, Prototype& prototype, World& world, Entity* parent, const vec3& position, const quat& rotation);
+		constr_ Entity(Id id, Complex& complex, Entity& parent, const vec3& position, const quat& rotation);
+		constr_ Entity(Id id, Complex& complex, World& world, Entity* parent, const vec3& position, const quat& rotation);
         ~Entity();
 
-		_attr_ World& m_world;
-		_attr_ _mut_ _link_ Entity* m_parent;
+		attr_ Id m_id;
+		attr_ Complex& m_complex;
+		attr_ World& m_world;
+		attr_ mut_ link_ Entity* m_parent;
 
-		_attr_ _mut_ vec3 m_position;
-		_attr_ _mut_ quat m_rotation;
-		_attr_ _graph_ Array<Entity> m_contents;
+		attr_ mut_ vec3 m_position;
+		attr_ mut_ quat m_rotation;
+		attr_ graph_ Array<Entity> m_contents;
 
-		size_t m_lastTick = 0;
-		size_t m_lastUpdated = 0;
-		size_t m_lastModified = 0;
+		size_t m_last_tick = 0;
+		size_t m_last_updated = 0;
+		size_t m_last_modified = 0;
 
 		bool m_moved;
 		bool m_hooked;
 
 		Entity& origin();
-		void setParent(Entity* entity);
-		bool isChildOf(Entity& entity);
+		void set_parent(Entity* entity);
+		bool is_child_of(Entity& entity);
 
-		vec3 absolutePosition();
-		quat absoluteRotation();
+		vec3 absolute_position();
+		quat absolute_rotation();
 
-		inline void setDirty(bool moved) { m_lastUpdated = m_lastTick + 1; m_lastModified = m_lastTick + 1; m_moved = moved; }
-		inline void setSyncDirty(bool moved) { m_lastUpdated = m_lastTick + 1; m_moved = moved; }
+		inline void set_dirty(bool moved) { m_last_updated = m_last_tick + 1; m_last_modified = m_last_tick + 1; m_moved = moved; }
+		inline void set_sync_dirty(bool moved) { m_last_updated = m_last_tick + 1; m_moved = moved; }
 
-		inline void setPosition(const vec3& position) { m_position = position; this->setDirty(true); }
-		inline void setRotation(const quat& rotation) { m_rotation = rotation; this->setDirty(false); }
+		inline void set_position(const vec3& position) { m_position = position; this->set_dirty(true); }
+		inline void set_rotation(const quat& rotation) { m_rotation = rotation; this->set_dirty(false); }
 
-		inline void syncPosition(const vec3& position) { m_position = position; this->setSyncDirty(true); }
-		inline void syncRotation(const quat& rotation) { m_rotation = rotation; this->setSyncDirty(false); }
+		inline void sync_position(const vec3& position) { m_position = position; this->set_sync_dirty(true); }
+		inline void sync_rotation(const quat& rotation) { m_rotation = rotation; this->set_sync_dirty(false); }
 
 		inline vec3 front() const { return mud::rotate(m_rotation, to_vec3(Side::Front)); }
 		inline vec3 right() const { return mud::rotate(m_rotation, to_vec3(Side::Right)); }
@@ -69,19 +71,19 @@ using namespace mud; namespace toy
 		void rotate(const vec3& axis, float angle);
 
 		void yaw(float value);
-		void fixedYaw(float value);
+		void yaw_fixed(float value);
 		void pitch(float value);
 		void roll(float value);
 
 		void next_frame(size_t tick, size_t delta);
 		
-		Entity* spatialRoot();
-		Entity* findParent(Type& part_type);
+		Entity* spatial_root();
+		Entity* find_parent(Type& part_type);
 
 		void remove();
 
 		void detach(Entity& child);
-		void detachto(Entity& moveto);
+		void detach_to(Entity& moveto);
 
 		void hook();
 		void unhook();
@@ -89,19 +91,25 @@ using namespace mud; namespace toy
 		typedef std::function<bool(Entity&)> Visitor;
 		void visit(const Visitor& visitor);
 
-		void debugContents(size_t depth = 0);
+		void debug_contents(size_t depth = 0);
 
 	public:
-		void addHookObserver(HookObserver& listener);
-		void removeHookObserver(HookObserver& listener);
+		void observe_hook(HookObserver& listener);
+		void unobserve_hook(HookObserver& listener);
 
 	public:
+		template <class T>
+		inline bool isa() { return m_complex.isa<T>(); }
+
+		template <class T>
+		inline T& part() { return m_complex.part<T>(); }
+
 		template <class T, class... Types>
-		Entity& constructNested(Types&&... args) { return GlobalPool::me().template pool<T>().construct(0, *this, std::forward<Types>(args)...).m_entity; }
+		inline T& construct(Types&&... args) { return GlobalPool::me().template pool<T>().construct(0, *this, std::forward<Types>(args)...); }
 
     private:
-		MotionState* m_motionState;
+		MotionState* m_motion_state;
 
-		std::vector<HookObserver*> m_hookObservers; // @todo study replacing this with other way : check each frame if entity is still hooked
+		std::vector<HookObserver*> m_hook_observers; // @todo study replacing this with other way : check each frame if entity is still hooked
 	};
 }

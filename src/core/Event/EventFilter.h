@@ -4,14 +4,14 @@
 
 #pragma once
 
-/* toy */
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 
-/* std */
+#ifndef MUD_CPP_20
 #include <list>
 #include <set>
 #include <map>
 #include <string>
+#endif
 
 using namespace mud; namespace toy
 {
@@ -23,7 +23,7 @@ using namespace mud; namespace toy
 	// ThresholdEventFilter filters a value stored in the event against the value of the mask specified by the subscriber
 	// the value must be superior in order for the event to reach the subscriber
 
-	class _refl_ EventFilter
+	class refl_ EventFilter
 	{
 	public:
 		typedef std::set<EventSubscriber*> SubscriberSet;
@@ -47,7 +47,6 @@ using namespace mud; namespace toy
 
 		void filterGroup(const MaskList& masks, SubscriberSet& subscribers);
 
-	protected:
 		Type& m_type;
 		string m_filterName;
 

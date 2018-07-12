@@ -6,13 +6,13 @@
 
 #include <core/Entity/Entity.h>
 
-#include <obj/Complex.h>
-#include <obj/Reflect/Method.h>
+#include <proto/Complex.h>
+#include <refl/Method.h>
 
 using namespace mud; namespace toy
 {
 	Action::Action(ProcedureType& actionType, User* user, Entity& agent, Entity& target)
-		: Procedure(actionType, user, &agent, std::vector<Ref>{ &target })
+		: Procedure(actionType, user, Ref(&agent), { Ref(&target) })
 		, m_agent(agent)
 		, m_target(target)
 	{}

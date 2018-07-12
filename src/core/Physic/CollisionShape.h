@@ -4,15 +4,14 @@
 
 #pragma once
 
-/* toy */
-#include <obj/NonCopy.h>
+#include <infra/NonCopy.h>
 #include <obj/Unique.h>
 #include <math/Vec.h>
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 
 using namespace mud; namespace toy
 {
-	class _refl_ TOY_CORE_EXPORT CollisionShape : public NonCopy
+	class refl_ TOY_CORE_EXPORT CollisionShape : public NonCopy
 	{
 	public:
 		CollisionShape(const Shape& shape, const vec3& center = Zero3, float margin = 0.f);

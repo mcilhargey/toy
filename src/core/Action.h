@@ -4,15 +4,14 @@
 
 #pragma once
 
-/* toy */
 #include <util/Procedure.h>
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 
 #include <core/Entity/Entity.h>
 
 using namespace mud; namespace toy
 {
-	class _refl_ TOY_CORE_EXPORT Action : public Procedure
+	class refl_ TOY_CORE_EXPORT Action : public Procedure
 	{
 	public:
 		Action(ProcedureType& type, User* user, Entity& agent, Entity& target);

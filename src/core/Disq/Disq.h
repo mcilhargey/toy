@@ -4,18 +4,18 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Complex.h>
+#include <proto/Complex.h>
 #include <math/Math.h>
 #include <math/Vec.h>
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 #include <core/Physic/Collider.h>
-#include <obj/Util/Updatable.h>
+#include <infra/Updatable.h>
 
-/* std */
+#ifndef MUD_CPP_20
 #include <vector>
 #include <memory>
 #include <list>
+#endif
 
 using namespace mud; namespace toy
 {
@@ -98,8 +98,8 @@ using namespace mud; namespace toy
 		float m_radius;
 		float m_height;
 
-		void addContact(Collider& collider);
-		void removeContact(Collider& collider);
+		void add_contact(Collider& collider);
+		void remove_contact(Collider& collider);
 
 		Atoll* atoll() { return m_atoll.get(); }
 
@@ -121,7 +121,7 @@ using namespace mud; namespace toy
 		vec3 nearest(Disq& other);
 		
 		bool collisions(const vec3& spot);
-		void collisions(const vec3& spot, std::vector<Collider*>& obstacles);
+		void collisions(const vec3& spot, std::vector<Collision>& obstacles);
 
 		vec3 project(const vec3& pos);
 

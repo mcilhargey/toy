@@ -4,10 +4,9 @@
 
 #pragma once
 
-/* toy */
-#include <obj/NonCopy.h>
-#include <obj/Util/Timer.h>
-#include <visu/Generated/Forward.h>
+#include <infra/NonCopy.h>
+#include <math/Timer.h>
+#include <visu/Forward.h>
 #include <visu/VisuScene.h>
 
 #ifdef TOY_SOUND
@@ -16,9 +15,7 @@
 
 using namespace mud; namespace toy
 {
-	typedef std::function<object_ptr<VisuPainter>(VisuScene& scene, Vision& vision)> PainterCreator;
-
-    class _refl_ TOY_VISU_EXPORT VisuSystem : public NonCopy
+    class refl_ TOY_VISU_EXPORT VisuSystem : public NonCopy
     {
     public:
 		VisuSystem(array<cstring> resource_paths);

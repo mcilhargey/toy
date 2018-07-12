@@ -4,17 +4,20 @@
 
 #include <block/VisuBlock.h>
 
-#include <obj/String/StringConvert.h>
+#include <infra/StringConvert.h>
+
+#include <math/Random.h>
 
 #include <block/Block.h>
 #include <block/Element.h>
 #include <block/Sector.h>
 #include <block/Elements.h>
 
-#include <math/Generated/Convert.h>
+#include <meta/math/Convert.h>
 
 #include <gfx/Scene.h>
 #include <gfx/Item.h>
+#include <gfx/Model.h>
 #include <gfx/GfxSystem.h>
 
 #include <gfx/Draw.h>
@@ -26,6 +29,7 @@
 #include <core/Entity/Entity.h>
 
 #define DEBUG_BLOCK 0
+#define BLOCK_WIREFRAME 1
 
 using namespace mud; namespace toy
 {
@@ -36,7 +40,7 @@ using namespace mud; namespace toy
 		//gfx::shape(parent, Spheroid(heap.radius(), Symbol(heap.m_element.m_colour));
 	}
 
-	void paint_block(Gnode& parent, Block& block)
+	void paint_block(Gnode& parent, Block& block, Material* material)
 	{
 #if DEBUG_BLOCK
 		float size = block.m_size / 2.f;
@@ -50,13 +54,57 @@ using namespace mud; namespace toy
 		}
 
 		for(auto& element_model : state.m_models)
-			gfx::item(parent, *element_model.second, ITEM_WORLD_GEOMETRY | ITEM_SELECTABLE);
+			gfx::item(parent, *element_model.second, ITEM_WORLD_GEOMETRY | ITEM_SELECTABLE, material);
+	}
+
+	Material& plain_material(GfxSystem& gfx_system, cstring name)
+	{
+		Material& material = gfx_system.fetch_material(name, "pbr/pbr");
+		material.m_base_block.m_geometry_filter = 1 << PLAIN;
+		material.m_pbr_block.m_enabled = true;
+		return material;
+	}
+
+	Material& wireframe_material(GfxSystem& gfx_system, cstring name, const Colour& colour)
+	{
+		string variant_name = string(name) + "_" + to_string(to_rgba(colour));
+		Material& material = gfx_system.fetch_material(variant_name.c_str(), "unshaded");
+		material.m_base_block.m_geometry_filter = 1 << OUTLINE;
+		material.m_unshaded_block.m_enabled = true;
+		material.m_unshaded_block.m_colour.m_value = colour;
+		return material;
+	}
+
+	void paint_block(Gnode& parent, Block& block)
+	{
+		static Material& material = plain_material(parent.m_scene->m_gfx_system, "block");
+		paint_block(parent, block, &material);
+	}
+
+	void paint_block_wireframe(Gnode& parent, Block& block, const Colour& colour)
+	{
+		static Material& material = wireframe_material(parent.m_scene->m_gfx_system, "block_wireframe", colour);
+		paint_block(parent, block, &material);
+	}
+
+	void voxel_side(Block& block, size_t chunk, Element* element, Side side, std::vector<Quad>& quads, std::vector<ProcShape>& shapes)
+	{
+		Quad quad = { to_xz(block.chunk_size()), c_dirs_tangents[size_t(side)], c_dirs_normals[size_t(side)] };
+		quad.m_center = block.chunk_position(chunk) + to_vec3(side) * block.chunk_size() / 2.f;
+
+		quads.push_back(quad);
+		shapes.push_back({ Symbol(Colour::White), &quads.back(), OUTLINE });
+		shapes.push_back({ Symbol(Colour::None, element->m_colour), &quads.back(), PLAIN });
 	}
 
 	void update_block_geometry(GfxSystem& gfx_system, Block& block, BlockState& state)
 	{
 		if(block.m_subdived)
 			return;
+
+		std::vector<Quad> quads;
+		//quads.reserve(block.m_chunks.size() * 6 / 2);
+		quads.reserve(block.m_chunks.size() * 6 / 2 * 16);
 
 		state.m_models.clear();
 
@@ -73,19 +121,14 @@ using namespace mud; namespace toy
 				continue;
 			}
 
-			for(Side side : Sides)
+			for(Side side : c_sides)
 			{
 				Hunk neighbour = block.neighbour(index, side);
 
 				if(!neighbour || neighbour.element == element)
 					continue;
 
-				vec3 position = block.chunkPosition(index) + to_vec3(side) * block.chunkSize() / 2.f;
-
-				Colour colour = element->m_colour;
-				//Colour colour = Colour::White;
-				Quad quad = { block.chunkSize(), NormalX[size_t(side)], NormalY[size_t(side)] };
-				bodies[element].push_back({ Symbol(Colour::None, colour), quad, PLAIN, position });
+				voxel_side(block, index, element, side, quads, bodies[element]);
 			}
 
 			++index;
@@ -98,11 +141,20 @@ using namespace mud; namespace toy
 
 				printf("INFO: Creating geometry for Block %s, %zu quads\n", identifier.c_str(), bodies[element].size());
 
-				state.m_models[element] = draw_model(gfx_system, identifier.c_str(), bodies[element], true);
-				state.m_models[element]->m_meshes[0].m_material = gfx_system.fetch_material(element->m_name.c_str());
-				block.sector().m_worldPage.m_geometry_filter.push_back(identifier); // @kludge : find out a more intelligent way to filter world geometry
+				state.m_models[element] = draw_model(identifier.c_str(), bodies[element], true);
+
+				/*
+				Material& plain = gfx_system.fetch_material(element->m_name.c_str(), "pbr/pbr");
+				plain.m_base_block.m_geometry_filter = 1 << PLAIN;
+				plain.m_pbr_block.m_enabled = true;
+
+				state.m_models[element]->m_meshes[0]->m_material = &wireframe;
+				state.m_models[element]->m_meshes[1]->m_material = &wireframe;
+				*/
+
+				block.sector().m_world_page.m_geometry_filter.push_back(identifier); // @kludge : find out a more intelligent way to filter world geometry
 			}
 
-		//block.sector().m_entity.part<WorldPage>().updateGeometry();
+		//block.sector().m_entity.part<WorldPage>().update_geometry();
 	}
 }

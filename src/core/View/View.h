@@ -4,10 +4,9 @@
 
 #pragma once
 
-/* toy */
 #include <core/Store/Array.h>
 #include <core/Store/CountStore.h>
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 #include <core/Entity/EntityObserver.h>
 #include <core/Entity/Entity.h>
 #include <core/Physic/Medium.h>
@@ -19,8 +18,8 @@ using namespace mud; namespace toy
 	public:
 		RecursiveStore();
 
-		virtual void handleAdd(Entity& entity);
-		virtual void handleRemove(Entity& entity);
+		virtual void handle_add(Entity& entity);
+		virtual void handle_remove(Entity& entity);
 
 		void addRecursive(Entity& entity);
 		void removeRecursive(Entity& entity);
@@ -29,7 +28,7 @@ using namespace mud; namespace toy
 		std::function<bool(Entity&)> m_filter;
 	};
 
-	class _refl_ TOY_CORE_EXPORT View
+	class refl_ TOY_CORE_EXPORT View
 	{
 	public:
 		View(Vision& vision, Type& type);
@@ -37,11 +36,11 @@ using namespace mud; namespace toy
 
 		virtual Store<Entity>& store() = 0;
 
-		_attr_ Type& m_type;
+		attr_ Type& m_type;
 		Vision& m_vision;
 	};
 
-	class _refl_ TOY_CORE_EXPORT StoreView : public View
+	class refl_ TOY_CORE_EXPORT StoreView : public View
 	{
 	public:
 		StoreView(Vision& vision, const string& name, Store<Entity>& store);
@@ -52,7 +51,7 @@ using namespace mud; namespace toy
 		Store<Entity>& m_store;
 	};
 
-    class _refl_ TOY_CORE_EXPORT ReceptorView : public View, public StoreObserver<Entity>
+    class refl_ TOY_CORE_EXPORT ReceptorView : public View, public StoreObserver<Entity>
     {
 	public:
 		ReceptorView(Vision& vision, Medium& medium, Store<Entity>& receptors);
@@ -62,8 +61,8 @@ using namespace mud; namespace toy
 
 		virtual Store<Entity>& store() { return m_store; }
 
-		void handleAdd(Entity& entity);
-		void handleRemove(Entity& entity);
+		void handle_add(Entity& entity);
+		void handle_remove(Entity& entity);
 
 	protected:
 		Medium& m_medium;

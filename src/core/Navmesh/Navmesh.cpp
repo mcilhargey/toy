@@ -4,7 +4,7 @@
 
 #include <core/Navmesh/Navmesh.h>
 
-#include <obj/String/StringConvert.h>
+#include <infra/StringConvert.h>
 #include <geom/Shape/ProcShape.h>
 #include <geom/Shape/DrawShape.h>
 #include <math/Random.h>
@@ -162,26 +162,26 @@ using namespace mud; namespace toy
 		}
 	};
 
-	Navblock::Navblock(Navmesh& navmesh, Entity& entity, WorldPage& worldPage)
+	Navblock::Navblock(Navmesh& navmesh, Entity& entity, WorldPage& world_page)
 		: m_entity(entity)
-		, m_worldPage(worldPage)
+		, m_world_page(world_page)
 		, m_navmesh(navmesh)
 	{
-		m_entity.m_world.addTask(this, short(Task::Physics));
+		m_entity.m_world.add_task(this, short(Task::Physics));
 	}
 
 	Navblock::~Navblock()
 	{
-		m_entity.m_world.removeTask(this, short(Task::Physics));
+		m_entity.m_world.remove_task(this, short(Task::Physics));
 	}
 
 	void Navblock::next_frame(size_t tick, size_t delta)
 	{
 		UNUSED(tick); UNUSED(delta);
-		if(m_updated < m_worldPage.m_last_rebuilt)
+		if(m_auto_update && m_updated < m_world_page.m_last_rebuilt)
 		{
 			m_navmesh.update_block(*this);
-			m_updated = m_entity.m_lastTick;
+			m_updated = m_entity.m_last_tick;
 		}
 	}
 
@@ -193,32 +193,36 @@ using namespace mud; namespace toy
 
 		m_navgeom = make_unique<NavGeom>(m_geometry, m_world.m_name.c_str());
 
-		m_world.addTask(this, short(Task::Physics));
+		m_world.add_task(this, short(Task::Physics));
 	}
 
 	Navmesh::~Navmesh()
 	{
-		m_world.removeTask(this, short(Task::Physics));
+		m_world.remove_task(this, short(Task::Physics));
 	}
 
 	void Navmesh::update_block(Navblock& navblock)
 	{
 		// @todo we are just appending here, should clear and update
 
-		printf("INFO: Updating Navmesh block with %zu vertices\n", navblock.m_worldPage.geom().m_vertices.size());
+		for(Geometry& geom : navblock.m_world_page.m_chunks)
+		{
+			if(geom.m_vertices.empty())
+				return;
 
-		if(navblock.m_worldPage.geom().m_vertices.empty())
-			return;
+			printf("INFO: Updating Navmesh geometry block with %zu vertices\n", geom.m_vertices.size());
 
-		ShapeIndex offset = ShapeIndex(m_geometry.m_vertices.size());
+			ShapeIndex offset = ShapeIndex(m_geometry.m_vertices.size());
 
-		for(Vertex& vertex : navblock.m_worldPage.geom().m_vertices)
-			m_geometry.m_vertices.emplace_back(Vertex{ navblock.m_entity.m_position + vertex.m_position });
+			for(Vertex& vertex : geom.m_vertices)
+				m_geometry.m_vertices.emplace_back(Vertex{ navblock.m_entity.m_position + vertex.m_position });
 
-		for(Tri& tri : navblock.m_worldPage.geom().m_triangles)
-			m_geometry.m_triangles.push_back(Tri{ ShapeIndex(offset + tri.a), ShapeIndex(offset  + tri.b), ShapeIndex(offset + tri.c) });
+			for(Tri& tri : geom.m_triangles)
+				m_geometry.m_triangles.push_back(Tri{ ShapeIndex(offset + tri.a), ShapeIndex(offset + tri.b), ShapeIndex(offset + tri.c) });
 
-		m_dirty = true;
+			m_dirty = true;
+		}
+
 	}
 
 	void Navmesh::next_frame(size_t tick, size_t delta)

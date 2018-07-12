@@ -20,6 +20,6 @@ using namespace mud; namespace toy
 
 	bool Area::checkInside(const vec3& position)
 	{
-		return m_collider.m_collisionShape.checkInside(position);
+		return m_collider.m_collision_shape.checkInside(position);
 	}
 }

@@ -1,5 +1,5 @@
 
-#include <space/Generated/Types.h>
+#include <space/Types.h>
 #include <space/Generator.h>
 #include <space/ex_space.h>
 #include <toy/toy.h>
@@ -16,7 +16,7 @@ std::string generate_name()
 {
 	std::string name = "";
 
-	size_t length = random_integer(5U, 15U);
+	size_t length = random_integer(3U, 10U);
 	bool vowel = false;
 	for(size_t i = 0; i < length; ++i)
 	{
@@ -34,11 +34,7 @@ void generate_avatar(Colour& colour, Image256& avatar)
 	const uint16_t side = 6;
 	avatar.resize(side, side);
 
-	float r = random_scalar(0.f, 1.f);
-	float g = random_scalar(0.f, 1.f);
-	float b = random_scalar(0.f, 1.f);
-
-	colour = { r, g, b, 1.f };
+	colour = hsl_to_rgb(random_scalar(0.f, 1.f), 1.f, random_scalar(0.5f, 0.7f));
 
 	Palette palette = { { Colour::None, colour } };
 	avatar.m_palette = palette;
@@ -59,12 +55,21 @@ Star* generate_system(Entity& galaxy, const uvec3& coord, const vec3& position)
 	if(roll < 85)
 		return nullptr;
 
-	Star& star = galaxy.constructNested<Star>(position, to_coord(coord), generate_name()).part<Star>();
+	Star& star = galaxy.construct<Star>(position, to_coord(coord), generate_name());
+	star.m_base_population = random_integer(1, 1000);
+	star.m_population = random_integer(1, star.m_base_population);
+	star.m_max_population = star.m_base_population;
+	star.m_environment = random_integer(1, 20);
+	star.m_resources[size_t(Resource::Minerals)] = random_integer(1, 20);
+	for(Resource resource = Resource(0); resource != Resource::Count; resource = Resource(size_t(resource) + 1))
+		if(random_integer(1, 100) > 98)
+			star.m_resources[size_t(resource)] = random_integer(1, 20);
 	return &star;
 }
 
 Fleet* generate_fleet(Entity& galaxy, const uvec3& coord, const vec3& position)
 {
+	UNUSED(galaxy); UNUSED(coord); UNUSED(position);
 	return nullptr;
 }
 
@@ -82,6 +87,7 @@ Commander* generate_commander(Entity& galaxy, Star& star)
 		return nullptr;
 	*/
 
+	Race race = Race(random_integer<uint>(uint(Race::Human), uint(Race::Zwiie)));
 	int command = random_integer(0, 100);
 	int commerce = random_integer(0, 100);
 	int diplomacy = random_integer(0, 100);
@@ -93,66 +99,62 @@ Commander* generate_commander(Entity& galaxy, Star& star)
 	commerce = int(traits.y * 90.f);
 	diplomacy = int(traits.z * 90.f);
 
-	Commander& commander = GlobalPool::me().pool<Commander>().construct(0, generate_name(), command, commerce, diplomacy);
+	Commander& commander = GlobalPool::me().pool<Commander>().construct(0, generate_name(), race, command, commerce, diplomacy);
 	commander.take_star(star);
+	commander.m_capital = &star;
+
+	galaxy.part<Galaxy>().m_commanders.push_back(&commander);
 
 	generate_avatar(commander.m_colour, commander.m_avatar);
 
-	Fleet& fleet = galaxy.constructNested<Fleet>(star.m_entity.m_position + 1.0f * Y3, commander, star.m_coord, generate_name()).part<Fleet>();
+	Fleet& fleet = galaxy.construct<Fleet>(star.m_entity.m_position + 1.0f * Y3, commander, star.m_coord, generate_name());
 
 	float size = random_scalar(1.f, 3.f);
-	fleet.set_ships("cha", 20 * size);// 40);
-	fleet.set_ships("chabom", 10 * size);// 40);
-	fleet.set_ships("bom", 10 * size);// 40);
-	fleet.set_ships("cor", 5 * size);// 40);
+	fleet.set_ships("sonde", size_t(1 * size));
+	fleet.set_ships("cha", size_t(20 * size));
+	fleet.set_ships("chabom", size_t(10 * size));
+	fleet.set_ships("bom", size_t(10 * size));
+	fleet.set_ships("cor", size_t(5 * size));
 
 	return &commander;
 }
 
 Star* assign_system(Entity& galaxy, Star& star, std::vector<Commander*> commanders)
 {
+	UNUSED(galaxy); UNUSED(star); UNUSED(commanders);
 	return nullptr;
 }
 
 void space_generator(GameShell& shell, VisualScript& script)
 {
+	UNUSED(shell);
 	script.lock();
 
 	// Sectors
-	Valve& parsecs_per_sector = script.value(20);
+	Valve& parsecs_per_sector = script.value(uvec3(20));
 	Valve& sectors_per_galaxy = script.value(2);
 	Valve& parsecs_per_galaxy = script.value(20 * 2);
+	
+	Valve& galaxy_sectors = script.create<uvec3>({ &sectors_per_galaxy, &script.value(1), &sectors_per_galaxy });
+	Valve& galaxy_size = script.create<uvec3>({ &parsecs_per_galaxy, &script.value(1), &parsecs_per_galaxy });
+	Valve& galaxy_size2 = script.create<uvec2>({ &parsecs_per_galaxy, &parsecs_per_galaxy });
 
-	Valve& galaxySectors = script.create<uvec3>({ &sectors_per_galaxy, &script.value(1), &sectors_per_galaxy });
-	Valve& galaxySize = script.create<uvec3>({ &parsecs_per_galaxy, &script.value(1), &parsecs_per_galaxy });
-	Valve& galaxySize2 = script.create<uvec2>({ &parsecs_per_galaxy, &parsecs_per_galaxy });
-
-	Valve& sectorCoords = script.function(grid, { &galaxySectors });
-	Valve& sectorPositions = script.function(grid_center, { &sectorCoords, &parsecs_per_sector });
+	//Valve* sector_coords = script.function(grid, { &galaxy_sectors });
+	//Valve* sector_positions = script.function(grid_center, { sector_coords, &parsecs_per_sector });
 
 	Valve& origin = script.input("origin");
 
-	Valve& galaxy = script.create<Galaxy>({ &script.value(0U), &origin, &script.value(Zero3), &galaxySize2 });
-
-	// @ todo this test case fails when we remove the virtual destructor in TypeObject. Think of a design that adresses this
-	/*
-	script.unlock();
-	Galaxy& gala = val<Galaxy>(galaxy.m_process.m_outputs[0]->m_stream.m_value);
-	Ref ref = { &gala };
-	Complex& complex = val<Construct>(ref).m_stem;
-	Ref ref2 = { &complex };
-	Entity& wrong_address = val<Entity>(ref2);
-	Entity& correct_address = *static_cast<Entity*>(&val<Complex>(ref2));
-	*/
+	Valve& galaxy = script.create<Galaxy>({ &script.value(0U), &origin, &script.value(Zero3), &galaxy_size2 });
 
 	//Valve& sectors = script.create<Quadrant>().pipe({ &script.value(0U), &galaxy, &sectorPositions, &sectorCoords, &sectorParsecs });
 
-	Valve& coords = script.function(grid, { &galaxySize });
-	Valve& positions = script.function(grid_center, { &coords, &script.value(1) });
+	Valve* coords = script.function(grid, { &galaxy_size });
+	Valve* positions = script.function(grid_center, { coords, &script.value(vec3(1.f)) });
 
-	Valve& systems = script.function(generate_system, { &galaxy, &coords, &positions });
+	Valve* systems = script.function(generate_system, { &galaxy, coords, positions });
 
-	Valve& commanders = script.function(generate_commander, { &galaxy, &systems });
+	Valve* commanders = script.function(generate_commander, { &galaxy, systems });
+	UNUSED(commanders);
 
 	//Valve& assigned_systems = script.function(assignSystem).pipe({ &galaxy, &systems, &commanders });
 

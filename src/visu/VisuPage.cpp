@@ -2,7 +2,7 @@
 //  This software is provided 'as-is' under the zlib License, see the LICENSE.txt file.
 //  This notice and the license may not be removed or altered from any source distribution.
 
-#include <visu/Generated/Types.h>
+#include <visu/Types.h>
 #include <visu/VisuPage.h>
 
 #include <core/Movable/Movable.h>
@@ -12,6 +12,7 @@
 #include <gfx/Node3.h>
 #include <gfx/Item.h>
 #include <gfx/Mesh.h>
+#include <gfx/Model.h>
 #include <gfx/GfxSystem.h>
 
 #define DEBUG_NAVMESH_GEOM 0
@@ -47,17 +48,24 @@ using namespace mud; namespace toy
 		for(; pool; pool = pool->m_next.get())
 			for(Item* item : pool->m_objects)
 			{
-				if(!vector_has(page.m_geometry_filter, string(item->m_model->m_name)) || !item->m_node.m_object)
-					continue;
-				Entity& entity = val<Entity>(item->m_node.m_object);
-				if((entity.isChildOf(page.m_entity) || &entity == &page.m_entity) && entity.m_hooked && !entity.isa<Movable>())
-					items.push_back(item);
+				//if((item->m_flags & ITEM_WORLD_GEOMETRY) != 0)
+				//{
+					//items.push_back(item);
+				//}
+				//else
+				{
+					if(!vector_has(page.m_geometry_filter, string(item->m_model->m_name)) || !item->m_node.m_object)
+						continue;
+					Entity& entity = val<Entity>(item->m_node.m_object);
+					if((entity.is_child_of(page.m_entity) || &entity == &page.m_entity) && entity.m_hooked && !entity.isa<Movable>())
+						items.push_back(item);
+				}
 			}
 
 		// @todo : filter on WORLD_GEOMETRY mask ? a way to filter out debug draw geometry ?
 
-		size_t vertexCount = 0;
-		size_t indexCount = 0;
+		size_t vertex_count = 0;
+		size_t index_count = 0;
 
 		for(Item* item : items)
 			for(const ModelItem& model_item : item->m_model->m_items)
@@ -65,19 +73,18 @@ using namespace mud; namespace toy
 				uint16_t num = item->m_instances.empty() ? 1U : uint16_t(item->m_instances.size());
 				if(model_item.m_mesh->m_draw_mode != PLAIN)
 					continue;
-				vertexCount += num * model_item.m_mesh->m_vertexCount;
-				indexCount += num * model_item.m_mesh->m_indexCount;
+				vertex_count += num * model_item.m_mesh->m_vertex_count;
+				index_count += num * model_item.m_mesh->m_index_count;
 			}
 
-		if(vertexCount == 0 || indexCount == 0)
+		if(vertex_count == 0 || index_count == 0)
 			return;
 
-		size_t triCount = indexCount / 3;
+		page.m_chunks.emplace_back();
+		Geometry& geom = page.m_chunks.back();
+		geom.allocate(vertex_count, index_count / 3);
 
-		Geometry& geom = page.geom();
-		geom.allocate(vertexCount, triCount);
-
-		MeshData data(&geom.m_vertices[0], &geom.m_triangles[0].a);
+		MeshData data(geom.vertices(), geom.indices());
 
 		for(Item* item : items)
 			for(const ModelItem& model_item : item->m_model->m_items)
@@ -88,14 +95,9 @@ using namespace mud; namespace toy
 				static mat4 identity = bxidentity();
 				if(item->m_instances.empty())
 					model_item.m_mesh->read(data, identity);
-
-				for(const mat4& transform : item->m_instances)
-					model_item.m_mesh->read(data, transform);
+				else
+					for(const mat4& transform : item->m_instances)
+						model_item.m_mesh->read(data, transform);
 			}
-
-		//m_page.initTerrain(geom);
-		//m_page.m_entity.part<Navmesh>().build();
-
-		//worldPage.m_entity.pushPlug(make_object<Pathfinder>(worldPage.m_entity), type<Pathfinder>());
 	}
 }

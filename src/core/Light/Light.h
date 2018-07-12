@@ -4,12 +4,11 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Complex.h>
-#include <obj/Proto.h>
+#include <proto/Complex.h>
+#include <proto/Proto.h>
 #include <math/Stat.h>
 #include <math/Colour.h>
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 #include <core/Physic/Scope.h>
 #include <core/Entity/EntityObserver.h>
 
@@ -17,13 +16,13 @@ using namespace mud; namespace toy
 {
 	//class TOY_CORE_EXPORT VisualEmitter object_ptr<LightReflector> m_lreflector;
 
-	class _refl_ TOY_CORE_EXPORT LightReflector
+	class refl_ TOY_CORE_EXPORT LightReflector
 	{
 	public:
-		LightReflector(Entity& entity);
+		LightReflector(Entity& entity, Receptor& receptor);
 
-		_attr_ Entity& m_entity;
-		_attr_ Ratio m_brightness;
+		attr_ Entity& m_entity;
+		attr_ Ratio m_brightness;
 
 		virtual void handleMoved();
 
@@ -31,20 +30,20 @@ using namespace mud; namespace toy
 		ReceptorSphere& m_sphere;
 	};
 
-	class _refl_ TOY_CORE_EXPORT LightSource : public StoreObserver<Entity>
+	class refl_ TOY_CORE_EXPORT LightSource : public StoreObserver<Entity>
 	{
 	public:
-		_constr_ LightSource(Entity& entity, Emitter& emitter, float range, float intensity, Colour colour, bool shadows);
+		constr_ LightSource(Entity& entity, Emitter& emitter, float range, float intensity, Colour colour, bool shadows);
 
-		_attr_ Entity& m_entity;
-		_attr_ Emitter& m_emitter;
-		_attr_ _mut_ float m_range;
-		_attr_ _mut_ float m_intensity;
-		_attr_ _mut_ Colour m_colour;
-		_attr_ _mut_ bool m_shadows;
+		attr_ Entity& m_entity;
+		attr_ Emitter& m_emitter;
+		attr_ mut_ float m_range;
+		attr_ mut_ float m_intensity;
+		attr_ mut_ Colour m_colour;
+		attr_ mut_ bool m_shadows;
 
-		virtual void handleAdd(Entity& contact);
-		virtual void handleRemove(Entity& contact);
+		virtual void handle_add(Entity& contact);
+		virtual void handle_remove(Entity& contact);
 
 		void visualTransformUpdated(LightReflector& reflector);
 
@@ -57,13 +56,13 @@ using namespace mud; namespace toy
 		EmitterSphere& m_sphere;
 	};
 
-	class _refl_ TOY_CORE_EXPORT OLight : public Construct
+	class refl_ TOY_CORE_EXPORT OLight : public Complex
 	{
 	public:
-		_constr_ OLight(Id id, Entity& parent, const vec3& position, float range = 10.f, float intensity = 1.f, Colour colour = Colour::White, bool shadows = false);
+		constr_ OLight(Id id, Entity& parent, const vec3& position, float range = 10.f, float intensity = 1.f, Colour colour = Colour::White, bool shadows = false);
 
-		_comp_ _attr_ Entity m_entity;
-		_comp_ Emitter m_emitter;
-		_comp_ LightSource m_light;
+		comp_ attr_ Entity m_entity;
+		comp_ attr_ Emitter m_emitter;
+		comp_ attr_ LightSource m_light;
 	};
 }

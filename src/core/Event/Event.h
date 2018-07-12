@@ -4,14 +4,14 @@
 
 #pragma once
 
-/* toy */
 #include <obj/Var.h>
 #include <obj/Unique.h>
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 #include <core/Event/EventHandler.h>
 
-/* std */
+#ifndef MUD_CPP_20
 #include <map>
+#endif
 
 using namespace mud; namespace toy
 {
@@ -21,7 +21,7 @@ using namespace mud; namespace toy
 	class TOY_CORE_EXPORT Event
 	{
 	public:
-		Event(Type& eventType, Entity& source);
+		Event(Type& eventType, EventRelay& source);
 
 	public:
 		const Type& m_eventType;

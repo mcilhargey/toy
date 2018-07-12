@@ -4,12 +4,12 @@
 
 #pragma once
 
-/* toy */
-#include <util/Generated/Forward.h>
+#include <util/Forward.h>
 #include <obj/Util/LocklessQueue.h>
 
-/* std */
+#ifndef MUD_CPP_20
 #include <functional>
+#endif
 
 using namespace mud; namespace toy
 {

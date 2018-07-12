@@ -1,11 +1,11 @@
 //  Copyright (c) 2018 Hugo Amiard hugo.amiard@laposte.net
 //  This software is provided 'as-is' under the zlib License, see the LICENSE.txt file.
 //  This notice and the license may not be removed or altered from any source distribution.
-/* toy */
 
 #include <core/Entity/Entity.h>
 
-#include <obj/Util/Timer.h>
+#include <obj/Indexer.h>
+#include <math/Timer.h>
 #include <math/Math.h>
 
 #include <core/World/World.h>
@@ -13,30 +13,33 @@
 #include <core/Entity/EntityObserver.h>
 #include <core/World/Section.h>
 
-#include <obj/Proto.h>
+#include <proto/Proto.h>
 
-#include <obj/Reflect/Meta.h>
+#include <refl/Meta.h>
 
 using namespace mud; namespace toy
 {
-	Entity::Entity(Id id, Prototype& prototype, World& world, Entity* parent, const vec3& position, const quat& rotation)
-        : Complex(id, type<Entity>(), prototype)
+	Entity::Entity(Id id, Complex& complex, World& world, Entity* parent, const vec3& position, const quat& rotation)
+        : m_id(index(type<Entity>(), id, Ref(this)))
+		, m_complex(complex)
 		, m_world(world)
 		, m_parent(parent)
 		, m_position(position)
 		, m_rotation(rotation)
 		, m_hooked(true)
 	{
-		world.addTask(this, short(Task::Entity)); // @todo in the long term this should be moved out of the entity's responsibility
+		world.add_task(this, short(Task::Entity)); // @todo in the long term this should be moved out of the entity's responsibility
 	}
 
-	Entity::Entity(Id id, Prototype& prototype, Entity& parent, const vec3& position, const quat& rotation)
-		: Entity(id, prototype, parent.m_world, &parent, position, rotation)
+	Entity::Entity(Id id, Complex& complex, Entity& parent, const vec3& position, const quat& rotation)
+		: Entity(id, complex, parent.m_world, &parent, position, rotation)
 	{}
 
     Entity::~Entity()
     {
-		m_world.removeTask(this, short(Task::Entity));
+		unindex(type<Entity>(), m_id);
+
+		m_world.remove_task(this, short(Task::Entity));
 
 		if(m_parent)
 			m_parent->m_contents.remove(*this);
@@ -52,7 +55,7 @@ using namespace mud; namespace toy
 		return m_world.origin();
 	}
 
-	void Entity::debugContents(size_t depth)
+	void Entity::debug_contents(size_t depth)
 	{
 		if(m_contents.store().size() > 1)
 		{
@@ -63,34 +66,34 @@ using namespace mud; namespace toy
 		}
 
 		for(auto& child : m_contents.store())
-			child->debugContents(depth + 1);
+			child->debug_contents(depth + 1);
 	}
 
-	vec3 Entity::absolutePosition()
+	vec3 Entity::absolute_position()
 	{
 		if(m_parent)
-			return m_position + m_parent->absolutePosition();
+			return m_position + m_parent->absolute_position();
 		else
 			return m_position;
 	}
 
-	quat Entity::absoluteRotation()
+	quat Entity::absolute_rotation()
 	{
 		if(m_parent)
-			return m_rotation * m_parent->absoluteRotation();
+			return m_rotation * m_parent->absolute_rotation();
 		else
 			return m_rotation;
 	}
 
 	void Entity::translate(const vec3& vec)
 	{
-		setPosition(mud::rotate(m_rotation, vec) + m_position);
+		set_position(mud::rotate(m_rotation, vec) + m_position);
 	}
 
 	void Entity::rotate(const vec3& axis, float angle)
 	{
 		quat rot = angle_axis(angle, mud::rotate(m_rotation, axis));
-		setRotation(rot * m_rotation);
+		set_rotation(rot * m_rotation);
 		normalize(m_rotation);
 	}
 
@@ -100,7 +103,7 @@ using namespace mud; namespace toy
 		rotate(axis, value);
 	}
 
-	void Entity::fixedYaw(float value)
+	void Entity::yaw_fixed(float value)
 	{			
 		rotate(Y3, value);
 	}
@@ -122,77 +125,77 @@ using namespace mud; namespace toy
 		UNUSED(delta);
 
 		m_moved = false;
-		m_lastTick = tick;
+		m_last_tick = tick;
 	}
 
-	void Entity::addHookObserver(HookObserver& obs)
+	void Entity::observe_hook(HookObserver& obs)
 	{
-		m_hookObservers.push_back(&obs);
+		m_hook_observers.push_back(&obs);
 		if(m_hooked)
 			obs.hooked();
 	}
 
-	void Entity::removeHookObserver(HookObserver& observer)
+	void Entity::unobserve_hook(HookObserver& observer)
 	{
-		vector_remove(m_hookObservers, &observer);
+		vector_remove(m_hook_observers, &observer);
 	}
 
 	void Entity::hook()
 	{
 		m_hooked = true;
 
-		for(HookObserver* obs : m_hookObservers)
+		for(HookObserver* obs : m_hook_observers)
 			obs->hooked();
 	}
 
 	void Entity::unhook()
 	{
-		for(HookObserver* obs : m_hookObservers)
+		for(HookObserver* obs : m_hook_observers)
 			obs->unhooked();
 
 		m_hooked = false;
 	}
 
-	void Entity::setParent(Entity* parent)
+	void Entity::set_parent(Entity* parent)
 	{
-		this->detachto(*parent);
+		this->detach_to(*parent);
 	}
 
-	bool Entity::isChildOf(Entity& entity)
+	bool Entity::is_child_of(Entity& entity)
 	{
 		if(m_parent == &entity)
 			return true;
 		else if(m_parent)
-			return m_parent->isChildOf(entity);
+			return m_parent->is_child_of(entity);
 		else
 			return false;
 	}
 
-	Entity* Entity::spatialRoot()
+	Entity* Entity::spatial_root()
 	{
 		if(m_parent)
-			return m_parent->spatialRoot();
+			return m_parent->spatial_root();
 		else
 			return this;
 	}
 
-	Entity* Entity::findParent(Type& part_type)
+	Entity* Entity::find_parent(Type& part_type)
 	{
-		if(m_parent && m_parent->has_part(part_type))
+		if(m_parent && m_parent->m_complex.has_part(part_type))
 			return m_parent;
 		else if(m_parent)
-			return m_parent->findParent(part_type);
+			return m_parent->find_parent(part_type);
 		else
 			return nullptr;
 	}
 
-	void Entity::detachto(Entity& moveto)
+	void Entity::detach_to(Entity& moveto)
 	{
 		Entity& movefrom = *m_parent; 
 		m_parent = &moveto;
 		movefrom.m_contents.remove(*this);
 		moveto.m_contents.add(*this);
-		this->setDirty(false);
+		this->set_dirty(false);
 	}
 
 	void Entity::detach(Entity& child)

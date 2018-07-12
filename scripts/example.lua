@@ -27,25 +27,25 @@ project "toy_example"
     uses_toy()
     toy_binary("toy_example")
     
-function exampleProject(name, ...)
+function toy_example(name, deps)
     project(name)
         kind "ConsoleApp"
 
-        mud_module(name, path.join(TOY_DIR, "example"), name, "_" .. name:upper())
+        mud_module(false, "", name, path.join(TOY_DIR, "example"), name)
     
-		for _, depname in ipairs({...}) do
-            mud_module(depname, path.join(TOY_DIR, "example"), depname, "_" .. depname:upper())
+		for _, depname in ipairs(deps) do
+            mud_module(false, "", depname, path.join(TOY_DIR, "example"), depname)
         end
     
         uses_toy()
         toy_binary(name)
 end
 
-exampleProject("05_character", "03_materials")
---exampleProject("15_script", "01_shapes", "03_materials")
---exampleProject("16_visual_script", "01_shapes", "03_materials")
---exampleProject("17_proc_gen")
---exampleProject("18_pathfinding")
---exampleProject("19_multi_viewport")
---exampleProject("20_meta", "01_shapes", "03_materials")
+toy_example("05_character", { "03_materials" })
+--toy_example("15_script", { "01_shapes", "03_materials" })
+--toy_example("16_visual_script", { "01_shapes", "03_materials" })
+--toy_example("17_proc_gen")
+--toy_example("18_pathfinding")
+--toy_example("19_multi_viewport")
+--toy_example("20_meta", { "01_shapes", "03_materials" })
 

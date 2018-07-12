@@ -1,9 +1,9 @@
 #pragma once
 
-#include <toy/Types.h>
-#include <util/Generated/Types.h>
-#include <core/Generated/Types.h>
+#include <mud/Types.h>
+#include <util/Types.h>
+#include <core/Types.h>
 #include <snd/Types.h>
-#include <visu/Generated/Types.h>
-#include <block/Generated/Types.h>
+#include <visu/Types.h>
+#include <block/Types.h>
 #include <shell/Types.h>

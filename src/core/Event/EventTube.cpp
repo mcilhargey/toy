@@ -2,7 +2,7 @@
 //  This software is provided 'as-is' under the zlib License, see the LICENSE.txt file.
 //  This notice and the license may not be removed or altered from any source distribution.
 
-#include <core/Generated/Types.h>
+#include <core/Types.h>
 #include <core/Event/EventTube.h>
 
 #include <obj/Var.h>
@@ -32,7 +32,7 @@ using namespace mud; namespace toy
 			if(up == m_filters.end())
 			{
 				//printf("Creating filter for type = " << (*it).second << " and name = " << (*it).first << std::endl;
-				m_filters[kv.first] = make_object<EventFilter>(kv.second.type(), kv.first);
+				m_filters[kv.first] = make_object<EventFilter>(type(kv.second), kv.first);
 				filter = m_filters[kv.first].get();
 			}
 			else

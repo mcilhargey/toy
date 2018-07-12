@@ -4,10 +4,9 @@
 
 #pragma once
 
-/* toy */
-#include <visu/Generated/Forward.h>
+#include <visu/Forward.h>
 #include <core/Camera/CameraObserver.h>
-#include <gfx/Widget/Viewer.h>
+#include <gfx-ui/Viewer.h>
 
 using namespace mud; namespace toy
 {

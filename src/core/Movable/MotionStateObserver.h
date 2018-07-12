@@ -4,8 +4,7 @@
 
 #pragma once
 
-/* toy */
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 
 using namespace mud; namespace toy
 {

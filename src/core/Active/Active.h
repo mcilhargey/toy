@@ -4,17 +4,16 @@
 
 #pragma once
 
-/* toy */
-#include <obj/NonCopy.h>
-#include <obj/Util/Updatable.h>
-#include <core/Generated/Forward.h>
+#include <infra/NonCopy.h>
+#include <infra/Updatable.h>
+#include <core/Forward.h>
 #include <core/Active/Effect.h>
 
 #include <vector>
 
 using namespace mud; namespace toy
 {
-	class _refl_ TOY_CORE_EXPORT State
+	class refl_ TOY_CORE_EXPORT State
 	{
 	public:
 		State(Active& active, const string& name, int priority, float weight);
@@ -25,13 +24,13 @@ using namespace mud; namespace toy
 		float m_weight;
 	};
 
-	class _refl_ TOY_CORE_EXPORT Active : public NonCopy, public Updatable//, public EffectCallback
+	class refl_ TOY_CORE_EXPORT Active : public NonCopy, public Updatable//, public EffectCallback
     {
 	public:
-		_constr_ Active(Entity& entity);
+		constr_ Active(Entity& entity);
 		~Active();
 
-		_attr_ Entity& m_entity;
+		attr_ Entity& m_entity;
 
 		std::vector<Effect> m_effects;
 		std::vector<State> m_states;

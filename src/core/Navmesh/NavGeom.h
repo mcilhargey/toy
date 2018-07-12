@@ -4,13 +4,14 @@
 
 #pragma once
 
-/* toy */
-#include <obj/NonCopy.h>
+#include <infra/NonCopy.h>
 #include <obj/Unique.h>
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 #include <geom/Primitive.h>
 
+#ifndef MUD_CPP_20
 #include <string>
+#endif
 
 class rcContext;
 

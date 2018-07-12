@@ -4,31 +4,30 @@
 
 #pragma once
 
-/* toy */
-#include <obj/NonCopy.h>
-#include <core/Generated/Forward.h>
+#include <infra/NonCopy.h>
+#include <core/Forward.h>
 #include <core/Physic/CollisionGroup.h>
 #include <core/Physic/Collider.h>
 
 using namespace mud; namespace toy
 {
-	class _refl_ TOY_CORE_EXPORT ObstacleBody : public Collider, public ColliderObject
+	class refl_ TOY_CORE_EXPORT ObstacleBody : public Collider, public ColliderObject
 	{
 	public:
 		ObstacleBody(Entity& entity, Medium& medium, const CollisionShape& shape, float throughput);
 
-		_attr_ inline CollisionShape& collisionShape() { return m_collisionShape; }
-		_attr_ _mut_ float m_throughput;
+		attr_ inline CollisionShape& collision_shape() { return m_collision_shape; }
+		attr_ mut_ float m_throughput;
 	};
 
-	class _refl_ TOY_CORE_EXPORT Obstacle : public NonCopy
+	class refl_ TOY_CORE_EXPORT Obstacle : public NonCopy
 	{
 	public:
-		_constr_ Obstacle(Entity& entity, const CollisionShape& shape);
+		constr_ Obstacle(Entity& entity, const CollisionShape& shape);
 		~Obstacle();
 
-		_attr_ Entity& m_entity;
-		_attr_ CollisionShape m_shape;
+		attr_ Entity& m_entity;
+		attr_ CollisionShape m_shape;
 
 		void addBody(Medium& medium, float throughput);
 		void addBody(Medium& medium, const CollisionShape& shape, float throughput);

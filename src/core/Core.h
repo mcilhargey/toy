@@ -4,23 +4,23 @@
 
 #pragma once
 
-/* toy */
-#include <obj/NonCopy.h>
-#include <core/Generated/Forward.h>
+#include <infra/NonCopy.h>
+#include <core/Forward.h>
 #include <core/World/Section.h>
 
 #include <core/World/World.h>
 #include <core/Bullet/BulletWorld.h>
 #include <core/Navmesh/Navmesh.h>
 
-/* std */
+#ifndef MUD_CPP_20
 #include <map>
+#endif
 
 using namespace mud; namespace toy
 {
 	using string = std::string;
 
-	class _refl_ TOY_CORE_EXPORT Core : public NonCopy
+	class refl_ TOY_CORE_EXPORT Core : public NonCopy
 	{
 	public:
 		Core();
@@ -31,17 +31,17 @@ using namespace mud; namespace toy
 		TaskSection& section(short int index) { return *m_sections[index]; }
 
 	private:
-		std::map<short int, object_ptr<TaskSection>> m_sections;
+		std::vector<object_ptr<TaskSection>> m_sections;
 	};
 
-	class _refl_ TOY_CORE_EXPORT DefaultWorld : public Construct
+	class refl_ TOY_CORE_EXPORT DefaultWorld : public Complex
 	{
 	public:
-		_constr_ DefaultWorld(const string& name);
+		constr_ DefaultWorld(const string& name);
 		~DefaultWorld();
 
-		_comp_ _attr_ World m_world;
-		_comp_ BulletWorld m_bulletWorld;
-		_comp_ Navmesh m_navmesh;
+		comp_ attr_ World m_world;
+		comp_ attr_ BulletWorld m_bullet_world;
+		comp_ attr_ Navmesh m_navmesh;
 	};
 }

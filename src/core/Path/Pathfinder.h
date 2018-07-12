@@ -4,14 +4,14 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Complex.h>
+#include <proto/Complex.h>
 #include <math/Math.h>
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 #include <core/Path/DetourPath.h>
 
-/* std */
+#ifndef MUD_CPP_20
 #include <vector>
+#endif
 
 class dtNavMesh;
 class dtNavMeshQuery;
@@ -19,10 +19,10 @@ class dtQueryFilter;
 
 using namespace mud; namespace toy
 {
-	class _refl_ TOY_CORE_EXPORT Pathfinder : public NonCopy
+	class refl_ TOY_CORE_EXPORT Pathfinder : public NonCopy
     {
 	public:
-		_constr_ Pathfinder(Navmesh& navmesh);
+		constr_ Pathfinder(Navmesh& navmesh);
 		~Pathfinder();
 
 		dtNavMesh& m_navmesh;

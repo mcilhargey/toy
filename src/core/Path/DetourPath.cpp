@@ -12,8 +12,8 @@
 using namespace mud; namespace toy
 {
 	OWaypoint::OWaypoint(Id id, Entity& parent, const vec3& position)
-		: Construct(m_entity, proto<OWaypoint>())
-		, m_entity(id, proto<OWaypoint>(), parent, position, ZeroQuat)
+		: Complex(id, type<OWaypoint>())
+		, m_entity(id, *this, parent, position, ZeroQuat)
 	{
 		// @5603 : adding to nested only when object is finish -> in prototype
 		m_entity.m_parent->m_contents.add(m_entity);

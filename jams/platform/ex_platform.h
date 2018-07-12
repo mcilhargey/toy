@@ -4,60 +4,140 @@
 
 #pragma once
 
-#include <platform/Generated/Forward.h>
+#include <platform/Forward.h>
 #include <toy/toy.h>
 
 using namespace mud;
 using namespace toy;
 
-class _refl_ _EX_PLATFORM_EXPORT Worldblock : public Construct, public Updatable
+extern "C"
+{
+	_PLATFORM_EXPORT void ex_platform_init(GameShell& app, Game& game);
+	_PLATFORM_EXPORT void ex_platform_start(GameShell& app, Game& game);
+	_PLATFORM_EXPORT void ex_platform_pump(GameShell& app, Game& game);
+	_PLATFORM_EXPORT void ex_platform_scene(GameShell& app, GameScene& scene);
+}
+
+class refl_ _PLATFORM_EXPORT TileWorld : public Complex
 {
 public:
-	_constr_ Worldblock(Id id, Entity& parent, const vec3& position, const uvec3& size, const vec3& period, WaveTileset& tileset);
-	~Worldblock();
-
-	_comp_ _attr_ Entity m_entity;
-	_comp_ _attr_ Emitter m_emitter;
-	_comp_ _attr_ WorldPage m_world_page;
-	_comp_ _attr_ Navblock m_navblock;
-	_attr_ Tileblock m_tileblock;
-
-	virtual void next_frame(size_t frame, size_t delta) final;
-};
-
-class _refl_ _EX_PLATFORM_EXPORT TileWorld : public Construct
-{
-public:
-	_constr_ TileWorld(const std::string& name);
+	constr_ TileWorld(const std::string& name);
 	~TileWorld();
 
-	_comp_ _attr_ World m_world;
-	_comp_ _attr_ BulletWorld m_bulletWorld;
-	_comp_ _attr_ Navmesh m_navmesh;
+	comp_ attr_ World m_world;
+	comp_ attr_ BulletWorld m_bullet_world;
+	comp_ attr_ Navmesh m_navmesh;
 
-	Worldblock* m_tileblock = nullptr;
+	uvec3 m_block_subdiv = uvec3(20, 4, 20);
+	vec3 m_tile_scale = vec3(4.f);
+	vec3 m_block_size;
+
+	std::map<ivec2, TileBlock*> m_blocks;
+	TileBlock* m_center_block = nullptr;
+
+	void next_frame();
+
+	void generate_block(GfxSystem& gfx_system, const ivec2& coord);
+	void open_blocks(GfxSystem& gfx_system, const vec3& position, const ivec2& radius);
 };
 
-class _refl_ _EX_PLATFORM_EXPORT Human2 : public Construct, public Updatable, public ColliderObject
+struct Bullet
+{
+	vec3 m_source;
+	quat m_rotation;
+	vec3 m_impact;
+	size_t m_age;
+};
+
+enum class refl_ Faction
+{
+	Ally,
+	Ennemy
+};
+
+struct Aim
+{
+	quat rotation;
+	vec3 start;
+	vec3 end;
+	Entity* hit;
+};
+
+class refl_ _PLATFORM_EXPORT Human : public Complex, public Updatable, public ColliderObject
 {
 public:
-	_constr_ Human2(Id id,
-		Entity& parent,
-		const vec3& position,
-		const std::string& name);
-	~Human2();
+	constr_ Human(Id id, Entity& parent, const vec3& position, Faction faction);
+	~Human();
 
-	_comp_ _attr_ Entity m_entity;
-	_comp_ Emitter m_emitter;
-	_comp_ Receptor m_receptor;
-	_comp_ Active m_active;
+	comp_ attr_ Entity m_entity;
+	comp_ attr_ Movable m_movable;
+	comp_ attr_ Emitter m_emitter;
+	comp_ attr_ Receptor m_receptor;
+	comp_ attr_ Active m_active;
 
-	_attr_ _mut_ std::string m_name;
-	//Gauge m_minerals;
 	Solid m_solid;
 
-	vec3 m_force;
-	vec3 m_torque;
+	Faction m_faction;
+
+	vec3 m_force = Zero3;
+	vec3 m_torque = Zero3;
+
+	float m_vangle = 0.f;
+	Aim m_visor;
+
+	float m_life = 1.f;
+
+	bool m_headlight = true;
+	bool m_shield = false;
+	bool m_stealth = false;
+	bool m_walk = true;
+	float m_energy = 100.f;
+
+	std::vector<Bullet> m_bullets;
+
+	Human* m_target = nullptr;
+	vec3 m_dest = Zero3;
+	float m_cooldown = 0.f;
 
 	void next_frame(size_t tick, size_t delta);
+
+	quat sight();
+	Aim aim();
+	void shoot();
+	void damage(float amount);
+
+	static const vec3 muzzle_offset;
+	static float headlight_angle;
+};
+
+class refl_ _PLATFORM_EXPORT Lamp : public Complex
+{
+public:
+	constr_ Lamp(Id id, Entity& parent, const vec3& position);
+
+	comp_ attr_ Entity m_entity;
+	comp_ attr_ Movable m_movable;
+};
+
+class refl_ _PLATFORM_EXPORT Crate : public Complex, public ColliderObject
+{
+public:
+	constr_ Crate(Id id, Entity& parent, const vec3& position, const vec3& extents);
+
+	comp_ attr_ Entity m_entity;
+	comp_ attr_ Movable m_movable;
+
+	attr_ vec3 m_extents;
+	Solid m_solid;
+};
+
+class refl_ _PLATFORM_EXPORT Player
+{
+public:
+	Player(TileWorld& world);
+	
+	void spawn(const vec3& start_position);
+	
+	TileWorld* m_world;
+	Human* m_human = nullptr;
 };

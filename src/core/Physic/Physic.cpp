@@ -25,12 +25,12 @@ using namespace mud; namespace toy
 		//entity.part<Emitter>().addEmitter(PhysicMedium::me(), make_object<SphereShape>(0.1f), CM_OBJECT);
 	}
 
-    /*void Physic::handleAdd(Collider& object)
+    /*void Physic::handle_add(Collider& object)
     {
 		m_areaStore.add(object->m_entity.part<Area>());
 	}
 
-    void Physic::handleRemove(Collider& object)
+    void Physic::handle_remove(Collider& object)
     {
 		m_areaStore.add(object->m_entity.part<Area>());
     }*/

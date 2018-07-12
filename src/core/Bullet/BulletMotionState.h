@@ -6,9 +6,8 @@
 
 #ifdef TOY_PRIVATE
 
-/* toy */
 #include <math/Vec.h>
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 #include <core/Movable/MotionState.h>
 
 /* bullet */
@@ -20,14 +19,12 @@ using namespace mud; namespace toy
     class TOY_CORE_EXPORT BulletMotionState : public btMotionState
     {
     public:
-        BulletMotionState(MotionState& motionState, const vec3& offset = Zero3);
+        BulletMotionState(MotionState& motionState);
+
+		MotionState& m_motion_state;
 
 		virtual void getWorldTransform(btTransform& worldTransform) const;
 		virtual void setWorldTransform(const btTransform& worldTransform);
-
-	protected:
-		MotionState& m_motionState;
-		vec3 m_offset;
     };
 }
 

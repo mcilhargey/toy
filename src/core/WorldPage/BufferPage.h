@@ -4,31 +4,31 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Complex.h>
+#include <proto/Complex.h>
 #include <core/Store/Array.h>
 #include <math/Vec.h>
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 #include <core/Physic/Medium.h>
 #include <core/Entity/Entity.h>
 
-/* std */
+#ifndef MUD_CPP_20
 #include <memory>
+#endif
 
 using namespace mud; namespace toy
 {
-	class _refl_ TOY_CORE_EXPORT BufferPage : public StoreObserver<Entity>
+	class refl_ TOY_CORE_EXPORT BufferPage : public StoreObserver<Entity>
     {
 	public:
-		_constr_ BufferPage(Entity& entity, WorldPage& worldPage, bool loaded = false);
+		constr_ BufferPage(Entity& entity, WorldPage& world_page, bool loaded = false);
         ~BufferPage();
 
-		_attr_ Entity& m_entity;
-		_attr_ WorldPage& m_worldPage;
-		_attr_ bool m_loaded;
+		attr_ Entity& m_entity;
+		attr_ WorldPage& m_world_page;
+		attr_ bool m_loaded;
 
-		void handleAdd(Entity& entity);
-		void handleRemove(Entity& entity);
+		void handle_add(Entity& entity);
+		void handle_remove(Entity& entity);
 
 		void add(Entity& entity);
 		void remove(Entity& entity);

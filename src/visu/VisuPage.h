@@ -4,8 +4,7 @@
 
 #pragma once
 
-/* toy */
-#include <visu/Generated/Forward.h>
+#include <visu/Forward.h>
 #include <visu/VisuScene.h>
 
 using namespace mud; namespace toy

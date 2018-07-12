@@ -4,14 +4,15 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Generated/Forward.h>
+#include <obj/Forward.h>
 #include <obj/Unique.h>
 #include <obj/TypeUtils.h>
 #include <core/Store/StoreObserver.h>
 
+#ifndef MUD_CPP_20
 #include <memory>
 #include <vector>
+#endif
 
 using namespace mud; namespace toy
 {
@@ -39,7 +40,7 @@ using namespace mud; namespace toy
 				if(i >= m_copy.size())
 				{
 					for(; i < m_vector.size(); ++i)
-						this->handleAdd(*ResPointer<T, R>::pointer(m_vector[i]), i);
+						this->handle_add(*ResPointer<T, R>::pointer(m_vector[i]), i);
 					modified = true;
 					break;
 				}
@@ -53,14 +54,14 @@ using namespace mud; namespace toy
 
 				if(ResPointer<T, R>::pointer(m_vector[i]) == m_copy[j])
 					for(; i < j; ++i)
-						this->handleAdd(*ResPointer<T, R>::pointer(m_vector[i]), i);
+						this->handle_add(*ResPointer<T, R>::pointer(m_vector[i]), i);
 				else if(ResPointer<T, R>::pointer(m_vector[j]) == m_copy[i])
 					for(; i < j; ++i)
-						this->handleRemove(*m_copy[i], i);
+						this->handle_remove(*m_copy[i], i);
 				else
 				{
-					this->handleAdd(*ResPointer<T, R>::pointer(m_vector[i]), i);
-					this->handleRemove(*m_copy[i], i);
+					this->handle_add(*ResPointer<T, R>::pointer(m_vector[i]), i);
+					this->handle_remove(*m_copy[i], i);
 				}
 
 				modified = true;
@@ -75,8 +76,8 @@ using namespace mud; namespace toy
 			}
 		}
 
-		virtual void handleAdd(T& object, size_t index) = 0;
-		virtual void handleRemove(T& object, size_t index) = 0;
+		virtual void handle_add(T& object, size_t index) = 0;
+		virtual void handle_remove(T& object, size_t index) = 0;
 
 	protected:
 		std::vector<R>& m_vector;
@@ -92,8 +93,8 @@ using namespace mud; namespace toy
 			, m_observer(observer)
 		{}
 
-		void handleAdd(T_Type& value, size_t index) { UNUSED(index); m_observer.handleAdd(var(value)); }
-		void handleRemove(T_Type& value, size_t index) { UNUSED(index); m_observer.handleRemove(var(value)); }
+		void handle_add(T_Type& value, size_t index) { UNUSED(index); m_observer.handle_add(var(value)); }
+		void handle_remove(T_Type& value, size_t index) { UNUSED(index); m_observer.handle_remove(var(value)); }
 
 	protected:
 		GenStoreObserver& m_observer;

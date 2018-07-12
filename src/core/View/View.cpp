@@ -22,13 +22,13 @@ using namespace mud; namespace toy
 		// m_filter = [](Entity& entity) { return !entity.is<Movable>(); };
 	}
 
-	void RecursiveStore::handleAdd(Entity& entity)
+	void RecursiveStore::handle_add(Entity& entity)
 	{
 		if(entity.m_hooked && m_filter(entity))
 			this->addRecursive(entity);
 	}
 
-	void RecursiveStore::handleRemove(Entity& entity)
+	void RecursiveStore::handle_remove(Entity& entity)
 	{
 		if(entity.m_hooked && m_filter(entity))
 			this->removeRecursive(entity);
@@ -78,7 +78,7 @@ using namespace mud; namespace toy
 		m_receptors.unobserve(*this);
 	}
 
-	void ReceptorView::handleAdd(Entity& entity)
+	void ReceptorView::handle_add(Entity& entity)
 	{
 		if(!entity.isa<Receptor>())
 			return;
@@ -89,7 +89,7 @@ using namespace mud; namespace toy
 			
 	}
 
-	void ReceptorView::handleRemove(Entity& entity)
+	void ReceptorView::handle_remove(Entity& entity)
 	{
 		if(!entity.isa<Receptor>())
 			return;

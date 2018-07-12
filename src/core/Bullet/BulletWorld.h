@@ -4,12 +4,13 @@
 
 #pragma once
 
-/* toy */
 #include <obj/Unique.h>
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 #include <core/Physic/PhysicWorld.h>
 
+#ifndef MUD_CPP_20
 #include <unordered_map>
+#endif
 
 class btCollisionWorld;
 class btDynamicsWorld;
@@ -33,34 +34,34 @@ using namespace mud; namespace toy
 	static void collisionEnded(btPersistentManifold* manifold);
 #endif
 
-	class _refl_ TOY_CORE_EXPORT SubBulletWorld : public SubPhysicWorld
+	class refl_ TOY_CORE_EXPORT SubBulletWorld : public SubPhysicWorld
 	{
 	public:
         SubBulletWorld(World& world, Medium& medium);
         ~SubBulletWorld();
 
-		void updateContacts();
+		void update_contacts();
 
         void next_frame(size_t tick, size_t delta);
 
-		virtual object_ptr<ColliderImpl> makeCollider(Collider& collider);
-		virtual object_ptr<ColliderImpl> makeSolid(Solid& solid);
+		virtual object_ptr<ColliderImpl> make_collider(Collider& collider);
+		virtual object_ptr<ColliderImpl> make_solid(Solid& solid);
 
-		void addSolid(Solid& solid);
-		void removeSolid(Solid& solid);
+		void add_solid(Solid& solid);
+		void remove_solid(Solid& solid);
 
-		void addCollider(Collider& collider);
-		void removeCollider(Collider& collider);
+		void add_collider(Collider& collider);
+		void remove_collider(Collider& collider);
 
-		void removeContacts(Collider& collider);
+		void remove_contacts(Collider& collider);
 
     public:
-		size_t m_lastTick;
+		size_t m_last_tick;
 		unique_ptr<btCollisionConfiguration> m_collisionConfiguration;
         unique_ptr<btCollisionDispatcher> m_collisionDispatcher;
         unique_ptr<btBroadphaseInterface> m_broadphaseInterface;
 
-		unique_ptr<btCollisionWorld> m_bulletWorld;
+		unique_ptr<btCollisionWorld> m_bullet_world;
         unique_ptr<btConstraintSolver> m_constraintSolver;
 
 		btDynamicsWorld* m_dynamicsWorld = nullptr;
@@ -89,20 +90,22 @@ using namespace mud; namespace toy
 		std::unordered_map<size_t, Contact> m_hashContacts;
 		std::vector<Contact*> m_contacts;
 
-		void removeContact(Contact& contact, size_t index);
+		void remove_contact(Contact& contact, size_t index);
 
-		void removeContact(Collider& col0, Collider& col1);
+		void remove_contact(Collider& col0, Collider& col1);
 		Contact& findContact(Collider& col0, Collider& col1);
 #endif
 	};
 
-	class _refl_ TOY_CORE_EXPORT BulletWorld : public PhysicWorld
+	class refl_ TOY_CORE_EXPORT BulletWorld : public PhysicWorld
 	{
 	public:
-		_constr_ BulletWorld(World& world);
+		constr_ BulletWorld(World& world);
         ~BulletWorld();
 
-		object_ptr<SubPhysicWorld> createSubWorld(Medium& medium);
-		vec3 groundPoint(const Ray& ray);
+		object_ptr<SubPhysicWorld> create_sub_world(Medium& medium);
+
+		vec3 ground_point(const Ray& ray);
+		Collision raycast(const Ray& ray, short int mask);
     };
 }

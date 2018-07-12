@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <space/Generated/Forward.h>
+#include <space/Forward.h>
 
 using namespace mud;
 using namespace toy;
 
-void ex_space_ui(Widget& parent, toy::User& user, VisuSystem& visuSystem, Game& game);
+void ex_space_ui(Widget& parent, GameScene& game);
 

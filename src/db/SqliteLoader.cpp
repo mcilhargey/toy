@@ -5,15 +5,15 @@
 #include <db/Generated/Types.h>
 #include <db/SqliteLoader.h>
 
-#include <obj/Util/DispatchDecl.h>
-#include <obj/Reflect/Class.h>
-#include <obj/Reflect/Convert.h>
+#include <obj/DispatchDecl.h>
+#include <refl/Class.h>
+#include <refl/Convert.h>
 #include <db/SqliteDatabase.h>
 
 #include <util/Loader/Loader.h>
 #include <util/Loader/MemberLoader.h>
 
-#include <obj/String/StringConvert.h>
+#include <infra/StringConvert.h>
 
 /* sqlite */
 #include "sqlite3.h"

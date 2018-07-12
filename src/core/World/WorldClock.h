@@ -4,14 +4,13 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Complex.h>
-#include <obj/Util/Timer.h>
-#include <core/Generated/Forward.h>
+#include <proto/Complex.h>
+#include <math/Timer.h>
+#include <core/Forward.h>
 
 using namespace mud; namespace toy
 {
-    class _refl_ TOY_CORE_EXPORT WorldClock
+    class refl_ TOY_CORE_EXPORT WorldClock
     {
     public:
         WorldClock(World& world);

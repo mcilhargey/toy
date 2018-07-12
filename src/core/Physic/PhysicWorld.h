@@ -4,15 +4,15 @@
 
 #pragma once
 
-/* toy */
-#include <obj/NonCopy.h>
+#include <infra/NonCopy.h>
 #include <obj/Unique.h>
-#include <obj/Util/Updatable.h>
+#include <infra/Updatable.h>
 #include <math/Vec.h>
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 
-/* std */
+#ifndef MUD_CPP_20
 #include <map>
+#endif
 
 using namespace mud; namespace toy
 {
@@ -25,36 +25,37 @@ using namespace mud; namespace toy
 		World& m_world;
 		Medium& m_medium;
 
-		virtual void updateContacts() = 0;
+		virtual void update_contacts() = 0;
 		virtual void next_frame(size_t tick, size_t delta) = 0;
 
-		virtual object_ptr<ColliderImpl> makeCollider(Collider& collider) = 0;
-		virtual object_ptr<ColliderImpl> makeSolid(Solid& solid) = 0;
+		virtual object_ptr<ColliderImpl> make_collider(Collider& collider) = 0;
+		virtual object_ptr<ColliderImpl> make_solid(Solid& solid) = 0;
 
-		virtual void addSolid(Solid& solid) = 0;
-		virtual void removeSolid(Solid& solid) = 0;
+		virtual void add_solid(Solid& solid) = 0;
+		virtual void remove_solid(Solid& solid) = 0;
 
-		virtual void addCollider(Collider& collider) = 0;
-		virtual void removeCollider(Collider& collider) = 0;
+		virtual void add_collider(Collider& collider) = 0;
+		virtual void remove_collider(Collider& collider) = 0;
 	};
 
-	class _refl_ TOY_CORE_EXPORT PhysicWorld : public NonCopy, public Updatable
+	class refl_ TOY_CORE_EXPORT PhysicWorld : public NonCopy, public Updatable
     {
 	public:
         PhysicWorld(World& world);
 		~PhysicWorld();
 
-		_attr_ World& m_world;
+		attr_ World& m_world;
 
 		void next_frame(size_t tick, size_t delta);
 
-		SubPhysicWorld& getSubWorld(Medium& medium);
+		SubPhysicWorld& sub_world(Medium& medium);
 
 	public:
-		virtual object_ptr<SubPhysicWorld> createSubWorld(Medium& medium) = 0;
-		virtual vec3 groundPoint(const Ray& ray) = 0;
+		virtual object_ptr<SubPhysicWorld> create_sub_world(Medium& medium) = 0;
+		virtual vec3 ground_point(const Ray& ray) = 0;
+		virtual Collision raycast(const Ray& ray, short int mask) = 0;
 
 	protected:
-		std::map<Medium*, object_ptr<SubPhysicWorld>> m_subWorlds;
+		std::map<Medium*, object_ptr<SubPhysicWorld>> m_subworlds;
     };
 }

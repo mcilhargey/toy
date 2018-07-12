@@ -38,13 +38,13 @@ using namespace mud; namespace toy
 		view.store().observe(m_entities);
 	}
 
-	void Vision::handleAdd(Entity& owned)
+	void Vision::handle_add(Entity& owned)
 	{
 		if(owned.isa<Camera>())
 			m_cameras.add(owned.part<Camera>());
 	}
 
-	void Vision::handleRemove(Entity& owned)
+	void Vision::handle_remove(Entity& owned)
 	{
 		if(owned.isa<Camera>())
 			m_cameras.remove(owned.part<Camera>());
@@ -53,12 +53,13 @@ using namespace mud; namespace toy
 	Camera& Vision::addCamera(const vec3& position, float lensDistance, bool planar)
 	{
 		UNUSED(planar);
-		Camera& camera = m_world.origin().constructNested<OCamera>(position, lensDistance, 0.1f, 300.f).part<Camera>();
+		Camera& camera = m_world.origin().construct<OCamera>(position, lensDistance, 0.1f, 300.f).m_camera;
 		//m_owneds.add(camera.m_entity);
 		//m_cameras.add(camera);
 		return camera;
 	}
 
+#if 0
 	PlayerVision::PlayerVision(Player& player, World& world)
 		: Vision(world)
 		//, m_ownedView(*this, "owned", player.m_owneds)
@@ -69,6 +70,7 @@ using namespace mud; namespace toy
 	{
 		UNUSED(player);
 	}
+#endif
 
 	OmniVision::OmniVision(World& world)
 		: Vision(world)

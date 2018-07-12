@@ -1,21 +1,20 @@
 #include <toy/toy.h>
 #include <05_character/05_character.h>
-#include <05_character/Generated/Module.h>
+#include <meta/05_character/Module.h>
 
 Human::Human(Id id, Entity& parent, const vec3& position, float radius, float height, const std::string& first_name, const std::string& last_name)
-	: Construct(m_entity, proto<Human>())
-	, m_entity(id, proto<Human>(), parent, position, ZeroQuat)
-	, m_manoeuvrable(m_entity, radius, height)
+	: Complex(id, type<Human>(), m_movable, m_agent, m_emitter, m_receptor, m_active, m_actor, m_reactive, *this)
+	, m_entity(id, *this, parent, position, ZeroQuat)
+	, m_agent(m_entity, radius, height)
 	, m_first_name(first_name)
 	, m_last_name(last_name)
 	, m_next_change(5.f)
 	//, m_solid(make_unique<Solid>(m_entity, *this, CollisionShape(Cylinder(0.35f, 2.f), Y3 * 1.f), SolidMedium::me(), CM_SOLID, false, 1.f))
 {
 	// @5603 : adding to nested only when object is finish -> in prototype
-	this->index(m_movable, m_manoeuvrable, m_emitter, m_receptor, m_active, m_actor, m_reactive, *this);
 	m_entity.m_parent->m_contents.add(m_entity);
 
-	m_entity.m_world.addTask(this, 3); // TASK_GAMEOBJECT
+	m_entity.m_world.add_task(this, 3); // TASK_GAMEOBJECT
 
 	m_entity.part<Active>().addState("idle", 1, 0.5f);
 
@@ -24,7 +23,7 @@ Human::Human(Id id, Entity& parent, const vec3& position, float radius, float he
 
 Human::~Human()
 {
-	m_entity.m_world.removeTask(this, 3);
+	m_entity.m_world.remove_task(this, 3);
 }
 
 inline const std::vector<Ref>& indexed_objects(Type& type) { return Index::me().indexer(type).m_objects; }
@@ -38,7 +37,7 @@ void Human::next_frame(size_t tick, size_t delta)
 	//m_solid->m_impl->setForce(Zero3);
 	//m_solid->m_impl->setTorque(Zero3);
 
-	if((tick - m_last_tick) * TICK_INTERVAL > 1.0f)
+	if((tick - m_last_tick) * c_tick_interval > 1.0f)
 	{
 		pumpSecond();
 		m_last_tick = tick;
@@ -50,10 +49,10 @@ bool Walk::checkTarget(const Entity& target) { return target.m_hooked; }
 
 Walk::Walk(toy::User* user, Entity& agent, Entity& target)
 	: TypedAction(user, agent, target)
-	, m_manoeuvrable(m_agent.part<Manoeuvrable>())
+	, m_agent2(agent.part<Agent>())
 	, m_range(0.02f)
 {
-	m_manoeuvrable.computePath(m_target.absolutePosition());
+	m_agent2.computePath(m_target.absolute_position());
 }
 
 void Walk::begin()
@@ -69,14 +68,14 @@ void Walk::begin()
 
 void Walk::nextWaypoint()
 {
-	if(!m_manoeuvrable.popWaypoint())
+	if(!m_agent2.popWaypoint())
 		this->stop();
 }
 
 void Walk::update(size_t tick, double time_step)
 {
 	UNUSED(tick);
-	vec3 target = m_manoeuvrable.m_waypoint;
+	vec3 target = m_agent2.m_waypoint;
 	//bool done = steer_2d(m_agent, target, 1.f, float(time_step));
 	bool done = steer_2d(m_agent.part<Movable>(), target, 1.f, float(time_step));
 	if(done)
@@ -90,21 +89,19 @@ void Walk::abort()
 
 void paint_human(Gnode& parent, Human& human)
 {
-	Gnode& self = gfx::node(parent, &human, human.m_entity.m_position, human.m_entity.m_rotation);
+	Gnode& self = gfx::node(parent, Ref(&human), human.m_entity.m_position, human.m_entity.m_rotation);
 	gfx::shape(self, Circle(0.35f), Symbol(), ITEM_SELECTABLE);
-	Item& item = gfx::model(self, "human_kupo_0", ITEM_SELECTABLE);
-	Animated& animated = gfx::animated(self, item);
+	Item* item = gfx::model(self, "human_0", ITEM_SELECTABLE);
+	Animated& animated = gfx::animated(self, *item);
 
 	Human::State& state = human.m_states.back();
-	if(animated.m_playing.empty() || std::string(animated.m_playing.back().m_animation->m_name) != state.m_action)
-		animated.play(state.m_action.c_str(), 0.f, state.m_action_speed);
-
-	animated.advance(0.015f);
+	if(animated.m_playing.empty() || animated.playing() != state.m_action)
+		animated.play(state.m_action.c_str(), true, 0.f, state.m_action_speed);
 }
 
 Material& milky_white(GfxSystem& gfx_system, cstring name = "milky_white")
 {
-	Material& mat = gfx_system.create_material(name, "pbr/pbr");
+	Material& mat = gfx_system.fetch_material(name, "pbr/pbr");
 	mat.m_pbr_block.m_enabled = true;
 	mat.m_pbr_block.m_albedo.m_value = Colour::White;
 	mat.m_pbr_block.m_metallic.m_value = 0.4f;
@@ -197,11 +194,11 @@ void ex_05_character_pump(GameShell& shell, Game& game, Widget& parent, Dockbar&
 	gfx::directional_light_node(groot);
 	gfx::radiance(groot, "radiance/tiber_1_1k.hdr", BackgroundMode::None);
 
-	static Human& character = game.m_world->origin().constructNested<Human>(Zero3, 0.35f, 2.f, "Robert", "Citrus").part<Human>();
+	static Human& character = game.m_world->origin().construct<Human>(Zero3, 0.35f, 2.f, "Robert", "Citrus");
 	paint_human(groot, character);
 
 	human_controller_3rdperson(viewer, character);
-	//orbit.m_position = character.m_entity.m_position;
+	//orbit.set_position(character.m_entity.m_position);
 }
 
 #ifdef _05_CHARACTER_EXE
@@ -217,9 +214,9 @@ int main(int argc, char *argv[])
 	cstring character_path = TOY_RESOURCE_PATH "examples/05_character/";
 	GameShell app(carray<cstring, 3>{ TOY_RESOURCE_PATH, example_path, character_path }, argc, argv);
 	
-	system().load_module(ex_05_character::module());
+	system().load_module(_05_character::m());
 
-	GameModule module = { ex_05_character::module(), &ex_05_character_init, &ex_05_character_start, &pump };
+	GameModule module = { _05_character::m(), &ex_05_character_init, &ex_05_character_start, &pump };
 	app.run(module);
 }
 #endif

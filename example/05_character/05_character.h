@@ -4,33 +4,33 @@
 
 #pragma once
 
-#include <05_character/Generated/Types.h>
-#include <05_character/Generated/Forward.h>
+#include <05_character/Types.h>
+#include <05_character/Forward.h>
 #include <toy/toy.h>
 
 using namespace mud;
 using namespace toy;
 
-class _refl_ Human : public Construct, public Updatable, public ColliderObject
+class refl_ Human : public Complex, public Updatable, public ColliderObject
 {
 public:
-	_constr_ Human(Id id, Entity& parent, const vec3& position, float radius, float height, const std::string& first_name, const std::string& last_name);
+	constr_ Human(Id id, Entity& parent, const vec3& position, float radius, float height, const std::string& first_name, const std::string& last_name);
 	~Human();
 
-	_comp_ Entity m_entity;
-	_comp_ Movable m_movable = { m_entity };
-	_comp_ Manoeuvrable m_manoeuvrable;
-	_comp_ Emitter m_emitter = { m_entity };
-	_comp_ Receptor m_receptor = { m_entity };
-	_comp_ Active m_active = { m_entity };
-	_comp_ Actor m_actor = { m_entity };
-	_comp_ Reactive m_reactive = { m_entity };
+	comp_ attr_ Entity m_entity;
+	comp_ attr_ Movable m_movable = { m_entity };
+	comp_ attr_ Agent m_agent;
+	comp_ attr_ Emitter m_emitter = { m_entity };
+	comp_ attr_ Receptor m_receptor = { m_entity };
+	comp_ attr_ Active m_active = { m_entity };
+	comp_ attr_ Actor m_actor = { m_entity };
+	comp_ attr_ Reactive m_reactive = { m_entity };
 
-	_attr_ _mut_ std::string m_first_name;
-	_attr_ _mut_ std::string m_last_name;
+	attr_ mut_ std::string m_first_name;
+	attr_ mut_ std::string m_last_name;
 
-	_attr_ _mut_ float m_counter = 0.f;
-	_attr_ _mut_ float m_next_change;
+	attr_ mut_ float m_counter = 0.f;
+	attr_ mut_ float m_next_change;
 
 	struct State
 	{
@@ -55,7 +55,7 @@ public:
 	void pumpSecond();
 };
 
-class _refl_ Walk : public TypedAction<Walk>
+class refl_ Walk : public TypedAction<Walk>
 {
 public:
 	Walk(toy::User* user, Entity& agent, Entity& target);
@@ -70,8 +70,9 @@ public:
 	virtual void nextWaypoint();
 
 protected:
-	Manoeuvrable& m_manoeuvrable;
+	Agent& m_agent2;
 	float m_range;
 };
 
+void paint_human(Gnode& parent, Human& human);
 void paint_human(Gnode& parent, Human& human);

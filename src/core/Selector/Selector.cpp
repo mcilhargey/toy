@@ -30,7 +30,7 @@ using namespace mud; namespace toy
 
 		for(Ref object : m_selection)
 		{
-			if(object.type().is<Entity>() && val<Entity>(object).isa<Actor>())
+			if(type(object).is<Entity>() && val<Entity>(object).isa<Actor>())
 				for(ProcedureType* action : val<Entity>(object).part<Actor>().m_actions.store())
 					m_actions.safeAdd(*action);
 		}
@@ -47,7 +47,7 @@ using namespace mud; namespace toy
 	void Selector::execute(ProcedureType& action)
 	{
 		for(Ref object : m_selection)
-			if(object.type().is<Entity>() && val<Entity>(object).isa<Actor>())
+			if(type(object).is<Entity>() && val<Entity>(object).isa<Actor>())
 				val<Entity>(object).part<Actor>().execute(&m_user, action, val<Entity>(m_targets[0])); //@kludge we should create a different selector for actors
 	}
 
@@ -56,20 +56,20 @@ using namespace mud; namespace toy
 		dispatcher.init(m_targets);
 
 		for(Ref object : m_selection)
-			if(object.type().is<Entity>() && val<Entity>(object).isa<Actor>())
+			if(type(object).is<Entity>() && val<Entity>(object).isa<Actor>())
 			{
 				Ref target = dispatcher.dispatchTarget(object);
 				val<Entity>(object).part<Actor>().queue(&m_user, action, val<Entity>(target));
 			}
 	}
 
-	void Selector::handleAdd(Entity& entity)
+	void Selector::handle_add(Entity& entity)
 	{
 		UNUSED(entity);
 		this->updateActions();
 	}
 
-	void Selector::handleRemove(Entity& entity)
+	void Selector::handle_remove(Entity& entity)
 	{
 		UNUSED(entity);
 		this->updateActions();

@@ -4,7 +4,7 @@
 
 #include <core/WorldPage/BufferPage.h>
 
-#include <obj/Reflect/Meta.h>
+#include <refl/Meta.h>
 #include <util/Loader/Loader.h>
 
 #include <core/Entity/Entity.h>
@@ -21,27 +21,27 @@
 
 using namespace mud; namespace toy
 {
-	BufferPage::BufferPage(Entity& entity, WorldPage& worldPage, bool loaded)
+	BufferPage::BufferPage(Entity& entity, WorldPage& world_page, bool loaded)
         : m_entity(entity)
-		, m_worldPage(worldPage)
+		, m_world_page(world_page)
 		, m_loaded(loaded)
 		, m_receptors(0)
     {
 		//printf("Creating BufferPage %u at %f, %f, %f\n", m_entity.m_id, m_entity.m_position.x(), m_entity.m_position.y(), m_entity.m_position.z());
-		m_worldPage.m_scope.m_scope.observe(*this);
+		m_world_page.m_scope.m_scope.observe(*this);
 	}
 
     BufferPage::~BufferPage()
     {
-		m_worldPage.m_scope.m_scope.unobserve(*this);
+		m_world_page.m_scope.m_scope.unobserve(*this);
 	}
 
-	void BufferPage::handleAdd(Entity& entity)
+	void BufferPage::handle_add(Entity& entity)
 	{
 		this->add(entity);
 	}
 
-	void BufferPage::handleRemove(Entity& entity)
+	void BufferPage::handle_remove(Entity& entity)
 	{
 		this->remove(entity);
 	}
@@ -50,8 +50,8 @@ using namespace mud; namespace toy
 	{
 		UNUSED(entity);
 
-		//for(WorldPage* page : m_worldPage.adjacentPages().store())
-		//	page->m_entity.part<BufferPage>().increment();
+		//for(WorldPage* page : m_world_page.adjacentPages().store())
+		//	page->m_buffer_page->increment();
 
 		this->increment();
 	}
@@ -66,8 +66,8 @@ using namespace mud; namespace toy
 	{
 		UNUSED(entity);
 
-		//for(WorldPage* page : m_worldPage.adjacentPages().store())
-		//	page->m_entity.part<BufferPage>().decrement();
+		//for(WorldPage* page : m_world_page.adjacentPages().store())
+		//	page->m_buffer_page->decrement();
 
 		this->decrement();
 	}
@@ -83,7 +83,7 @@ using namespace mud; namespace toy
 		printf("BufferPage %u loaded\n", m_entity.m_id);
 		m_loaded = true;
 		ObjectLoader& loader = GlobalLoader::me().getLoader(type<Entity>());
-		loader.fill(&m_worldPage.m_entity, m_worldPage.m_entity.m_id);
+		loader.fill(Ref(&m_world_page.m_entity), m_world_page.m_entity.m_id);
 	}
 
 	void BufferPage::unload()
@@ -91,18 +91,18 @@ using namespace mud; namespace toy
 		printf("BufferPage %u unloaded\n", m_entity.m_id);
 		m_loaded = false;
 		ObjectLoader& loader = GlobalLoader::me().getLoader(type<Entity>());
-		loader.save(&m_worldPage.m_entity, m_worldPage.m_entity.m_id);
+		loader.save(Ref(&m_world_page.m_entity), m_world_page.m_entity.m_id);
 		this->clear();
 	}
 
 	void BufferPage::clear()
 	{
-		//m_worldPage.m_entity.part<EntityPool>().clear();
+		//m_world_page.m_entity.part<EntityPool>().clear();
 	}
 
 	void BufferPage::fill()
 	{
 		ObjectLoader& loader = GlobalLoader::me().getLoader(type<Entity>());
-		loader.fill(&m_worldPage.m_entity, m_worldPage.m_entity.m_id);
+		loader.fill(Ref(&m_world_page.m_entity), m_world_page.m_entity.m_id);
 	}
 }

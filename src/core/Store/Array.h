@@ -4,20 +4,20 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Vector.h>
-#include <core/Generated/Forward.h>
+#include <infra/Vector.h>
+#include <core/Forward.h>
 #include <core/Store/Store.h>
 #include <core/Store/StoreObserver.h>
 
-/* std */
+#ifndef MUD_CPP_20
 #include <vector>
 #include <algorithm>
+#endif
 
 using namespace mud; namespace toy
 {
 	template <class T>
-	class _refl_ Array : public StoreBase<Array<T>, T>
+	class refl_ Array : public StoreBase<Array<T>, T>
 	{
 	public:
 		typedef T R;
@@ -126,7 +126,7 @@ using namespace mud; namespace toy
 	public:
 		Chained() : T_Array() {}
 
-		void handleAdd(T& object) { this->add(object); }
-		void handleRemove(T& object) { this->remove(object); }
+		void handle_add(T& object) { this->add(object); }
+		void handle_remove(T& object) { this->remove(object); }
 	};
 }

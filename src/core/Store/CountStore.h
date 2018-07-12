@@ -4,17 +4,17 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Generated/Forward.h>
+#include <obj/Forward.h>
 #include <obj/Type.h>
 #include <core/Store/Array.h>
 #include <core/Store/StoreObserver.h>
 #include <core/Store/Store.h>
 
-/* std */
+#ifndef MUD_CPP_20
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
+#endif
 
 using namespace mud; namespace toy
 {
@@ -57,7 +57,7 @@ using namespace mud; namespace toy
 			this->m_observers.push_back(&observer);
 			for(auto& pair : m_store)
 				if(pair.first)
-					observer.handleAdd(*pair.first);
+					observer.handle_add(*pair.first);
 		}
 
 		void unobserve(StoreObserver<T>& observer, bool notify = false)
@@ -66,7 +66,7 @@ using namespace mud; namespace toy
 			if(notify)
 				for(auto& pair : m_store)
 					if(pair.first)
-						observer.handleRemove(*pair.first);
+						observer.handle_remove(*pair.first);
 		}
 
 		void resize(T& object) { if(object.m_id >= m_store.size()) m_store.resize(object.m_id * 2); }

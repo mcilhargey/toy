@@ -12,32 +12,32 @@
 
 using namespace mud; namespace toy
 {
-	PhysicScope::PhysicScope(Entity& entity, Medium& medium, const CollisionShape& collisionShape, CollisionGroup group)
-		: Collider(entity, *this, collisionShape, medium, group)
+	PhysicScope::PhysicScope(Entity& entity, Medium& medium, const CollisionShape& collision_shape, CollisionGroup group)
+		: Collider(entity, *this, collision_shape, medium, group)
 	{}
 
-	void PhysicScope::addContact(Collider& collider)
+	void PhysicScope::add_contact(Collider& collider)
 	{
 		UNUSED(collider);
 	}
 
-	void PhysicScope::removeContact(Collider& collider)
+	void PhysicScope::remove_contact(Collider& collider)
 	{
 		UNUSED(collider);
 	}
 
-	EmitterScope::EmitterScope(Entity& entity, Medium& medium, const CollisionShape& collisionShape, CollisionGroup group)
-		: PhysicScope(entity, medium, collisionShape, group)
+	EmitterScope::EmitterScope(Entity& entity, Medium& medium, const CollisionShape& collision_shape, CollisionGroup group)
+		: PhysicScope(entity, medium, collision_shape, group)
 		, m_signals()
 	{}
 
-    void EmitterScope::addContact(Collider& collider)
+    void EmitterScope::add_contact(Collider& collider)
 	{
 		ReceptorScope& receptor = static_cast<ReceptorScope&>(collider);
 		m_signals.emplace_back(*this, receptor);
 	}
 
-    void EmitterScope::removeContact(Collider& collider)
+    void EmitterScope::remove_contact(Collider& collider)
     {
 		ReceptorScope& receptor = static_cast<ReceptorScope&>(collider);
 		vector_remove_if(m_signals, [&] (const Signal& s) { return s.m_receptor == &receptor; });
@@ -52,8 +52,8 @@ using namespace mud; namespace toy
 			signal.update();
 	}
 
-	ReceptorScope::ReceptorScope(Entity& entity, Medium& medium, const CollisionShape& collisionShape, CollisionGroup group)
-		: PhysicScope(entity, medium, collisionShape, group)
+	ReceptorScope::ReceptorScope(Entity& entity, Medium& medium, const CollisionShape& collision_shape, CollisionGroup group)
+		: PhysicScope(entity, medium, collision_shape, group)
 	{}
 
 	EmitterSphere::EmitterSphere(Entity& entity, Medium& medium, CollisionGroup group, float range)
@@ -71,9 +71,9 @@ using namespace mud; namespace toy
 	Emitter::~Emitter()
 	{}
 
-	EmitterScope& Emitter::addScope(Medium& medium, const CollisionShape& collisionShape, CollisionGroup group)
+	EmitterScope& Emitter::addScope(Medium& medium, const CollisionShape& collision_shape, CollisionGroup group)
 	{
-		m_emitters.emplace_back(make_object<EmitterScope>(m_entity, medium, collisionShape, group));
+		m_emitters.emplace_back(make_object<EmitterScope>(m_entity, medium, collision_shape, group));
 		return *m_emitters.back();
 	}
 

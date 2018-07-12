@@ -22,7 +22,7 @@
 #ifndef CHUNKYTRIMESH_H
 #define CHUNKYTRIMESH_H
 
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 #include <math/Vec.h>
 
 #include <stdint.h>
@@ -49,7 +49,7 @@ using namespace mud; namespace toy
 
 	// Creates partitioned triangle mesh (AABB tree),
 	// where each node contains at max trisPerChunk triangles.
-	bool rcCreateChunkyTriMesh(const float* verts, const uint16_t* tris, int ntris, int trisPerChunk, rcChunkyTriMesh* cm);
+	bool rcCreateChunkyTriMesh(const float* verts, const uint32_t* tris, int ntris, int trisPerChunk, rcChunkyTriMesh* cm);
 
 	// Returns the chunk indices which overlap the input rectable.
 	int rcGetChunksOverlappingRect(const rcChunkyTriMesh* cm, const vec2& bmin, const vec2& bmax, int* ids, const int maxIds);

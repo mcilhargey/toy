@@ -3,7 +3,7 @@
 //  This notice and the license may not be removed or altered from any source distribution.
 
 
-#include <core/Generated/Types.h>
+#include <core/Types.h>
 #include <core/Light/Light.h>
 
 #include <core/World/World.h>
@@ -19,12 +19,12 @@
 
 using namespace mud; namespace toy
 {
-	LightReflector::LightReflector(Entity& entity)
+	LightReflector::LightReflector(Entity& entity, Receptor& receptor)
 		: m_entity(entity)
 		, m_brightness(0.f)
-		, m_sphere(m_entity.part<Receptor>().addSphere(VisualMedium::me(), 0.1f, CM_LIGHTREFLECTOR))
+		, m_sphere(receptor.addSphere(VisualMedium::me(), 0.1f, CM_LIGHTREFLECTOR))
 	{
-		entity.add_part(type<LightReflector>(), this);
+		//entity.add_part(type<LightReflector>(), this);
 	}
 
 	void LightReflector::handleMoved()
@@ -55,8 +55,8 @@ using namespace mud; namespace toy
 	void LightSource::visualTransformUpdated(LightReflector& reflector)
 	{
 		UNUSED(reflector);
-		//vec3 pos = reflector.m_entity.absolutePosition();
-		//float value = computeIntensity(distance(pos, m_entity.absolutePosition()));
+		//vec3 pos = reflector.m_entity.absolute_position();
+		//float value = computeIntensity(distance(pos, m_entity.absolute_position()));
 		//reflector.m_brightness.updateModifier(this, value);
 	}
 
@@ -66,7 +66,7 @@ using namespace mud; namespace toy
 			visualTransformUpdated(entity->part<LightReflector>());
 	}
 
-	void LightSource::handleAdd(Entity& contact)
+	void LightSource::handle_add(Entity& contact)
 	{
 		UNUSED(contact);
 		//LightReflector& reflector = contact.part<LightReflector>();
@@ -74,7 +74,7 @@ using namespace mud; namespace toy
 		//reflector.brightness().setModifier(this, value);
 	}
 
-	void LightSource::handleRemove(Entity& contact)
+	void LightSource::handle_remove(Entity& contact)
 	{
 		UNUSED(contact);
 		//LightReflector& reflector = contact.part<LightReflector>();
@@ -82,13 +82,12 @@ using namespace mud; namespace toy
 	}
 
 	OLight::OLight(Id id, Entity& parent, const vec3& position, float range, float intensity, Colour colour, bool shadows)
-		: Construct(m_entity, proto<OLight>())
-		, m_entity(id, proto<OLight>(), parent, position, ZeroQuat)
+		: Complex(id, type<OLight>(), m_emitter, m_light)
+		, m_entity(id, *this, parent, position, ZeroQuat)
 		, m_emitter(m_entity)
 		, m_light(m_entity, m_emitter, range, intensity, colour, shadows)
 	{
 		// @5603 : adding to nested only when object is finish -> in prototype
-		this->index(m_emitter, m_light);
 		m_entity.m_parent->m_contents.add(m_entity);
 	}
 }

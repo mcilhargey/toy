@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <core/Generated/Forward.h>
+#include <core/Forward.h>
 #include <obj/Type.h>
 
 using namespace mud; namespace toy
@@ -24,8 +24,8 @@ using namespace mud; namespace toy
 	{
 	public:
 		virtual bool handleClear() { return false; }
-		virtual void handleAdd(Var value) = 0;
-		virtual void handleRemove(Var value) = 0;
+		virtual void handle_add(Var value) = 0;
+		virtual void handle_remove(Var value) = 0;
 	};
 
 	template <class T>
@@ -33,8 +33,8 @@ using namespace mud; namespace toy
 	{
 	public:
 		virtual bool handleClear() { return false; }
-		virtual void handleAdd(T& object) = 0;
-		virtual void handleRemove(T& object) = 0;
+		virtual void handle_add(T& object) = 0;
+		virtual void handle_remove(T& object) = 0;
 	};
 
 	template <class T>
@@ -45,8 +45,8 @@ using namespace mud; namespace toy
 		~GenericObserver() { m_store.unobserve(*this); }
 
 		virtual bool handleClear() { return m_observer.handleClear(); }
-		virtual void handleAdd(T& object) { m_observer.handleAdd(var(object)); }
-		virtual void handleRemove(T& object) { m_observer.handleRemove(var(object)); }
+		virtual void handle_add(T& object) { m_observer.handle_add(var(object)); }
+		virtual void handle_remove(T& object) { m_observer.handle_remove(var(object)); }
 
 	protected:
 		Store<T>& m_store;
@@ -57,10 +57,10 @@ using namespace mud; namespace toy
 	class TypedObserver : public StoreObserver<T_Object>
 	{
 	public:
-		virtual void handleAdd(T_Object& object) { this->handleAdd(as<T>(object)); }
-		virtual void handleRemove(T_Object& object) { this->handleRemove(as<T>(object)); }
+		virtual void handle_add(T_Object& object) { this->handle_add(as<T>(object)); }
+		virtual void handle_remove(T_Object& object) { this->handle_remove(as<T>(object)); }
 
-		virtual void handleAdd(T& object) = 0;
-		virtual void handleRemove(T& object) = 0;
+		virtual void handle_add(T& object) = 0;
+		virtual void handle_remove(T& object) = 0;
 	};
 }

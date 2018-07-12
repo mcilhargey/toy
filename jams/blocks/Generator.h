@@ -1,14 +1,16 @@
 
 #pragma once
 
-#include <blocks/Generated/Forward.h>
+#include <blocks/Forward.h>
 
 using namespace mud;
 using namespace toy;
 
-_EX_BLOCKS_EXPORT _func_ void paint_block_height(Block& block, Image256& image);
-_EX_BLOCKS_EXPORT _func_ void paint_block_elements(Block& block, Image256& image);
+void block_grid(BlockWorld& world, const uvec3& grid_subdiv, const uvec3& block_subdiv, const vec3& cell_size);
+
+WaveTileset& generator_tileset(GfxSystem& gfx_system);
 
 void block_generator(GameShell& shell, VisualScript& script);
 VisualScript& block_generator(GameShell& shell);
 
+void generate_camps(BlockWorld& world);

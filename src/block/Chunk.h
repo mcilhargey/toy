@@ -4,25 +4,24 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Complex.h>
+#include <proto/Complex.h>
 #include <math/Math.h>
-#include <block/Generated/Forward.h>
+#include <block/Forward.h>
 #include <core/Entity/Entity.h>
 
 using namespace mud; namespace toy
 {
-	class _refl_ TOY_BLOCK_EXPORT Chunk : public Construct
+	class refl_ TOY_BLOCK_EXPORT Chunk : public Complex
 	{
 	public:
-		_constr_ Chunk(Id id, Entity& parent, const vec3& position, size_t index, Element& element, float size);
+		constr_ Chunk(Id id, Entity& parent, const vec3& position, size_t index, Element& element, float size);
 
-		_comp_ _attr_ Entity m_entity;
+		comp_ attr_ Entity m_entity;
 
-		_attr_ size_t m_index;
-		_attr_ Block& m_block;
-		_attr_ Element& m_element;
-		_attr_ float m_size;
+		attr_ size_t m_index;
+		attr_ Block& m_block;
+		attr_ Element& m_element;
+		attr_ float m_size;
 
 		Sector& sector();
 

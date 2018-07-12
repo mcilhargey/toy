@@ -5,9 +5,9 @@
 #pragma once
 
 /* toy */
-#include <obj/NonCopy.h>
-#include <obj/Util/Dispatch.h>
-#include <obj/Util/Global.h>
+#include <infra/NonCopy.h>
+#include <obj/Dispatch.h>
+#include <infra/Global.h>
 #include <util/Loader/DataLoader.h>
 #include <db/Generated/Forward.h>
 

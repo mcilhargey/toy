@@ -4,17 +4,16 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Util/Global.h>
-#include <core/Generated/Forward.h>
+#include <infra/Global.h>
+#include <core/Forward.h>
 #include <core/Physic/Medium.h>
 
 using namespace mud; namespace toy
 {
-	class _refl_ TOY_CORE_EXPORT SoundMedium : public Medium, public LazyGlobal<SoundMedium>
+	class refl_ TOY_CORE_EXPORT SoundMedium : public Medium, public LazyGlobal<SoundMedium>
 	{
 	public:
-		_constr_ SoundMedium();
+		constr_ SoundMedium();
 
 	private:
 		float m_ambientIntensity;

@@ -4,37 +4,40 @@
 
 #pragma once
 
-/* toy */
 #include <obj/Ref.h>
 #include <obj/Indexer.h>
-#include <obj/Util/Updatable.h>
-#include <util/Generated/Forward.h>
+#include <infra/Updatable.h>
+#include <util/Forward.h>
+#include <util/Executable.h>
+#include <refl/Meta.h>
 
+#ifndef MUD_CPP_20
 #include <string>
+#endif
 
 using namespace mud; namespace toy
 {
 	using string = std::string;
 	class User;
 
-	class _refl_ TOY_UTIL_EXPORT ProcedureType
+	class refl_ TOY_UTIL_EXPORT ProcedureType
 	{
 	public:
 		ProcedureType(Type& type);
 		~ProcedureType();
 
-		_attr_ Type& m_type;
-		_attr_ uint32_t m_index;
-		_attr_ string m_name;
+		attr_ Type& m_type;
+		attr_ uint32_t m_index;
+		attr_ string m_name;
 
-		Meta& meta() { return *m_type.m_meta; }
+		Meta& meta() { return mud::meta(m_type); }
 
 		virtual bool checkObject(Ref object) = 0;
 		virtual bool checkArgs(const std::vector<Ref>& args) = 0;
 		virtual object_ptr<Procedure> instance(User* user, Ref object, std::vector<Ref> args) = 0;
 	};
 
-	class _refl_ TOY_UTIL_EXPORT Procedure : public Executable
+	class refl_ TOY_UTIL_EXPORT Procedure : public Executable
 	{
 	public:
 		Procedure(ProcedureType& def, User* user, Ref object, std::vector<Ref> args = {});

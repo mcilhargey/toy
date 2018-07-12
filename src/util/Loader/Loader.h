@@ -4,15 +4,15 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Proto.h>
+#include <proto/Proto.h>
 #include <obj/Indexer.h>
 #include <obj/Var.h>
-#include <obj/Reflect/Injector.h>
-#include <util/Generated/Forward.h>
+#include <refl/Injector.h>
+#include <util/Forward.h>
 
-/* std */
+#ifndef MUD_CPP_20
 #include <vector>
+#endif
 
 using namespace mud; namespace toy
 {
@@ -31,7 +31,7 @@ using namespace mud; namespace toy
 		std::vector<object_ptr<ObjectLoader>> m_loaders;
 	};
 
-	class _refl_ TOY_UTIL_EXPORT Loader : public NonCopy
+	class refl_ TOY_UTIL_EXPORT Loader : public NonCopy
 	{
 	public:
 		Loader(Type& type, DataSource& dataSource, ObjectLoader* parent = nullptr);
@@ -66,13 +66,13 @@ using namespace mud; namespace toy
 		virtual void erase(Ref object);
 	};
 
-	class _refl_ TOY_UTIL_EXPORT ObjectLoader : public Loader
+	class refl_ TOY_UTIL_EXPORT ObjectLoader : public Loader
 	{
 	public:
 		ObjectLoader(Type& type, DataSource& dataSource, ObjectLoader* parent = nullptr, Member* member = nullptr);
         ~ObjectLoader();
 
-		void setupObject(Loader* parent = nullptr, Member* member = nullptr);
+		void setup_object(Loader* parent = nullptr, Member* member = nullptr);
 
 		Injector* m_injector;
 		Prototype* m_prototype;
@@ -122,7 +122,7 @@ using namespace mud; namespace toy
 		std::vector<Injector> m_injectors;
 	};
 
-	class _refl_ TOY_UTIL_EXPORT PartLoader : public ObjectLoader
+	class refl_ TOY_UTIL_EXPORT PartLoader : public ObjectLoader
 	{
 	public:
 		PartLoader(ObjectLoader& parent, Type& type);

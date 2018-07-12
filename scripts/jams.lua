@@ -1,7 +1,7 @@
 -- toy engine
 -- toy jam example applications
 
-function jamProject(name, ...)
+function jam_project(name, deps)
     project("ex_" .. name)
         kind "ConsoleApp"
 
@@ -10,13 +10,17 @@ function jamProject(name, ...)
             path.join(MUD_DIR, "example"),
         }
 
-        mud_module(name, path.join(TOY_DIR, "jams"), name, "_EX_" .. name:upper())
-    
-		for _, depname in ipairs({...}) do
-            mud_module(depname, path.join(TOY_DIR, "jams"), depname, "_EX_" .. depname:upper())
+        mud.jams[name] = mud_module(nil, "_" .. name, path.join(TOY_DIR, "jams"), name, nil, nil, nil, toy.all)
+        
+        mud_refl(mud.jams[name])
+        mud_module_decl(mud.jams[name].refl, false)
+        
+        mud.jams[name].decl(mud.jams[name], false)
+        
+		for _, depname in ipairs(deps or {}) do
+            mud.examples[depname].decl(mud.examples[depname], false)
         end
-    
-        uses_toy()
+        
         toy_binary(name)
         
         configuration { "asmjs" }
@@ -27,7 +31,9 @@ function jamProject(name, ...)
         configuration {}
 end
 
-jamProject("space")
-jamProject("platform")--, "05_character")
-jamProject("blocks")--, "05_character")
+mud.jams = {}
+
+jam_project("space")
+jam_project("platform")--, "05_character")
+jam_project("blocks")--, "05_character")
 

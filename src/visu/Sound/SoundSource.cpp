@@ -49,12 +49,12 @@ using namespace mud; namespace toy
 	{
 		for(auto& kv : m_sounds)
 		{
-			kv.second->setPosition(entity.absolutePosition());
+			kv.second->set_position(entity.absolute_position());
 			kv.second->setDirection(entity.front());
 		}
 	}*/
 
-	void SoundSource::handleAdd(State& effect)
+	void SoundSource::handle_add(State& effect)
 	{
 #ifdef TOY_SOUND
 		Sound* sound = m_soundManager.createSound(("../data/sounds/" + effect.m_name + ".ogg").c_str(), true/*effect.loop()*/, false, [=](Sound& sound) { this->soundDestroyed(sound); });
@@ -69,7 +69,7 @@ using namespace mud; namespace toy
 #endif
 	}
 
-	void SoundSource::handleRemove(State& effect)
+	void SoundSource::handle_remove(State& effect)
 	{
 #ifdef TOY_SOUND
 		if(m_sounds.find(&effect) != m_sounds.end())

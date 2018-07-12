@@ -4,9 +4,8 @@
 
 #pragma once
 
-/* toy */
-#include <obj/Util/Global.h>
-#include <core/Generated/Forward.h>
+#include <infra/Global.h>
+#include <core/Forward.h>
 #include <core/Physic/Medium.h>
 
 using namespace mud; namespace toy
