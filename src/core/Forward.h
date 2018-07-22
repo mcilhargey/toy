@@ -38,7 +38,7 @@ namespace glm {
     
 }
 
-namespace bx {
+namespace bgfx {
 
     
     
@@ -145,7 +145,6 @@ namespace toy {
     class ReceptorSphere;
     class Emitter;
     class Receptor;
-    class CameraObserver;
     class Camera;
     class OCamera;
     class EventHandler_;
@@ -192,7 +191,7 @@ namespace toy {
     class WorldPage;
 }
 
-namespace bgfx {
+namespace bx {
 
     
     

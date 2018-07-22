@@ -39,7 +39,7 @@ namespace glm {
     
 }
 
-namespace bx {
+namespace bgfx {
 
     
     
@@ -104,7 +104,7 @@ namespace toy {
     struct BlockState;
 }
 
-namespace bgfx {
+namespace bx {
 
     
     

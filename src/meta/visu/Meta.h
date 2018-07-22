@@ -71,7 +71,7 @@ namespace mud
             },
             // members
             {
-                { type<toy::SoundSource>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Link }
+                { type<toy::SoundSource>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::SoundSource>(object).m_entity); } }
             },
             // methods
             {
@@ -110,10 +110,9 @@ namespace mud
             },
             // members
             {
-                { type<toy::VisuScene>(), Address(), type<toy::World>(), "world", Ref(type<toy::World>()), Member::Link },
-                { type<toy::VisuScene>(), Address(), type<toy::VisuSystem>(), "visu_system", Ref(type<toy::VisuSystem>()), Member::Link },
-                { type<toy::VisuScene>(), Address(), type<mud::GfxSystem>(), "gfx_system", Ref(type<mud::GfxSystem>()), Member::Link },
-                { type<toy::VisuScene>(), member_address(&toy::VisuScene::m_scene), type<mud::Scene>(), "scene", Ref(type<mud::Scene>()), Member::None }
+                { type<toy::VisuScene>(), Address(), type<toy::VisuSystem>(), "visu_system", Ref(type<toy::VisuSystem>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::VisuScene>(object).m_visu_system); } },
+                { type<toy::VisuScene>(), Address(), type<mud::GfxSystem>(), "gfx_system", Ref(type<mud::GfxSystem>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::VisuScene>(object).m_gfx_system); } },
+                { type<toy::VisuScene>(), member_address(&toy::VisuScene::m_scene), type<mud::Scene>(), "scene", Ref(type<mud::Scene>()), Member::None, nullptr }
             },
             // methods
             {

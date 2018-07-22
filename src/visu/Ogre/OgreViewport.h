@@ -5,12 +5,11 @@
 #pragma once
 
 #include <visu/Forward.h>
-#include <core/Camera/CameraObserver.h>
 #include <gfx-ui/Viewer.h>
 
 using namespace mud; namespace toy
 {
-	class TOY_VISU_EXPORT OgreViewport : public Viewer //, public CameraObserver
+	class TOY_VISU_EXPORT OgreViewport : public Viewer
 	{
 	public:
 		OgreViewport(Widget* parent, void* identity, Scene& scene/*, VisuCamera& camera*/);

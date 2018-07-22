@@ -75,18 +75,18 @@ namespace mud
             },
             // members
             {
-                { type<Human>(), member_address(&Human::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component },
-                { type<Human>(), member_address(&Human::m_movable), type<toy::Movable>(), "movable", Ref(type<toy::Movable>()), Member::Component },
-                { type<Human>(), member_address(&Human::m_agent), type<toy::Agent>(), "agent", Ref(type<toy::Agent>()), Member::Component },
-                { type<Human>(), member_address(&Human::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component },
-                { type<Human>(), member_address(&Human::m_receptor), type<toy::Receptor>(), "receptor", Ref(type<toy::Receptor>()), Member::Component },
-                { type<Human>(), member_address(&Human::m_active), type<toy::Active>(), "active", Ref(type<toy::Active>()), Member::Component },
-                { type<Human>(), member_address(&Human::m_actor), type<toy::Actor>(), "actor", Ref(type<toy::Actor>()), Member::Component },
-                { type<Human>(), member_address(&Human::m_reactive), type<toy::Reactive>(), "reactive", Ref(type<toy::Reactive>()), Member::Component },
-                { type<Human>(), member_address(&Human::m_first_name), type<std::string>(), "first_name", var(std::string()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Human>(), member_address(&Human::m_last_name), type<std::string>(), "last_name", var(std::string()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Human>(), member_address(&Human::m_counter), type<float>(), "counter", var(float(0.f)), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Human>(), member_address(&Human::m_next_change), type<float>(), "next_change", var(float()), Member::Flags(Member::Value|Member::Mutable) }
+                { type<Human>(), member_address(&Human::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr },
+                { type<Human>(), member_address(&Human::m_movable), type<toy::Movable>(), "movable", Ref(type<toy::Movable>()), Member::Component, nullptr },
+                { type<Human>(), member_address(&Human::m_agent), type<toy::Agent>(), "agent", Ref(type<toy::Agent>()), Member::Component, nullptr },
+                { type<Human>(), member_address(&Human::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component, nullptr },
+                { type<Human>(), member_address(&Human::m_receptor), type<toy::Receptor>(), "receptor", Ref(type<toy::Receptor>()), Member::Component, nullptr },
+                { type<Human>(), member_address(&Human::m_active), type<toy::Active>(), "active", Ref(type<toy::Active>()), Member::Component, nullptr },
+                { type<Human>(), member_address(&Human::m_actor), type<toy::Actor>(), "actor", Ref(type<toy::Actor>()), Member::Component, nullptr },
+                { type<Human>(), member_address(&Human::m_reactive), type<toy::Reactive>(), "reactive", Ref(type<toy::Reactive>()), Member::Component, nullptr },
+                { type<Human>(), member_address(&Human::m_first_name), type<std::string>(), "first_name", var(std::string()), Member::Value, nullptr },
+                { type<Human>(), member_address(&Human::m_last_name), type<std::string>(), "last_name", var(std::string()), Member::Value, nullptr },
+                { type<Human>(), member_address(&Human::m_counter), type<float>(), "counter", var(float(0.f)), Member::Value, nullptr },
+                { type<Human>(), member_address(&Human::m_next_change), type<float>(), "next_change", var(float()), Member::Value, nullptr }
             },
             // methods
             {

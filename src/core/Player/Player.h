@@ -28,9 +28,9 @@ using namespace mud; namespace toy
 	public:
 		constr_ Player(Id id, const string& name);
 
-		attr_ mut_ Id m_id;
-		attr_ mut_ string m_name;
-		attr_ mut_ std::vector<Ref> m_selection;
+		attr_ Id m_id;
+		attr_ string m_name;
+		attr_ std::vector<Ref> m_selection;
 	};
 #endif
 }

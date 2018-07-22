@@ -48,7 +48,6 @@ namespace mud
     export_ template <> TOY_CORE_EXPORT Type& type<toy::DetourPath>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::Effect>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::Emitter>();
-    export_ template <> TOY_CORE_EXPORT Type& type<toy::Entity>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::EventFilter>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::EventRelay>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::GroundMotion>();
@@ -75,6 +74,7 @@ namespace mud
     export_ template <> TOY_CORE_EXPORT Type& type<toy::World>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::WorldClock>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::WorldMedium>();
+    export_ template <> TOY_CORE_EXPORT Type& type<toy::Entity>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::NavmeshShape>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::DefaultWorld>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::OCamera>();
@@ -82,16 +82,12 @@ namespace mud
     export_ template <> TOY_CORE_EXPORT Type& type<toy::OWaypoint>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::Origin>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::Action>();
-    export_ template <> TOY_CORE_EXPORT Type& type<toy::BulletWorld>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::BulletCollider>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::Area>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::WorldPage>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::Solid>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::ObstacleBody>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::PhysicScope>();
-    export_ template <> TOY_CORE_EXPORT Type& type<toy::MonoSection>();
-    export_ template <> TOY_CORE_EXPORT Type& type<toy::ParallelSection>();
-    export_ template <> TOY_CORE_EXPORT Type& type<toy::QueueSection>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::BulletSolid>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::EmitterScope>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::ReceptorScope>();
@@ -99,6 +95,10 @@ namespace mud
     export_ template <> TOY_CORE_EXPORT Type& type<toy::ReceptorSphere>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::EventEmitter>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::EventReceptor>();
+    export_ template <> TOY_CORE_EXPORT Type& type<toy::MonoSection>();
+    export_ template <> TOY_CORE_EXPORT Type& type<toy::ParallelSection>();
+    export_ template <> TOY_CORE_EXPORT Type& type<toy::QueueSection>();
+    export_ template <> TOY_CORE_EXPORT Type& type<toy::BulletWorld>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::ReceptorView>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::StoreView>();
     export_ template <> TOY_CORE_EXPORT Type& type<toy::OmniVision>();
@@ -120,7 +120,6 @@ namespace mud
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::DetourPath*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::Effect*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::Emitter*>>;
-	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::Entity*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::EventFilter*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::EventRelay*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::GroundMotion*>>;
@@ -147,6 +146,7 @@ namespace mud
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::World*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::WorldClock*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::WorldMedium*>>;
+	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::Entity*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::NavmeshShape*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::DefaultWorld*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::OCamera*>>;
@@ -154,16 +154,12 @@ namespace mud
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::OWaypoint*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::Origin*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::Action*>>;
-	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::BulletWorld*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::BulletCollider*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::Area*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::WorldPage*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::Solid*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::ObstacleBody*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::PhysicScope*>>;
-	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::MonoSection*>>;
-	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::ParallelSection*>>;
-	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::QueueSection*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::BulletSolid*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::EmitterScope*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::ReceptorScope*>>;
@@ -171,6 +167,10 @@ namespace mud
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::ReceptorSphere*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::EventEmitter*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::EventReceptor*>>;
+	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::MonoSection*>>;
+	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::ParallelSection*>>;
+	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::QueueSection*>>;
+	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::BulletWorld*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::ReceptorView*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::StoreView*>>;
 	export_ template struct TOY_CORE_EXPORT Typed<std::vector<toy::OmniVision*>>;

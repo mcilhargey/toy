@@ -16,14 +16,14 @@ std::string generate_name()
 {
 	std::string name = "";
 
-	size_t length = random_integer(3U, 10U);
+	size_t length = random_integer(3U, 8U);
 	bool vowel = false;
 	for(size_t i = 0; i < length; ++i)
 	{
 		vowel = random_scalar(0.f, 1.f) > (vowel ? 0.8f : 0.2f);
 		const std::string& chars = vowel ? consonnants : vowels;
 		size_t c = random_integer(size_t(0U), chars.size() - size_t(1U));
-		name += toupper(chars[c]);
+		name += char(toupper(chars[c]));
 	}
 
 	return name;
@@ -34,7 +34,7 @@ void generate_avatar(Colour& colour, Image256& avatar)
 	const uint16_t side = 6;
 	avatar.resize(side, side);
 
-	colour = hsl_to_rgb(random_scalar(0.f, 1.f), 1.f, random_scalar(0.5f, 0.7f));
+	colour = hsl_to_rgb(random_scalar(0.f, 1.f), 1.f, random_scalar(0.5f, 0.6f));
 
 	Palette palette = { { Colour::None, colour } };
 	avatar.m_palette = palette;
@@ -112,9 +112,9 @@ Commander* generate_commander(Entity& galaxy, Star& star)
 	float size = random_scalar(1.f, 3.f);
 	fleet.set_ships("sonde", size_t(1 * size));
 	fleet.set_ships("cha", size_t(20 * size));
-	fleet.set_ships("chabom", size_t(10 * size));
-	fleet.set_ships("bom", size_t(10 * size));
-	fleet.set_ships("cor", size_t(5 * size));
+	//fleet.set_ships("chabom", size_t(10 * size));
+	//fleet.set_ships("bom", size_t(10 * size));
+	//fleet.set_ships("cor", size_t(5 * size));
 
 	return &commander;
 }
@@ -134,10 +134,12 @@ void space_generator(GameShell& shell, VisualScript& script)
 	Valve& parsecs_per_sector = script.value(uvec3(20));
 	Valve& sectors_per_galaxy = script.value(2);
 	Valve& parsecs_per_galaxy = script.value(20 * 2);
-	
+	UNUSED(parsecs_per_sector);
+
 	Valve& galaxy_sectors = script.create<uvec3>({ &sectors_per_galaxy, &script.value(1), &sectors_per_galaxy });
 	Valve& galaxy_size = script.create<uvec3>({ &parsecs_per_galaxy, &script.value(1), &parsecs_per_galaxy });
 	Valve& galaxy_size2 = script.create<uvec2>({ &parsecs_per_galaxy, &parsecs_per_galaxy });
+	UNUSED(galaxy_sectors);
 
 	//Valve* sector_coords = script.function(grid, { &galaxy_sectors });
 	//Valve* sector_positions = script.function(grid_center, { sector_coords, &parsecs_per_sector });

@@ -38,18 +38,18 @@ using namespace mud; namespace toy
 		~Agent();
 
 	public:
-		 attr_ Entity& m_entity;
+		attr_ Entity& m_entity;
 		//Movable& m_movable;
 
-		 unique_ptr<Pathfinder> m_pathfinder;
+		unique_ptr<Pathfinder> m_pathfinder;
 
 #ifdef TOY_DISQS
 		Disq m_disq;
 		Disq m_avoidDisq;
 #endif
 
-		attr_ mut_ float m_radius;
-		attr_ mut_ float m_height;
+		attr_ float m_radius;
+		attr_ float m_height;
 
 		void setMotionStrategy(object_ptr<MotionStrategy> strategy);
 

@@ -43,9 +43,8 @@ using namespace mud; namespace toy
 		m_unworld = nullptr;
 	}
 
-    void World::next_frame(size_t tick, size_t delta)
+    void World::next_frame()
     {
-		UNUSED(tick); UNUSED(delta);
 #ifndef TOY_THREADED
 		m_clock->stepClock();
 		for(Task task = Task(0); task < Task::Count; task = Task(uint(task) + 1))

@@ -165,13 +165,22 @@ using namespace mud; namespace toy
 		if(m_entities.size() <= entity.m_id)
 			m_entities.resize(entity.m_id * 2);
 		if(m_entities[entity.m_id] == nullptr)
-			m_entities[entity.m_id] = &gfx::node(parent, Ref(&entity), entity.absolute_position(), entity.absolute_rotation());
-		return m_entities[entity.m_id]->sub((void*) painter);
+			//m_entities[entity.m_id] = &gfx::node(parent, Ref(&entity.m_complex), entity.absolute_position(), entity.absolute_rotation());
+			m_entities[entity.m_id] = &gfx::node(parent.subx(entity.m_id), Ref(&entity.m_complex), entity.absolute_position(), entity.absolute_rotation());
+		//return m_entities[entity.m_id]->subi((void*) painter);
+		return m_entities[entity.m_id]->subx(uint16_t(painter));
 	}
 
 	void VisuScene::next_frame()
 	{
 #ifdef TOY_SOUND
+		for(Sound* sound : reverse_adapt(m_scene.m_orphan_sounds))
+			if(sound->m_loop || sound->m_state == Sound::STOPPED)
+			{
+				m_snd_manager.destroySound(sound);
+				vector_remove(m_scene.m_orphan_sounds, sound);
+			}
+
 		//m_snd_manager.threadUpdate();
 #endif
 
@@ -181,7 +190,7 @@ using namespace mud; namespace toy
 		Gnode& root = m_scene.begin();
 
 		for(size_t i = 0; i < m_painters.size(); ++i)
-			m_painters[i]->m_paint(i, *this, root);
+			m_painters[i]->m_paint(i, *this, root.subx(i));
 	}
 
 	void scene_painters(VisuScene& scene, Array<Entity>& store)
@@ -189,47 +198,25 @@ using namespace mud; namespace toy
 		scene.entity_painter<WorldPage>("WorldPage", store, paint_world_page);
 	}
 
-	void paint_selected(Gnode& parent, Entity& entity)
-	{
-		UNUSED(entity);
-		//if(!parent.m_focused)
-			return;
-
-		Aabb aabb;
-#if 0
-		for(Item* item : parent.m_attach->m_items)
-		{
-			if(item->m_instances.empty())
-				aabb.mergeSafe(item->m_model->m_aabb);
-			//else
-			//	for(mat4& mat : item->m_instances)
-			//		aabb.mergeSafe(mat * aabb)
-		}
-#endif
-		gfx::shape(parent, aabb, Symbol(Colour::White));
-	}
-
 	void paint_selection(Gnode& parent, Selection& selection)
 	{
-		UNUSED(selection);
 		Aabb bounds;
-		/*for(Entity* entity : selection.m_entities.store())
-			for(Item* item : parent.m_items)
-			{
-				Aabb aabb = item->m_model.m_aabb;
-				aabb.m_center += parent.m_position;
-				bounds.mergeSafe(aabb);
-			}*/
+		parent.m_scene->m_pool->iterate_objects<Item>([&](Item& item)
+		{
+			for(Ref object : selection)
+				if(item.m_node.m_object == object)
+					bounds.mergeSafe(item.m_aabb);
+		});
 
 		gfx::shape(parent, bounds, Symbol(Colour::White));
 	}
 
 	void update_camera(Camera& camera, mud::Camera& gfx_camera)
 	{
-		gfx_camera.set_look_at(camera.m_lensPosition, camera.m_entity.absolute_position());
+		gfx_camera.set_look_at(camera.m_lens_position, camera.m_entity.absolute_position());
 
-		gfx_camera.m_near = camera.m_nearClipDistance;
-		gfx_camera.m_far = camera.m_farClipDistance;
+		gfx_camera.m_near = camera.m_near;
+		gfx_camera.m_far = camera.m_far;
 	}
 
 	void paint_frustum(Gnode& parent, Frustum& frustum)
@@ -307,20 +294,14 @@ using namespace mud; namespace toy
 	}
 
 #ifdef TOY_SOUND
-	void sound(Gnode& parent, const string& sound, bool loop)
+	bool sound(Gnode& parent, const string& sound, bool loop, float volume)
 	{
-		Gnode& self = parent.sub();
+		Gnode& self = parent.suba();
 		if(self.m_sound)
 		{
 			self.m_sound->set_position(parent.m_attach->m_position);
 			self.m_sound->update3D();
-
-			if(self.m_sound->m_state == Sound::STOPPED)
-			{
-				self.m_sound_manager->destroySound(self.m_sound);
-				self.m_sound = nullptr;
-			}
-			return;
+			return self.m_sound->m_state != Sound::STOPPED;
 		}
 
 		string file = "sounds/" + sound + ".ogg";
@@ -331,8 +312,11 @@ using namespace mud; namespace toy
 		{
 			self.m_sound->play();
 			self.m_sound->enable3D();
+			self.m_sound->setVolume(volume);
+			return true;
 		}
-		//sound->stop();
+
+		return false;
 	}
 #else
 	void sound(Gnode& parent, const string& sound, bool loop)

@@ -16,7 +16,7 @@ using namespace mud; namespace toy
 		, m_camera(camera)
 		, m_movable(camera.m_entity.part<Movable>())
 		, m_velocity(50.f)
-		, m_angularVelocity(2.f)
+		, m_angular_velocity(2.f)
 	{
 		default_velocities();
 
@@ -53,43 +53,43 @@ using namespace mud; namespace toy
 		m_movable.set_angular_velocity(Zero3);
 	}
 
-	void CameraController::rotateLeft()
+	void CameraController::rotate_left()
 	{
-		m_movable.modify_angular_velocity(Y3 * -m_angularVelocity);
+		m_movable.modify_angular_velocity(Y3 * -m_angular_velocity);
 	}
 
-	void CameraController::rotateRight()
+	void CameraController::rotate_right()
 	{
-		m_movable.modify_angular_velocity(Y3 * m_angularVelocity);
+		m_movable.modify_angular_velocity(Y3 * m_angular_velocity);
 	}
 
-	void CameraController::stopRotateLeft()
+	void CameraController::stop_rotate_left()
 	{
-		m_movable.modify_angular_velocity(Y3 * m_angularVelocity);
+		m_movable.modify_angular_velocity(Y3 * m_angular_velocity);
 	}
 
-	void CameraController::stopRotateRight()
+	void CameraController::stop_rotate_right()
 	{
-		m_movable.modify_angular_velocity(Y3 * -m_angularVelocity);
+		m_movable.modify_angular_velocity(Y3 * -m_angular_velocity);
 
 	}
-	void CameraController::zoomIn()
+	void CameraController::zoom_in()
 	{
 		m_camera.zoom(1.2f);//mCamera->zoom(3.f);
 	}
 
-	void CameraController::zoomOut()
+	void CameraController::zoom_out()
 	{
 		m_camera.zoom(0.8f);//mCamera->zoom(-3.f);
 	}
 
-	void CameraController::pitchLensUp()
+	void CameraController::pitch_lens_up()
 	{
-		m_camera.pitchLens(c_pi / 12.f);
+		m_camera.pitch_lens(c_pi / 12.f);
 	}
 
-	void CameraController::pitchLensDown()
+	void CameraController::pitch_lens_down()
 	{
-		m_camera.pitchLens(-c_pi / 12.f);
+		m_camera.pitch_lens(-c_pi / 12.f);
 	}
 }

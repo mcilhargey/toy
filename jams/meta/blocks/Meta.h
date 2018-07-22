@@ -40,9 +40,9 @@ namespace mud
             },
             // members
             {
-                { type<Faction>(), member_address(&Faction::m_id), type<uint32_t>(), "id", var(uint32_t()), Member::Value },
-                { type<Faction>(), member_address(&Faction::m_colour), type<mud::Colour>(), "colour", var(mud::Colour()), Member::Value },
-                { type<Faction>(), member_address(&Faction::m_energy), type<short>(), "energy", var(short()), Member::Value }
+                { type<Faction>(), member_address(&Faction::m_id), type<uint32_t>(), "id", var(uint32_t()), Member::Value, nullptr },
+                { type<Faction>(), member_address(&Faction::m_colour), type<mud::Colour>(), "colour", var(mud::Colour()), Member::Value, nullptr },
+                { type<Faction>(), member_address(&Faction::m_energy), type<short>(), "energy", var(short()), Member::Value, nullptr }
             },
             // methods
             {
@@ -116,13 +116,13 @@ namespace mud
             },
             // members
             {
-                { type<BlockWorld>(), member_address(&BlockWorld::m_world), type<toy::World>(), "world", Ref(type<toy::World>()), Member::Component },
-                { type<BlockWorld>(), member_address(&BlockWorld::m_bullet_world), type<toy::BulletWorld>(), "bullet_world", Ref(type<toy::BulletWorld>()), Member::Component },
-                { type<BlockWorld>(), member_address(&BlockWorld::m_navmesh), type<toy::Navmesh>(), "navmesh", Ref(type<toy::Navmesh>()), Member::Component },
-                { type<BlockWorld>(), member_address(&BlockWorld::m_block_subdiv), type<mud::uvec3>(), "block_subdiv", var(mud::uvec3()), Member::Value },
-                { type<BlockWorld>(), member_address(&BlockWorld::m_tile_scale), type<mud::vec3>(), "tile_scale", var(mud::vec3()), Member::Value },
-                { type<BlockWorld>(), member_address(&BlockWorld::m_block_size), type<mud::vec3>(), "block_size", var(mud::vec3()), Member::Value },
-                { type<BlockWorld>(), member_address(&BlockWorld::m_world_size), type<mud::vec3>(), "world_size", var(mud::vec3()), Member::Value }
+                { type<BlockWorld>(), member_address(&BlockWorld::m_world), type<toy::World>(), "world", Ref(type<toy::World>()), Member::Component, nullptr },
+                { type<BlockWorld>(), member_address(&BlockWorld::m_bullet_world), type<toy::BulletWorld>(), "bullet_world", Ref(type<toy::BulletWorld>()), Member::Component, nullptr },
+                { type<BlockWorld>(), member_address(&BlockWorld::m_navmesh), type<toy::Navmesh>(), "navmesh", Ref(type<toy::Navmesh>()), Member::Component, nullptr },
+                { type<BlockWorld>(), member_address(&BlockWorld::m_block_subdiv), type<mud::uvec3>(), "block_subdiv", var(mud::uvec3()), Member::Value, nullptr },
+                { type<BlockWorld>(), member_address(&BlockWorld::m_tile_scale), type<mud::vec3>(), "tile_scale", var(mud::vec3()), Member::Value, nullptr },
+                { type<BlockWorld>(), member_address(&BlockWorld::m_block_size), type<mud::vec3>(), "block_size", var(mud::vec3()), Member::Value, nullptr },
+                { type<BlockWorld>(), member_address(&BlockWorld::m_world_size), type<mud::vec3>(), "world_size", var(mud::vec3()), Member::Value, nullptr }
             },
             // methods
             {
@@ -156,9 +156,9 @@ namespace mud
             },
             // members
             {
-                { type<Camp>(), member_address(&Camp::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component },
-                { type<Camp>(), member_address(&Camp::m_position), type<mud::vec3>(), "position", var(mud::vec3()), Member::Value },
-                { type<Camp>(), Address(), type<Faction>(), "faction", Ref(type<Faction>()), Member::Link }
+                { type<Camp>(), member_address(&Camp::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr },
+                { type<Camp>(), member_address(&Camp::m_position), type<mud::vec3>(), "position", var(mud::vec3()), Member::Value, nullptr },
+                { type<Camp>(), Address(), type<Faction>(), "faction", Ref(type<Faction>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<Camp>(object).m_faction); } }
             },
             // methods
             {
@@ -192,12 +192,12 @@ namespace mud
             },
             // members
             {
-                { type<Shield>(), member_address(&Shield::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component },
-                { type<Shield>(), member_address(&Shield::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component },
-                { type<Shield>(), Address(), type<Faction>(), "faction", Ref(type<Faction>()), Member::Link },
-                { type<Shield>(), member_address(&Shield::m_radius), type<float>(), "radius", var(float()), Member::Value },
-                { type<Shield>(), member_address(&Shield::m_charge), type<float>(), "charge", var(float()), Member::Value },
-                { type<Shield>(), member_address(&Shield::m_discharge), type<float>(), "discharge", var(float()), Member::Value }
+                { type<Shield>(), member_address(&Shield::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr },
+                { type<Shield>(), member_address(&Shield::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component, nullptr },
+                { type<Shield>(), Address(), type<Faction>(), "faction", Ref(type<Faction>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<Shield>(object).m_faction); } },
+                { type<Shield>(), member_address(&Shield::m_radius), type<float>(), "radius", var(float()), Member::Value, nullptr },
+                { type<Shield>(), member_address(&Shield::m_charge), type<float>(), "charge", var(float()), Member::Value, nullptr },
+                { type<Shield>(), member_address(&Shield::m_discharge), type<float>(), "discharge", var(float()), Member::Value, nullptr }
             },
             // methods
             {
@@ -230,10 +230,10 @@ namespace mud
             },
             // members
             {
-                { type<Slug>(), member_address(&Slug::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component },
-                { type<Slug>(), member_address(&Slug::m_source), type<mud::vec3>(), "source", var(mud::vec3()), Member::Value },
-                { type<Slug>(), member_address(&Slug::m_velocity), type<mud::vec3>(), "velocity", var(mud::vec3()), Member::Value },
-                { type<Slug>(), member_address(&Slug::m_energy), type<short>(), "energy", var(short()), Member::Value }
+                { type<Slug>(), member_address(&Slug::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr },
+                { type<Slug>(), member_address(&Slug::m_source), type<mud::vec3>(), "source", var(mud::vec3()), Member::Value, nullptr },
+                { type<Slug>(), member_address(&Slug::m_velocity), type<mud::vec3>(), "velocity", var(mud::vec3()), Member::Value, nullptr },
+                { type<Slug>(), member_address(&Slug::m_energy), type<short>(), "energy", var(short()), Member::Value, nullptr }
             },
             // methods
             {
@@ -267,11 +267,11 @@ namespace mud
             },
             // members
             {
-                { type<Tank>(), member_address(&Tank::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component },
-                { type<Tank>(), member_address(&Tank::m_movable), type<toy::Movable>(), "movable", Ref(type<toy::Movable>()), Member::Component },
-                { type<Tank>(), member_address(&Tank::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component },
-                { type<Tank>(), member_address(&Tank::m_receptor), type<toy::Receptor>(), "receptor", Ref(type<toy::Receptor>()), Member::Component },
-                { type<Tank>(), member_address(&Tank::m_active), type<toy::Active>(), "active", Ref(type<toy::Active>()), Member::Component }
+                { type<Tank>(), member_address(&Tank::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr },
+                { type<Tank>(), member_address(&Tank::m_movable), type<toy::Movable>(), "movable", Ref(type<toy::Movable>()), Member::Component, nullptr },
+                { type<Tank>(), member_address(&Tank::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component, nullptr },
+                { type<Tank>(), member_address(&Tank::m_receptor), type<toy::Receptor>(), "receptor", Ref(type<toy::Receptor>()), Member::Component, nullptr },
+                { type<Tank>(), member_address(&Tank::m_active), type<toy::Active>(), "active", Ref(type<toy::Active>()), Member::Component, nullptr }
             },
             // methods
             {
@@ -305,8 +305,8 @@ namespace mud
             },
             // members
             {
-                { type<Well>(), member_address(&Well::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component },
-                { type<Well>(), member_address(&Well::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component }
+                { type<Well>(), member_address(&Well::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr },
+                { type<Well>(), member_address(&Well::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component, nullptr }
             },
             // methods
             {

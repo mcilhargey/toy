@@ -34,7 +34,7 @@ using namespace mud; namespace toy
 		attr_ uvec3 m_coordinate;
 		attr_ vec3 m_size;
 
-		attr_ mut_ Block* m_block;
+		attr_ Block* m_block;
 
 		std::vector<Heap*> m_heaps;
 	};

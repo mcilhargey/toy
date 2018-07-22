@@ -37,7 +37,7 @@ namespace glm {
     
 }
 
-namespace bx {
+namespace bgfx {
 
     
     
@@ -90,7 +90,7 @@ namespace toy {
     class SoundSource;
 }
 
-namespace bgfx {
+namespace bx {
 
     
     

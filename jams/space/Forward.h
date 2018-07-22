@@ -111,7 +111,7 @@ namespace glm {
     
 }
 
-namespace bx {
+namespace bgfx {
 
     
     
@@ -157,7 +157,7 @@ namespace toy {
     
 }
 
-namespace bgfx {
+namespace bx {
 
     
     

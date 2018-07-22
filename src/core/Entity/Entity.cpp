@@ -20,12 +20,11 @@
 using namespace mud; namespace toy
 {
 	Entity::Entity(Id id, Complex& complex, World& world, Entity* parent, const vec3& position, const quat& rotation)
-        : m_id(index(type<Entity>(), id, Ref(this)))
+        : Transform(position, rotation, Unit3)
+		, m_id(index(type<Entity>(), id, Ref(this)))
 		, m_complex(complex)
 		, m_world(world)
 		, m_parent(parent)
-		, m_position(position)
-		, m_rotation(rotation)
 		, m_hooked(true)
 	{
 		world.add_task(this, short(Task::Entity)); // @todo in the long term this should be moved out of the entity's responsibility

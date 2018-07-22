@@ -263,19 +263,19 @@ namespace mud
             },
             // members
             {
-                { type<Commander>(), member_address(&Commander::m_id), type<mud::Id>(), "id", var(mud::Id()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Commander>(), member_address(&Commander::m_name), type<std::string>(), "name", var(std::string()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Commander>(), member_address(&Commander::m_race), type<Race>(), "race", var(Race()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Commander>(), member_address(&Commander::m_command), type<int>(), "command", var(int()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Commander>(), member_address(&Commander::m_commerce), type<int>(), "commerce", var(int()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Commander>(), member_address(&Commander::m_diplomacy), type<int>(), "diplomacy", var(int()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Commander>(), member_address(&Commander::m_stars), type<std::vector<Star*>>(), "stars", var(std::vector<Star*>()), Member::Value },
-                { type<Commander>(), member_address(&Commander::m_fleets), type<std::vector<Fleet*>>(), "fleets", var(std::vector<Fleet*>()), Member::Value },
-                { type<Commander>(), member_address(&Commander::m_capital), type<Star>(), "capital", Ref(type<Star>()), Member::Flags(Member::Pointer|Member::Link) },
-                { type<Commander>(), member_address(&Commander::m_regime), type<Regime>(), "regime", var(Regime()), Member::Value },
-                { type<Commander>(), member_address(&Commander::m_power), type<float>(), "power", var(float(0.f)), Member::Value },
-                { type<Commander>(), member_address(&Commander::m_centaures), type<float>(), "centaures", var(float(0.f)), Member::Value },
-                { type<Commander>(), member_address(&Commander::m_scans), type<Scans>(), "scans", var(Scans()), Member::Value }
+                { type<Commander>(), member_address(&Commander::m_id), type<mud::Id>(), "id", var(mud::Id()), Member::Value, nullptr },
+                { type<Commander>(), member_address(&Commander::m_name), type<std::string>(), "name", var(std::string()), Member::Value, nullptr },
+                { type<Commander>(), member_address(&Commander::m_race), type<Race>(), "race", var(Race()), Member::Value, nullptr },
+                { type<Commander>(), member_address(&Commander::m_command), type<int>(), "command", var(int()), Member::Value, nullptr },
+                { type<Commander>(), member_address(&Commander::m_commerce), type<int>(), "commerce", var(int()), Member::Value, nullptr },
+                { type<Commander>(), member_address(&Commander::m_diplomacy), type<int>(), "diplomacy", var(int()), Member::Value, nullptr },
+                { type<Commander>(), member_address(&Commander::m_stars), type<std::vector<Star*>>(), "stars", var(std::vector<Star*>()), Member::Value, nullptr },
+                { type<Commander>(), member_address(&Commander::m_fleets), type<std::vector<Fleet*>>(), "fleets", var(std::vector<Fleet*>()), Member::Value, nullptr },
+                { type<Commander>(), member_address(&Commander::m_capital), type<Star>(), "capital", Ref(type<Star>()), Member::Flags(Member::Pointer|Member::Link), nullptr },
+                { type<Commander>(), member_address(&Commander::m_regime), type<Regime>(), "regime", var(Regime()), Member::Value, nullptr },
+                { type<Commander>(), member_address(&Commander::m_power), type<float>(), "power", var(float(0.f)), Member::Value, nullptr },
+                { type<Commander>(), member_address(&Commander::m_centaures), type<float>(), "centaures", var(float(0.f)), Member::Value, nullptr },
+                { type<Commander>(), member_address(&Commander::m_scans), type<Scans>(), "scans", var(Scans()), Member::Value, nullptr }
             },
             // methods
             {
@@ -342,8 +342,8 @@ namespace mud
             },
             // members
             {
-                { type<FleetJump>(), member_address(&FleetJump::m_destination), type<mud::uvec2>(), "destination", var(mud::uvec2()), Member::Value },
-                { type<FleetJump>(), member_address(&FleetJump::m_stance), type<FleetStance>(), "stance", var(FleetStance()), Member::Value }
+                { type<FleetJump>(), member_address(&FleetJump::m_destination), type<mud::uvec2>(), "destination", var(mud::uvec2()), Member::Value, nullptr },
+                { type<FleetJump>(), member_address(&FleetJump::m_stance), type<FleetStance>(), "stance", var(FleetStance()), Member::Value, nullptr }
             },
             // methods
             {
@@ -377,8 +377,8 @@ namespace mud
             },
             // members
             {
-                { type<FleetSplit>(), member_address(&FleetSplit::m_name), type<std::string>(), "name", var(std::string()), Member::Value },
-                { type<FleetSplit>(), member_address(&FleetSplit::m_stance), type<FleetStance>(), "stance", var(FleetStance()), Member::Value }
+                { type<FleetSplit>(), member_address(&FleetSplit::m_name), type<std::string>(), "name", var(std::string()), Member::Value, nullptr },
+                { type<FleetSplit>(), member_address(&FleetSplit::m_stance), type<FleetStance>(), "stance", var(FleetStance()), Member::Value, nullptr }
             },
             // methods
             {
@@ -513,19 +513,19 @@ namespace mud
             },
             // members
             {
-                { type<Schema>(), member_address(&Schema::m_code), type<std::string>(), "code", var(std::string()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Schema>(), member_address(&Schema::m_name), type<std::string>(), "name", var(std::string()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Schema>(), member_address(&Schema::m_conceptor), type<std::string>(), "conceptor", var(std::string()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Schema>(), member_address(&Schema::m_level), type<size_t>(), "level", var(size_t()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Schema>(), member_address(&Schema::m_cost), type<float>(), "cost", var(float(0.f)), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Schema>(), member_address(&Schema::m_minerals), type<float>(), "minerals", var(float(0.f)), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Schema>(), member_address(&Schema::m_andrium), type<float>(), "andrium", var(float(0.f)), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Schema>(), member_address(&Schema::m_planetary), type<float>(), "planetary", var(float(0.f)), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Schema>(), member_address(&Schema::m_spatial), type<SpatialPower>(), "spatial", var(SpatialPower()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Schema>(), member_address(&Schema::m_resistance), type<float>(), "resistance", var(float(0.f)), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Schema>(), member_address(&Schema::m_speed), type<size_t>(), "speed", var(size_t()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Schema>(), member_address(&Schema::m_scan), type<size_t>(), "scan", var(size_t()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Schema>(), member_address(&Schema::m_upkeep_factor), type<float>(), "upkeep_factor", var(float(1.f)), Member::Flags(Member::Value|Member::Mutable) }
+                { type<Schema>(), member_address(&Schema::m_code), type<std::string>(), "code", var(std::string()), Member::Value, nullptr },
+                { type<Schema>(), member_address(&Schema::m_name), type<std::string>(), "name", var(std::string()), Member::Value, nullptr },
+                { type<Schema>(), member_address(&Schema::m_conceptor), type<std::string>(), "conceptor", var(std::string()), Member::Value, nullptr },
+                { type<Schema>(), member_address(&Schema::m_level), type<size_t>(), "level", var(size_t()), Member::Value, nullptr },
+                { type<Schema>(), member_address(&Schema::m_cost), type<float>(), "cost", var(float(0.f)), Member::Value, nullptr },
+                { type<Schema>(), member_address(&Schema::m_minerals), type<float>(), "minerals", var(float(0.f)), Member::Value, nullptr },
+                { type<Schema>(), member_address(&Schema::m_andrium), type<float>(), "andrium", var(float(0.f)), Member::Value, nullptr },
+                { type<Schema>(), member_address(&Schema::m_planetary), type<float>(), "planetary", var(float(0.f)), Member::Value, nullptr },
+                { type<Schema>(), member_address(&Schema::m_spatial), type<SpatialPower>(), "spatial", var(SpatialPower()), Member::Value, nullptr },
+                { type<Schema>(), member_address(&Schema::m_resistance), type<float>(), "resistance", var(float(0.f)), Member::Value, nullptr },
+                { type<Schema>(), member_address(&Schema::m_speed), type<size_t>(), "speed", var(size_t()), Member::Value, nullptr },
+                { type<Schema>(), member_address(&Schema::m_scan), type<size_t>(), "scan", var(size_t()), Member::Value, nullptr },
+                { type<Schema>(), member_address(&Schema::m_upkeep_factor), type<float>(), "upkeep_factor", var(float(1.f)), Member::Value, nullptr }
             },
             // methods
             {
@@ -560,9 +560,9 @@ namespace mud
             },
             // members
             {
-                { type<SpatialCombat>(), member_address(&SpatialCombat::m_coord), type<mud::uvec2>(), "coord", var(mud::uvec2()), Member::Value },
-                { type<SpatialCombat>(), member_address(&SpatialCombat::m_allies), type<std::vector<CombatFleet>>(), "allies", var(std::vector<CombatFleet>()), Member::Value },
-                { type<SpatialCombat>(), member_address(&SpatialCombat::m_enemies), type<std::vector<CombatFleet>>(), "enemies", var(std::vector<CombatFleet>()), Member::Value }
+                { type<SpatialCombat>(), member_address(&SpatialCombat::m_coord), type<mud::uvec2>(), "coord", var(mud::uvec2()), Member::Value, nullptr },
+                { type<SpatialCombat>(), member_address(&SpatialCombat::m_allies), type<std::vector<CombatFleet>>(), "allies", var(std::vector<CombatFleet>()), Member::Value, nullptr },
+                { type<SpatialCombat>(), member_address(&SpatialCombat::m_enemies), type<std::vector<CombatFleet>>(), "enemies", var(std::vector<CombatFleet>()), Member::Value, nullptr }
             },
             // methods
             {
@@ -693,25 +693,25 @@ namespace mud
             },
             // members
             {
-                { type<Fleet>(), member_address(&Fleet::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component },
-                { type<Fleet>(), member_address(&Fleet::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component },
-                { type<Fleet>(), member_address(&Fleet::m_receptor), type<toy::Receptor>(), "receptor", Ref(type<toy::Receptor>()), Member::Component },
-                { type<Fleet>(), member_address(&Fleet::m_active), type<toy::Active>(), "active", Ref(type<toy::Active>()), Member::Component },
-                { type<Fleet>(), member_address(&Fleet::m_commander), type<Commander>(), "commander", Ref(type<Commander>()), Member::Flags(Member::Pointer|Member::Mutable|Member::Link) },
-                { type<Fleet>(), member_address(&Fleet::m_coord), type<mud::uvec2>(), "coord", var(mud::uvec2()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Fleet>(), member_address(&Fleet::m_name), type<std::string>(), "name", var(std::string()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Fleet>(), member_address(&Fleet::m_experience), type<float>(), "experience", var(float(0.f)), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Fleet>(), member_address(&Fleet::m_spatial), type<SpatialPower>(), "spatial", var(SpatialPower()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Fleet>(), member_address(&Fleet::m_spatial_power), type<float>(), "spatial_power", var(float(0.f)), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Fleet>(), member_address(&Fleet::m_planetary_power), type<float>(), "planetary_power", var(float(0.f)), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Fleet>(), member_address(&Fleet::m_speed), type<size_t>(), "speed", var(size_t()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Fleet>(), member_address(&Fleet::m_scan), type<size_t>(), "scan", var(size_t()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Fleet>(), member_address(&Fleet::m_upkeep), type<float>(), "upkeep", var(float(0.f)), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Fleet>(), member_address(&Fleet::m_stance), type<FleetStance>(), "stance", var(FleetStance()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Fleet>(), member_address(&Fleet::m_jump), type<FleetJump>(), "jump", var(FleetJump()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Fleet>(), member_address(&Fleet::m_split), type<FleetSplit>(), "split", var(FleetSplit()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Fleet>(), member_address(&Fleet::m_fought), type<bool>(), "fought", var(bool(false)), Member::Value },
-                { type<Fleet>(), member_address(&Fleet::m_ships_updated), type<size_t>(), "ships_updated", var(size_t()), Member::Value }
+                { type<Fleet>(), member_address(&Fleet::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr },
+                { type<Fleet>(), member_address(&Fleet::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component, nullptr },
+                { type<Fleet>(), member_address(&Fleet::m_receptor), type<toy::Receptor>(), "receptor", Ref(type<toy::Receptor>()), Member::Component, nullptr },
+                { type<Fleet>(), member_address(&Fleet::m_active), type<toy::Active>(), "active", Ref(type<toy::Active>()), Member::Component, nullptr },
+                { type<Fleet>(), member_address(&Fleet::m_commander), type<Commander>(), "commander", Ref(type<Commander>()), Member::Flags(Member::Pointer|Member::Link), nullptr },
+                { type<Fleet>(), member_address(&Fleet::m_coord), type<mud::uvec2>(), "coord", var(mud::uvec2()), Member::Value, nullptr },
+                { type<Fleet>(), member_address(&Fleet::m_name), type<std::string>(), "name", var(std::string()), Member::Value, nullptr },
+                { type<Fleet>(), member_address(&Fleet::m_experience), type<float>(), "experience", var(float(0.f)), Member::Value, nullptr },
+                { type<Fleet>(), member_address(&Fleet::m_spatial), type<SpatialPower>(), "spatial", var(SpatialPower()), Member::Value, nullptr },
+                { type<Fleet>(), member_address(&Fleet::m_spatial_power), type<float>(), "spatial_power", var(float(0.f)), Member::Value, nullptr },
+                { type<Fleet>(), member_address(&Fleet::m_planetary_power), type<float>(), "planetary_power", var(float(0.f)), Member::Value, nullptr },
+                { type<Fleet>(), member_address(&Fleet::m_speed), type<size_t>(), "speed", var(size_t()), Member::Value, nullptr },
+                { type<Fleet>(), member_address(&Fleet::m_scan), type<size_t>(), "scan", var(size_t()), Member::Value, nullptr },
+                { type<Fleet>(), member_address(&Fleet::m_upkeep), type<float>(), "upkeep", var(float(0.f)), Member::Value, nullptr },
+                { type<Fleet>(), member_address(&Fleet::m_stance), type<FleetStance>(), "stance", var(FleetStance()), Member::Value, nullptr },
+                { type<Fleet>(), member_address(&Fleet::m_jump), type<FleetJump>(), "jump", var(FleetJump()), Member::Value, nullptr },
+                { type<Fleet>(), member_address(&Fleet::m_split), type<FleetSplit>(), "split", var(FleetSplit()), Member::Value, nullptr },
+                { type<Fleet>(), member_address(&Fleet::m_fought), type<bool>(), "fought", var(bool(false)), Member::Value, nullptr },
+                { type<Fleet>(), member_address(&Fleet::m_ships_updated), type<size_t>(), "ships_updated", var(size_t()), Member::Value, nullptr }
             },
             // methods
             {
@@ -747,12 +747,12 @@ namespace mud
             },
             // members
             {
-                { type<Galaxy>(), member_address(&Galaxy::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component },
-                { type<Galaxy>(), member_address(&Galaxy::m_quadrants), type<std::vector<Quadrant*>>(), "quadrants", var(std::vector<Quadrant*>()), Member::Value },
-                { type<Galaxy>(), member_address(&Galaxy::m_stars), type<std::vector<Star*>>(), "stars", var(std::vector<Star*>()), Member::Value },
-                { type<Galaxy>(), member_address(&Galaxy::m_fleets), type<std::vector<Fleet*>>(), "fleets", var(std::vector<Fleet*>()), Member::Value },
-                { type<Galaxy>(), member_address(&Galaxy::m_commanders), type<std::vector<Commander*>>(), "commanders", var(std::vector<Commander*>()), Member::Value },
-                { type<Galaxy>(), member_address(&Galaxy::m_size), type<mud::uvec2>(), "size", var(mud::uvec2()), Member::Value }
+                { type<Galaxy>(), member_address(&Galaxy::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr },
+                { type<Galaxy>(), member_address(&Galaxy::m_quadrants), type<std::vector<Quadrant*>>(), "quadrants", var(std::vector<Quadrant*>()), Member::Value, nullptr },
+                { type<Galaxy>(), member_address(&Galaxy::m_stars), type<std::vector<Star*>>(), "stars", var(std::vector<Star*>()), Member::Value, nullptr },
+                { type<Galaxy>(), member_address(&Galaxy::m_fleets), type<std::vector<Fleet*>>(), "fleets", var(std::vector<Fleet*>()), Member::Value, nullptr },
+                { type<Galaxy>(), member_address(&Galaxy::m_commanders), type<std::vector<Commander*>>(), "commanders", var(std::vector<Commander*>()), Member::Value, nullptr },
+                { type<Galaxy>(), member_address(&Galaxy::m_size), type<mud::uvec2>(), "size", var(mud::uvec2()), Member::Value, nullptr }
             },
             // methods
             {
@@ -786,13 +786,13 @@ namespace mud
             },
             // members
             {
-                { type<Quadrant>(), member_address(&Quadrant::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component },
-                { type<Quadrant>(), member_address(&Quadrant::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component },
-                { type<Quadrant>(), member_address(&Quadrant::m_world_page), type<toy::WorldPage>(), "world_page", Ref(type<toy::WorldPage>()), Member::Component },
-                { type<Quadrant>(), member_address(&Quadrant::m_buffer_page), type<toy::BufferPage>(), "buffer_page", Ref(type<toy::BufferPage>()), Member::Component },
-                { type<Quadrant>(), member_address(&Quadrant::m_coord), type<mud::uvec2>(), "coord", var(mud::uvec2()), Member::Value },
-                { type<Quadrant>(), member_address(&Quadrant::m_size), type<float>(), "size", var(float()), Member::Value },
-                { type<Quadrant>(), member_address(&Quadrant::m_stars), type<std::vector<Star*>>(), "stars", var(std::vector<Star*>()), Member::Value }
+                { type<Quadrant>(), member_address(&Quadrant::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr },
+                { type<Quadrant>(), member_address(&Quadrant::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component, nullptr },
+                { type<Quadrant>(), member_address(&Quadrant::m_world_page), type<toy::WorldPage>(), "world_page", Ref(type<toy::WorldPage>()), Member::Component, nullptr },
+                { type<Quadrant>(), member_address(&Quadrant::m_buffer_page), type<toy::BufferPage>(), "buffer_page", Ref(type<toy::BufferPage>()), Member::Component, nullptr },
+                { type<Quadrant>(), member_address(&Quadrant::m_coord), type<mud::uvec2>(), "coord", var(mud::uvec2()), Member::Value, nullptr },
+                { type<Quadrant>(), member_address(&Quadrant::m_size), type<float>(), "size", var(float()), Member::Value, nullptr },
+                { type<Quadrant>(), member_address(&Quadrant::m_stars), type<std::vector<Star*>>(), "stars", var(std::vector<Star*>()), Member::Value, nullptr }
             },
             // methods
             {
@@ -826,22 +826,22 @@ namespace mud
             },
             // members
             {
-                { type<Star>(), member_address(&Star::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component },
-                { type<Star>(), member_address(&Star::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component },
-                { type<Star>(), member_address(&Star::m_receptor), type<toy::Receptor>(), "receptor", Ref(type<toy::Receptor>()), Member::Component },
-                { type<Star>(), member_address(&Star::m_active), type<toy::Active>(), "active", Ref(type<toy::Active>()), Member::Component },
-                { type<Star>(), member_address(&Star::m_coord), type<mud::uvec2>(), "coord", var(mud::uvec2()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Star>(), member_address(&Star::m_name), type<std::string>(), "name", var(std::string()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Star>(), member_address(&Star::m_stability), type<int>(), "stability", var(int(100)), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Star>(), member_address(&Star::m_revolt), type<bool>(), "revolt", var(bool(false)), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Star>(), member_address(&Star::m_environment), type<int>(), "environment", var(int(10)), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Star>(), member_address(&Star::m_terraformation), type<int>(), "terraformation", var(int(0)), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Star>(), member_address(&Star::m_base_population), type<int>(), "base_population", var(int(0)), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Star>(), member_address(&Star::m_max_population), type<int>(), "max_population", var(int(0)), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Star>(), member_address(&Star::m_population), type<int>(), "population", var(int(0)), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Star>(), member_address(&Star::m_taxation), type<Taxation>(), "taxation", var(Taxation()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<Star>(), member_address(&Star::m_commander), type<Commander>(), "commander", Ref(type<Commander>()), Member::Flags(Member::Pointer|Member::Mutable|Member::Link) },
-                { type<Star>(), member_address(&Star::m_scan), type<int>(), "scan", var(int(0)), Member::Value }
+                { type<Star>(), member_address(&Star::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr },
+                { type<Star>(), member_address(&Star::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component, nullptr },
+                { type<Star>(), member_address(&Star::m_receptor), type<toy::Receptor>(), "receptor", Ref(type<toy::Receptor>()), Member::Component, nullptr },
+                { type<Star>(), member_address(&Star::m_active), type<toy::Active>(), "active", Ref(type<toy::Active>()), Member::Component, nullptr },
+                { type<Star>(), member_address(&Star::m_coord), type<mud::uvec2>(), "coord", var(mud::uvec2()), Member::Value, nullptr },
+                { type<Star>(), member_address(&Star::m_name), type<std::string>(), "name", var(std::string()), Member::Value, nullptr },
+                { type<Star>(), member_address(&Star::m_stability), type<int>(), "stability", var(int(100)), Member::Value, nullptr },
+                { type<Star>(), member_address(&Star::m_revolt), type<bool>(), "revolt", var(bool(false)), Member::Value, nullptr },
+                { type<Star>(), member_address(&Star::m_environment), type<int>(), "environment", var(int(10)), Member::Value, nullptr },
+                { type<Star>(), member_address(&Star::m_terraformation), type<int>(), "terraformation", var(int(0)), Member::Value, nullptr },
+                { type<Star>(), member_address(&Star::m_base_population), type<int>(), "base_population", var(int(0)), Member::Value, nullptr },
+                { type<Star>(), member_address(&Star::m_max_population), type<int>(), "max_population", var(int(0)), Member::Value, nullptr },
+                { type<Star>(), member_address(&Star::m_population), type<int>(), "population", var(int(0)), Member::Value, nullptr },
+                { type<Star>(), member_address(&Star::m_taxation), type<Taxation>(), "taxation", var(Taxation()), Member::Value, nullptr },
+                { type<Star>(), member_address(&Star::m_commander), type<Commander>(), "commander", Ref(type<Commander>()), Member::Flags(Member::Pointer|Member::Link), nullptr },
+                { type<Star>(), member_address(&Star::m_scan), type<int>(), "scan", var(int(0)), Member::Value, nullptr }
             },
             // methods
             {
@@ -875,8 +875,8 @@ namespace mud
             },
             // members
             {
-                { type<Universe>(), member_address(&Universe::m_world), type<toy::World>(), "world", Ref(type<toy::World>()), Member::Component },
-                { type<Universe>(), member_address(&Universe::m_bullet_world), type<toy::BulletWorld>(), "bullet_world", Ref(type<toy::BulletWorld>()), Member::Component }
+                { type<Universe>(), member_address(&Universe::m_world), type<toy::World>(), "world", Ref(type<toy::World>()), Member::Component, nullptr },
+                { type<Universe>(), member_address(&Universe::m_bullet_world), type<toy::BulletWorld>(), "bullet_world", Ref(type<toy::BulletWorld>()), Member::Component, nullptr }
             },
             // methods
             {
@@ -909,8 +909,8 @@ namespace mud
             },
             // members
             {
-                { type<CommanderBrush>(), member_address(&CommanderBrush::m_commander), type<Commander>(), "commander", Ref(type<Commander>()), Member::Flags(Member::Pointer|Member::Mutable|Member::Link) },
-                { type<CommanderBrush>(), member_address(&CommanderBrush::m_radius), type<float>(), "radius", var(float()), Member::Flags(Member::Value|Member::Mutable) }
+                { type<CommanderBrush>(), member_address(&CommanderBrush::m_commander), type<Commander>(), "commander", Ref(type<Commander>()), Member::Flags(Member::Pointer|Member::Link), nullptr },
+                { type<CommanderBrush>(), member_address(&CommanderBrush::m_radius), type<float>(), "radius", var(float()), Member::Value, nullptr }
             },
             // methods
             {
@@ -1076,8 +1076,8 @@ namespace mud
             },
             // members
             {
-                { type<ShipSchema>(), member_address(&ShipSchema::m_size), type<size_t>(), "size", var(size_t()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<ShipSchema>(), member_address(&ShipSchema::m_main_weapon), type<WeaponType>(), "main_weapon", var(WeaponType()), Member::Flags(Member::Value|Member::Mutable) }
+                { type<ShipSchema>(), member_address(&ShipSchema::m_size), type<size_t>(), "size", var(size_t()), Member::Value, nullptr },
+                { type<ShipSchema>(), member_address(&ShipSchema::m_main_weapon), type<WeaponType>(), "main_weapon", var(WeaponType()), Member::Value, nullptr }
             },
             // methods
             {

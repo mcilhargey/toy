@@ -123,7 +123,7 @@ void jump_query(Widget& parent, Viewer& viewer, Fleet& fleet)
 	}
 }
 
-void split_query(Widget& parent, Viewer& viewer, Fleet& fleet)
+void split_query(Widget& parent, Fleet& fleet)
 {
 	Widget& self = ui::auto_modal(parent, FLEET_ORDER_SPLIT);
 	Widget& sheet = ui::widget(self, sheet_style());
@@ -153,17 +153,17 @@ void split_query(Widget& parent, Viewer& viewer, Fleet& fleet)
 	}
 }
 
-void fleet_orders(Widget& parent, GameScene& game, Fleet& fleet)
+void fleet_orders(Widget& parent, Viewer& viewer, Fleet& fleet)
 {
 	Widget& self = ui::row(parent);
 	if(ui::modal_button(self, self, "Jump", FLEET_ORDER_JUMP))
-		jump_query(self, *game.m_viewer, fleet);
+		jump_query(self, viewer, fleet);
 	if(ui::modal_button(self, self, "Split", FLEET_ORDER_SPLIT))
-		split_query(self, *game.m_viewer, fleet);
+		split_query(self, fleet);
 
-	if(fleet.m_jump.m_state == FleetJump::START)
+	if(fleet.m_jump.m_state == FleetJump::Ordered)
 		ui::item(parent, order_style(), ("Jump to [" + to_string(fleet.m_jump.m_destination) + "]").c_str());
-	if(fleet.m_split.m_state == FleetSplit::START)
+	if(fleet.m_split.m_state == FleetSplit::Ordered)
 		ui::item(parent, order_style(), ("Split to " + fleet.m_split.m_name).c_str());
 }
 
@@ -192,7 +192,7 @@ void fleet_scan_sheet(Widget& parent, Fleet& fleet)
 	label_entry(table, "Experience", to_string(fleet_experience(fleet.m_experience)).c_str());
 }
 
-void fleet_sheet(Widget& parent, GameScene& game, Fleet& fleet)
+void fleet_sheet(Widget& parent, Viewer& viewer, Fleet& fleet)
 {
 	Widget& self = ui::widget(parent, sheet_style());
 
@@ -219,7 +219,7 @@ void fleet_sheet(Widget& parent, GameScene& game, Fleet& fleet)
 
 	ui::label(self, "Orders");
 
-	fleet_orders(self, game, fleet);
+	fleet_orders(self, viewer, fleet);
 }
 
 Widget& schema_row(Widget& parent, Schema& schema, bool selected)
@@ -282,7 +282,7 @@ void star_scan_sheet(Widget& parent, Star& star)
 	number_entry(table, "Environment", star.m_environment);
 }
 
-void star_sheet(Widget& parent, GameScene& game, Star& star)
+void star_sheet(Widget& parent, Star& star)
 {
 	Widget& self = ui::widget(parent, sheet_style());
 
@@ -291,9 +291,9 @@ void star_sheet(Widget& parent, GameScene& game, Star& star)
 
 	ui::label(self, ("Star " + star.m_name).c_str());
 
-	Widget& row = ui::row(self);
-	label_entry(row, "Population", (to_string(star.m_population) + "/" + to_string(star.m_max_population)).c_str());
-	number_entry(row, "Environment", star.m_environment);
+	Widget& info = ui::row(self);
+	label_entry(info, "Population", (to_string(star.m_population) + "/" + to_string(star.m_max_population)).c_str());
+	number_entry(info, "Environment", star.m_environment);
 
 	Widget* resources = ui::expandbox(self, "Resources", true).m_body;
 	if(resources)
@@ -397,7 +397,7 @@ void technology_sheet(Widget& parent, Commander& commander)
 	}
 }
 
-void turn_report_stage(Widget& parent, Turn& turn, Commander& commander, Stage stage)
+void turn_report_stage(Widget& parent, Turn& turn, Commander& commander, TurnStage stage)
 {
 	Widget& self = sheet(parent, "Events");
 	for(const TurnEvents::Item& item : turn.m_events[&commander].m_items[size_t(stage)])
@@ -408,23 +408,44 @@ void turn_report_stage(Widget& parent, Turn& turn, Commander& commander, Stage s
 
 void turn_report_divisions(Widget& parent, Galaxy& galaxy, Turn& turn)
 {
-	turn.next_state();
+	UNUSED(parent); UNUSED(galaxy);
+	turn.next_stage();
 }
 
-void turn_report_movements(Widget& parent, Galaxy& galaxy, Turn& turn)
+void jump_camera_to(toy::Camera& camera, const vec3& target, const quat& rotation, float distance, float angle, float duration = 1.f)
 {
-	Widget& self = sheet(parent, "Movements");
+	animate(Ref(&camera), member(&toy::Camera::m_lens_distance), var(distance), duration);
+	animate(Ref(&camera), member(&toy::Camera::m_lens_angle), var(angle), duration);
+	animate(Ref(&as<Transform>(camera.m_entity)), member(&Transform::m_position), var(target), duration);
+	animate(Ref(&as<Transform>(camera.m_entity)), member(&Transform::m_rotation), var(rotation), duration);
+}
 
-	bool jumps = false;
-	for(Fleet* fleet : galaxy.m_fleets)
-		if(fleet->m_jump.m_state != FleetJump::DONE)
+void turn_report_movements(Widget& parent, GameScene& game, Turn& turn)
+{
+	sheet(parent, "Movements");
+
+	Fleet* jumping = turn.current_jump();
+	
+	if(jumping)
+	{
+		jumping->m_jump.update(*jumping, jumping->m_entity.m_last_tick);
+		if(jumping->m_jump.m_state_updated == jumping->m_entity.m_last_tick)
 		{
-			fleet->m_jump.update(*fleet, fleet->m_entity.m_last_tick);
-			jumps = true;
-		}
+			vec3 position = to_xz(vec2(jumping->m_coord)) + 0.5f + Y3;
+			vec3 destination = to_xz(vec2(jumping->m_jump.m_destination)) + 0.5f + Y3;
+			quat rotation = look_at(position, destination);
 
-	if(!jumps)
-		turn.next_state();
+			if(jumping->m_jump.m_state == FleetJump::Start)
+				jump_camera_to(game.m_camera, position, rotation, 2.f, c_pi / 8.f, 3.f);
+			else if(jumping->m_jump.m_state == FleetJump::Jump)
+				jump_camera_to(game.m_camera, destination, 2.f);
+		}
+		if(jumping->m_jump.m_state == FleetJump::None)
+			turn.m_current_jump++;
+	}
+
+	if(!jumping)
+		turn.next_stage();
 }
 
 void fleet_losses_sheet(Widget& parent, const CombatFleet& combat_fleet, float t)
@@ -460,95 +481,94 @@ void combat_report_sheet(Widget& parent, SpatialCombat& combat)
 		fleet_losses_sheet(self, combat_fleet, combat.m_t_damage);
 }
 
-void turn_report_combats(Widget& parent, GameScene& game, Player& player, Turn& turn)
+void turn_report_combats(Widget& parent, GameScene& game, Turn& turn)
 {
-	auto next_combat = [&]
-	{
-		vec3 position = to_xz(vec2(turn.m_spatial_combats.back()->m_coord)) + 0.5f + Y3;
-		jump_camera_to(game.m_camera, position);
-		player.m_current_combat = turn.m_spatial_combats.back();
-		turn.m_spatial_combats.pop_back();
-	};
+	sheet(parent, "Combats");
 
-	if(player.m_current_combat == nullptr && turn.m_spatial_combats.size() > 0)
-		next_combat();
+	SpatialCombat* combat = turn.current_combat();
 
-	if(player.m_current_combat)
+	if(combat)
 	{
-		combat_report_sheet(parent, *player.m_current_combat);
+		//vec3 position = to_xz(vec2(turn.m_current_combat->m_coord)) + 0.5f + Y3;
+		//jump_camera_to(game.m_camera, position);
+
+		combat_report_sheet(parent, *combat);
+		if(ui::button(parent, "Next").activated())
+		{
+			combat->apply_losses();
+			turn.m_current_combat++;
+		}
 	}
-
-	if(ui::button(parent, "Next").activated())
+	else
 	{
-		player.m_current_combat->apply_losses();
-
-		if(turn.m_spatial_combats.size() > 0)
-			next_combat();
-		else
-			turn.next_state();
+		turn.next_stage();
 	}
-
-	//for(PlanetaryCombat* combat : commander.m_planetary_combats)
-	//	combat_report_sheet(self, *combat);
-
 }
 
 void turn_report_constructions(Widget& parent, Player& player, Turn& turn)
 {
-	Widget& self = sheet(parent, "Constructions");
-	turn_report_stage(parent, turn, *player.m_commander, Stage::Constructions);
+	sheet(parent, "Constructions");
+	turn_report_stage(parent, turn, *player.m_commander, TurnStage::Constructions);
 }
 
 void turn_report_sheet(Widget& parent, GameScene& game, Player& player, Turn& turn, Commander& commander)
 {
-	Widget& self = sheet(parent, "Turn Report");
+	UNUSED(commander);
+	sheet(parent, "Turn Report");
 
-	if(turn.m_stage == Stage::Divisions)
+	if(turn.m_stage == TurnStage::None)
+		turn.next_stage();
+	else if(turn.m_stage == TurnStage::Divisions)
 		turn_report_divisions(parent, *player.m_galaxy, turn);
-	else if(turn.m_stage == Stage::Movements)
-		turn_report_movements(parent, *player.m_galaxy, turn);
-	else if(turn.m_stage == Stage::Combats)
-		turn_report_combats(parent, game, player, turn);
-	else if(turn.m_stage == Stage::Systems)
-		turn_report_stage(parent, turn, *player.m_commander, Stage::Systems);
-	else if(turn.m_stage == Stage::Constructions)
+	else if(turn.m_stage == TurnStage::Movements)
+		turn_report_movements(parent, game, turn);
+	else if(turn.m_stage == TurnStage::Combats)
+		turn_report_combats(parent, game, turn);
+	else if(turn.m_stage == TurnStage::Systems)
+		turn_report_stage(parent, turn, *player.m_commander, TurnStage::Systems);
+	else if(turn.m_stage == TurnStage::Constructions)
 		turn_report_constructions(parent, player, turn);
-	//else if(turn.m_state == Stage::Revolts)
+	//else if(turn.m_state == TurnStage::Revolts)
 	//	turn_report_divisions(parent, *player.m_galaxy, turn);
-	else if(turn.m_stage == Stage::Technology)
-		turn_report_stage(parent, turn, *player.m_commander, Stage::Technology);
-	//else if(turn.m_state == Stage::Payments)
+	else if(turn.m_stage == TurnStage::Technology)
+		turn_report_stage(parent, turn, *player.m_commander, TurnStage::Technology);
+	//else if(turn.m_state == TurnStage::Payments)
 	//	turn_report_divisions(parent, *player.m_galaxy, turn);
 
 }
 
-void space_item_sheet(Widget& parent, GameScene& game, Player& player, Entity& entity)
+template <class T>
+inline T* try_value(Ref object) { if(type(object).template is<T>()) return &val<T>(object); else return nullptr; }
+
+void space_item_sheet(Widget& parent, Viewer& viewer, Player& player, Ref object)
 {
-	if(entity.isa<Star>())
+	Star* star = try_value<Star>(object);
+	Fleet* fleet = try_value<Fleet>(object);
+	if(star != nullptr)
 	{
-		if(entity.part<Star>().m_commander == player.m_commander)
-			star_sheet(parent, game, entity.part<Star>());
+		if(star->m_commander == player.m_commander)
+			star_sheet(parent, *star);
 		else
-			star_scan_sheet(parent, entity.part<Star>());
+			star_scan_sheet(parent, *star);
 	}
-	else if(entity.isa<Fleet>())
+	else if(fleet != nullptr)
 	{
-		if(entity.part<Fleet>().m_commander == player.m_commander)
-			fleet_sheet(parent, game, entity.part<Fleet>());
+		if(fleet->m_commander == player.m_commander)
+			fleet_sheet(parent, viewer, *fleet);
 		else
-			fleet_scan_sheet(parent, entity.part<Fleet>());
+			fleet_scan_sheet(parent, *fleet);
 	}
 }
 
-static void game_actions(Widget& parent, Player& player, Galaxy& galaxy)
+static void game_actions(Widget& parent, Player& player)
 {
 	Widget& self = sheet(parent, "Actions");
 
 	if(ui::button(self, "Next Turn").activated())
 	{
-		player.m_last_turn = {};
-		next_turn(player.m_last_turn, galaxy);
-		player.m_turn_replay = player.m_last_turn;
+		player.m_last_turn = { player.m_galaxy->m_commanders };
+		player.m_turn_replay = { player.m_galaxy->m_commanders };
+		//player.m_turn_replay = player.m_last_turn;
 		player.m_mode = GameMode::TurnReport;
 	}
 }
@@ -573,9 +593,6 @@ void shrink_switch(Widget& parent, array<cstring> labels, size_t& value)
 
 static void game_viewer_ui(Widget& parent, GameScene& game, Player& player)
 {
-	Universe& universe = as<Universe>(game.m_game.m_world->m_complex);
-	Galaxy& galaxy = *universe.m_galaxies[0];
-
 	Widget& self = ui::screen(parent);
 
 	Widget& header = ui::header(self);
@@ -585,6 +602,7 @@ static void game_viewer_ui(Widget& parent, GameScene& game, Player& player)
 	Widget& left = division(board, 0.3f);
 	Widget& middle = division(board, 0.45f);
 	Widget& right = division(board, 0.25f);
+	UNUSED(middle);
 
 	if(player.m_mode == GameMode::Empire)
 	{
@@ -613,7 +631,7 @@ static void game_viewer_ui(Widget& parent, GameScene& game, Player& player)
 		}
 		if(hovered && clock.read() > 0.2f)
 		{
-			space_item_sheet(right, game, player, val<Entity>(hovered));
+			space_item_sheet(right, *game.m_viewer, player, hovered);
 		}
 	}
 	else if(player.m_mode == GameMode::Tactics)
@@ -623,15 +641,15 @@ static void game_viewer_ui(Widget& parent, GameScene& game, Player& player)
 		if(selected)
 		{
 			Widget& sheet = ui::widget(left, styles().sheet, selected.m_value);
-			space_item_sheet(sheet, game, player, val<Entity>(selected));
+			space_item_sheet(sheet, *game.m_viewer, player, selected);
 		}
 
-		game_actions(right, player, galaxy);
+		game_actions(right, player);
 
 		if(player.m_selected_item != selected)
 		{
-			//Entity& entity = type(selected).is<Fleet>() ? val<Fleet>(selected).m_entity : val<Star>(selected).m_entity;
-			jump_camera_to(game.m_camera, val<Entity>(selected).m_position);
+			Entity& entity = type(selected).is<Fleet>() ? val<Fleet>(selected).m_entity : val<Star>(selected).m_entity;
+			jump_camera_to(game.m_camera, entity.m_position, random_scalar(1.f, 2.f), random_scalar(float(-c_pi / 8.f), float(c_pi / 8.f)));
 			player.m_selected_item = selected;
 		}
 

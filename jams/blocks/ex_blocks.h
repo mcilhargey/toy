@@ -43,6 +43,7 @@ class refl_ _BLOCKS_EXPORT Faction
 {
 public:
 	constr_ Faction(uint32_t id, const Colour& colour, short int energy);
+	~Faction();
 
 	attr_ uint32_t m_id;
 	attr_ Colour m_colour;
@@ -162,20 +163,9 @@ public:
 	attr_ vec3 m_tile_scale = vec3(4.f);
 	attr_ vec3 m_block_size;
 
-	//attr_ uvec3 m_subdiv;
-	//attr_ uvec3 m_block_subdiv;
-	//attr_ vec3 m_cell_size;
-
-	//attr_ vec3 m_sector_size;
 	attr_ vec3 m_world_size;
-	//attr_ vec3 m_center_offset;
-
-	//attr_ mut_ std::vector<Element*> m_elements;
-
-	//attr_ mut_ std::vector<Sector*> m_sectors;
-	//attr_ mut_ Grid<Block*> m_blocks;
-
-	std::vector<Faction> m_factions;
+	
+	std::vector<Faction*> m_factions;
 
 	std::map<ivec2, TileBlock*> m_blocks;
 	TileBlock* m_center_block = nullptr;

@@ -44,23 +44,23 @@ using namespace mud; namespace toy
 	{
 		std::vector<Item*> items;
 
-		VecPool<Item>* pool = scene.m_pool->pool<Item>().m_vec_pool.get();
-		for(; pool; pool = pool->m_next.get())
-			for(Item* item : pool->m_objects)
+		scene.m_pool->iterate_objects<Item>([&](Item& item)
+		{
+			//if((item->m_flags & ITEM_WORLD_GEOMETRY) != 0)
+			//{
+				//items.push_back(item);
+			//}
+			//else
 			{
-				//if((item->m_flags & ITEM_WORLD_GEOMETRY) != 0)
-				//{
-					//items.push_back(item);
-				//}
-				//else
+				bool add = vector_has(page.m_geometry_filter, string(item.m_model->m_name)) && item.m_node.m_object;
+				if(add)
 				{
-					if(!vector_has(page.m_geometry_filter, string(item->m_model->m_name)) || !item->m_node.m_object)
-						continue;
-					Entity& entity = val<Entity>(item->m_node.m_object);
+					Entity& entity = val<Entity>(item.m_node.m_object);
 					if((entity.is_child_of(page.m_entity) || &entity == &page.m_entity) && entity.m_hooked && !entity.isa<Movable>())
-						items.push_back(item);
+						items.push_back(&item);
 				}
 			}
+		});
 
 		// @todo : filter on WORLD_GEOMETRY mask ? a way to filter out debug draw geometry ?
 

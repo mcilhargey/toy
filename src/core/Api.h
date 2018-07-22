@@ -15,7 +15,6 @@
 #include <core/Bullet/BulletSolid.h>
 #include <core/Bullet/BulletWorld.h>
 #include <core/Camera/Camera.h>
-#include <core/Camera/CameraObserver.h>
 #include <core/Disq/Disq.h>
 #include <core/Entity/Entity.h>
 #include <core/Entity/EntityObserver.h>

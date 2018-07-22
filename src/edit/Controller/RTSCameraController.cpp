@@ -21,15 +21,15 @@ using namespace mud; namespace toy
 	RTSCameraController::RTSCameraController(Viewer& viewer, Camera& camera)
 		: CameraController(viewer, camera)
 	{
-		m_key_down_handlers[KC_Q] = [this] { this->rotateLeft(); };
-		m_key_down_handlers[KC_E] = [this] { this->rotateRight(); };
-		m_key_down_handlers[KC_O] = [this] { this->zoomIn(); };
-		m_key_down_handlers[KC_L] = [this] { this->zoomOut(); };
-		m_key_down_handlers[KC_I] = [this] { this->pitchLensUp(); };
-		m_key_down_handlers[KC_K] = [this] { this->pitchLensDown(); };
+		m_key_down_handlers[KC_Q] = [this] { this->rotate_left(); };
+		m_key_down_handlers[KC_E] = [this] { this->rotate_right(); };
+		m_key_down_handlers[KC_O] = [this] { this->zoom_in(); };
+		m_key_down_handlers[KC_L] = [this] { this->zoom_out(); };
+		m_key_down_handlers[KC_I] = [this] { this->pitch_lens_up(); };
+		m_key_down_handlers[KC_K] = [this] { this->pitch_lens_down(); };
 
-		m_key_up_handlers[KC_Q] = [this] { this->stopRotateLeft(); };
-		m_key_up_handlers[KC_E] = [this] { this->stopRotateRight(); };
+		m_key_up_handlers[KC_Q] = [this] { this->stop_rotate_left(); };
+		m_key_up_handlers[KC_E] = [this] { this->stop_rotate_right(); };
 	}
 
 	void RTSCameraController::process(Viewer& viewer)
@@ -73,7 +73,7 @@ using namespace mud; namespace toy
 		{
 			m_camera.m_entity.rotate(to_vec3(Side::Down), 0.02f * mouse_event.m_delta.x);
 			//m_camera.m_entity.rotateRelative(to_vec3(Side::Left), 0.02f * mouse_event.m_delta.y);
-			m_camera.setLensAngle(m_camera.m_lensAngle + 0.02f * mouse_event.m_delta.y);
+			m_camera.set_lens_angle(m_camera.m_lens_angle + 0.02f * mouse_event.m_delta.y);
 		}
 
 		if(MouseEvent mouse_event = viewer.mouse_event(DeviceType::Mouse, EventType::Heartbeat))

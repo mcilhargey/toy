@@ -11,6 +11,7 @@
 
 #include <core/Entity/Entity.h>
 #include <core/Camera/Camera.h>
+#include <core/Selector/Selection.h>
 
 #include <gfx/Scene.h>
 
@@ -108,19 +109,20 @@ using namespace mud; namespace toy
 		Clock m_clock;
     };
 
-	TOY_VISU_EXPORT void update_camera(Camera& camera, mud::Camera& gfx_camera);
+	export_ TOY_VISU_EXPORT void update_camera(Camera& camera, mud::Camera& gfx_camera);
 
-	TOY_VISU_EXPORT void paint_selected(Gnode& parent, Entity& entity);
-	TOY_VISU_EXPORT void paint_camera(Gnode& parent, Camera& camera);
-	TOY_VISU_EXPORT void paint_light(Gnode& parent, LightSource& light);
-	TOY_VISU_EXPORT void paint_symbolic(Gnode& parent, Symbolic& symbolic);
-	TOY_VISU_EXPORT void paint_obstacle(Gnode& parent, Obstacle& obstacle);
-	TOY_VISU_EXPORT void paint_disq(Gnode& parent, Disq& disq);
-	TOY_VISU_EXPORT void paint_event_sphere(Gnode& parent, EventReceptor& receptor);
-	TOY_VISU_EXPORT void paint_entity(Gnode& parent, Entity& entity);
-	TOY_VISU_EXPORT void paint_active(Gnode& parent, Active& active);
+	export_ TOY_VISU_EXPORT void paint_selection(Gnode& parent, Selection& selection);
 
-	TOY_VISU_EXPORT void scene_painters(VisuScene& scene, Array<Entity>& store);
+	export_ TOY_VISU_EXPORT void paint_camera(Gnode& parent, Camera& camera);
+	export_ TOY_VISU_EXPORT void paint_light(Gnode& parent, LightSource& light);
+	export_ TOY_VISU_EXPORT void paint_symbolic(Gnode& parent, Symbolic& symbolic);
+	export_ TOY_VISU_EXPORT void paint_obstacle(Gnode& parent, Obstacle& obstacle);
+	export_ TOY_VISU_EXPORT void paint_disq(Gnode& parent, Disq& disq);
+	export_ TOY_VISU_EXPORT void paint_event_sphere(Gnode& parent, EventReceptor& receptor);
+	export_ TOY_VISU_EXPORT void paint_entity(Gnode& parent, Entity& entity);
+	export_ TOY_VISU_EXPORT void paint_active(Gnode& parent, Active& active);
 
-	TOY_VISU_EXPORT void sound(Gnode& parent, const string& sound, bool loop = false);
+	export_ TOY_VISU_EXPORT void scene_painters(VisuScene& scene, Array<Entity>& store);
+
+	export_ TOY_VISU_EXPORT bool sound(Gnode& parent, const string& sound, bool loop = false, float volume = 1.f);
 }

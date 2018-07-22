@@ -17,7 +17,7 @@ using namespace mud; namespace toy
 {
 	using string = std::string;
 
-	class refl_ TOY_CORE_EXPORT World : public Updatable
+	class refl_ TOY_CORE_EXPORT World
     {
     public:
 		constr_ World(Id id, Complex& complex, const string& name);
@@ -25,7 +25,7 @@ using namespace mud; namespace toy
 
 		attr_ Id m_id;
 		attr_ Complex& m_complex;
-		attr_ mut_ string m_name;
+		attr_ string m_name;
 		attr_ graph_ Entity& origin() { return m_origin->m_entity; }
 		attr_ graph_ Entity& unworld() { return m_unworld->m_entity; }
 
@@ -36,7 +36,7 @@ using namespace mud; namespace toy
 		TaskSection* section(short int section);
 
     public:
-        virtual void next_frame(size_t tick, size_t delta);
+		void next_frame();
 
 		void add_task(Updatable* task, short int section);
 		void remove_task(Updatable* task, short int section);

@@ -58,7 +58,7 @@ namespace glm {
     
 }
 
-namespace bx {
+namespace bgfx {
 
     
     
@@ -108,7 +108,7 @@ namespace toy {
     class GameShell;
 }
 
-namespace bgfx {
+namespace bx {
 
     
     

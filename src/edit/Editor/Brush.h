@@ -40,8 +40,8 @@ using namespace mud; namespace toy
 		CircleBrush(ToolContext& context);
 
 		attr_ Creator m_creator;
-		attr_ mut_ float m_radius;
-		attr_ mut_ float m_maxSpotRadius;
+		attr_ float m_radius;
+		attr_ float m_maxSpotRadius;
 
 		virtual ToolState start();
 		virtual void update(const vec3& position);

@@ -26,11 +26,11 @@ public:
 	comp_ attr_ Actor m_actor = { m_entity };
 	comp_ attr_ Reactive m_reactive = { m_entity };
 
-	attr_ mut_ std::string m_first_name;
-	attr_ mut_ std::string m_last_name;
+	attr_ std::string m_first_name;
+	attr_ std::string m_last_name;
 
-	attr_ mut_ float m_counter = 0.f;
-	attr_ mut_ float m_next_change;
+	attr_ float m_counter = 0.f;
+	attr_ float m_next_change;
 
 	struct State
 	{

@@ -59,7 +59,7 @@ using namespace mud; namespace toy
 	{
 		m_scene->m_player = player;
 		m_scene->m_scene.m_user = player;
-		m_camera.setLensAngle(c_pi / 4.f);
+		m_camera.set_lens_angle(c_pi / 4.f);
 	}
 
 	GameScene::~GameScene()
@@ -68,6 +68,14 @@ using namespace mud; namespace toy
 	Viewer& game_viewport(Widget& parent, GameScene& game)
 	{
 		Viewer& self = scene_viewport(parent, *game.m_scene, game.m_camera, game.m_selection);
+		game.m_viewer = &self;
+		return self;
+	}
+
+	Viewer& editor_viewport(Widget& parent, GameScene& game)
+	{
+		Viewer& self = ui::viewer(parent, game.m_scene->m_scene);
+		ui::free_orbit_controller(self);
 		game.m_viewer = &self;
 		return self;
 	}
@@ -94,6 +102,7 @@ using namespace mud; namespace toy
 		register_math_conversions();
 
 		m_interpreter = make_object<LuaInterpreter>();
+		m_editor.m_script_editor.m_interpreter = m_interpreter.get();
 
 		m_game.m_shell = this;
 		m_game.m_editor.m_script_editor.m_interpreter = m_interpreter.get();
@@ -254,14 +263,28 @@ using namespace mud; namespace toy
 		}
 
 		if(m_editor.m_run_game)
+		{
+			m_core->next_frame();
 			m_game_module->m_on_pump(*this, m_game);
-		else if(m_game.m_scenes.size() > 0)
-			game_viewport(*m_game.m_screen, *m_game.m_scenes[0]);
+			m_editor.m_viewer = nullptr;
+		}
+		else if(m_game.m_scenes.size() > 0 && m_game.m_screen)
+		{
+			m_game.m_scenes[0]->m_scene->next_frame();
+			m_editor.m_viewer = &editor_viewport(*m_game.m_screen, *m_game.m_scenes[0]);
+		}
+
+		if(m_editor.m_viewer)
+		{
+			paint_selection(m_editor.m_viewer->m_scene->m_graph, m_editor.m_selection);
+			toy::editor_viewer_overlay(*m_editor.m_viewer, m_editor);
+		}
 	}
 
 	GameScene& GameShell::add_scene()
 	{
 		GameScene& scene = m_game.add_scene();
+		m_editor.m_scenes.push_back(&scene.m_scene->m_scene);
 		m_game_module->m_on_scene(*this, scene);
 		return scene;
 	}
@@ -286,7 +309,7 @@ using namespace mud; namespace toy
 	{
 		Complex& complex = m_game.m_world->m_complex;
 		GlobalPool::me().pool(complex.m_prototype.m_type).destroy(Ref(&complex));
-		m_core->section(0).remove_task(m_game.m_world);
+		//m_core->section(0).remove_task(m_game.m_world);
 		m_game.m_world = nullptr;
 	}
 

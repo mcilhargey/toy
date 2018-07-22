@@ -16,14 +16,14 @@
 
 using namespace mud; namespace toy
 {
-    Camera::Camera(Entity& entity, float lensDistance, float nearClipDistance, float farClipDistance)
+    Camera::Camera(Entity& entity, float lens_distance, float near, float far)
         : m_entity(entity)
-		, m_lensDistance(lensDistance)
-		, m_nearClipDistance(nearClipDistance)
-        , m_farClipDistance(farClipDistance)
+		, m_lens_distance(lens_distance)
+		, m_near(near)
+        , m_far(far)
     {
 		entity.m_world.add_task(this, short(Task::Entity));
-		calcLensPosition();
+		calc_lens_position();
 	}
 
 	Camera::~Camera()
@@ -31,71 +31,57 @@ using namespace mud; namespace toy
 		m_entity.m_world.remove_task(this, short(Task::Entity));
 	}
 	
-	void Camera::setLensDistance(float distance)
+	void Camera::set_lens_distance(float distance)
 	{
-		m_lensDistance = distance;
-		m_lensUpdated = true;
+		m_lens_distance = distance;
+		m_lens_updated = true;
 	}
 
 	void Camera::zoom(float amount)
 	{
-		m_lensDistance *= 1.f/amount;
-		m_lensUpdated = true;
+		m_lens_distance *= 1.f/amount;
+		m_lens_updated = true;
 	}
 
-	void Camera::setLensAngle(float angle)
+	void Camera::set_lens_angle(float angle)
 	{
-		m_lensAngle = angle;
-		m_lensUpdated = true;
+		m_lens_angle = angle;
+		m_lens_updated = true;
 	}
 
-	void Camera::pitchLens(float amount)
+	void Camera::pitch_lens(float amount)
 	{
-		m_lensAngle += amount;
-		m_lensUpdated = true;
+		m_lens_angle += amount;
+		m_lens_updated = true;
 	}
 
-	vec3 Camera::lensDirection()
+	vec3 Camera::lens_direction()
 	{
-		return rotate(m_entity.front(), -m_lensAngle, m_entity.right());
+		return rotate(m_entity.front(), -m_lens_angle, m_entity.right());
 	}
 
-	void Camera::calcLensPosition()
+	void Camera::calc_lens_position()
 	{
-		m_lensPosition = -this->lensDirection() * m_lensDistance;
-		m_lensPosition += m_entity.absolute_position();
+		m_lens_position = -this->lens_direction() * m_lens_distance;
+		m_lens_position += m_entity.absolute_position();
 	}
 
-	void Camera::calcLensRotation()
+	void Camera::calc_lens_rotation()
 	{
-		m_lensRotation = m_entity.absolute_rotation() * angleAxis(-m_lensAngle, to_vec3(Side::Right));
+		m_lens_rotation = m_entity.absolute_rotation() * angleAxis(-m_lens_angle, to_vec3(Side::Right));
 	}
 
 	void Camera::next_frame(size_t tick, size_t delta)
 	{
 		UNUSED(delta);
 
-		if(m_entity.m_last_updated > m_last_updated || m_lensUpdated)
+		//if(m_entity.m_last_updated > m_last_updated || m_lensUpdated)
 		{
-			calcLensPosition();
-			calcLensRotation();
-
-			for(CameraObserver* observer : m_observers)
-				observer->cameraUpdated(m_lensPosition, m_lensRotation, m_entity.absolute_position(), m_nearClipDistance, m_farClipDistance);
+			calc_lens_position();
+			calc_lens_rotation();
 		}
 		m_last_updated = tick;
-		m_lensUpdated = false;
-	}
-
-	void Camera::observe(CameraObserver& observer)
-	{
-		m_observers.push_back(&observer);
-		observer.cameraUpdated(m_lensPosition, m_lensRotation, m_entity.m_position, m_nearClipDistance, m_farClipDistance);
-	}
-
-	void Camera::unobserve(CameraObserver& observer)
-	{
-		vector_remove(m_observers, &observer);
+		m_lens_updated = false;
 	}
 
 	OCamera::OCamera(Id id, Entity& parent, const vec3& position, float lensDistance, float nearClipDistance, float farClipDistance)
@@ -111,15 +97,15 @@ using namespace mud; namespace toy
 		m_entity.m_parent->m_contents.add(m_entity);
 	}
 
-	void jump_camera_to(Camera& camera, const vec3& target)
+	void jump_camera_to(Camera& camera, const vec3& target, float distance, float rotation)
 	{
-		animate(Ref(&camera), member(&Camera::m_lensDistance), var(random_scalar(1.f, 2.f)), 1.f);
-		animate(Ref(&camera.m_entity), member(&Entity::m_position), var(target), 1.f);
-		animate(Ref(&camera.m_entity), member(&Entity::m_rotation), var(rotate(camera.m_entity.m_rotation, random_scalar(float(-c_pi / 8.f), float(c_pi / 8.f)), Y3)), 1.f);
+		animate(Ref(&camera), member(&Camera::m_lens_distance), var(distance), 1.f);
+		animate(Ref(&as<Transform>(camera.m_entity)), member(&Transform::m_position), var(target), 1.f);
+		animate(Ref(&as<Transform>(camera.m_entity)), member(&Transform::m_rotation), var(rotate(camera.m_entity.m_rotation, rotation, Y3)), 1.f);
 	}
 
 	void move_camera_to(Camera& camera, const vec3& target)
 	{
-		animate(Ref(&camera.m_entity), member(&Entity::m_position), var(target), 1.f);
+		animate(Ref(&as<Transform>(camera.m_entity)), member(&Transform::m_position), var(target), 1.f);
 	}
 }

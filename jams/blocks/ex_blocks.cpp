@@ -23,17 +23,22 @@ Material& highlight_material(const std::string& name, const Colour& colour, int 
 }
 
 Faction::Faction(uint32_t id, const Colour& colour, short int energy)
-	: m_id(id)
+	: m_id(index(type<Faction>(), id, Ref(this)))
 	, m_colour(colour)
 	, m_energy(energy)
 {
 	auto highlight_material = [=](int factor) -> Material&
 	{
-		return ::highlight_material("faction_" + to_string(id)  + "_highlight_" + to_string(factor), colour, factor);
+		return ::highlight_material("faction_" + to_string(m_id)  + "_highlight_" + to_string(factor), colour, factor);
 	};
 
 	m_highlight2 = &highlight_material(2);
 	m_highlight11 = &highlight_material(11);
+}
+
+Faction::~Faction()
+{
+	unindex(type<Faction>(), m_id);
 }
 
 Well::Well(Id id, Entity& parent, const vec3& position)
@@ -155,11 +160,8 @@ void Slug::update()
 		}
 	}
 
-	if(distance(m_entity.m_position, m_source) > 200.f)
-	{
-		m_impacted = true;
-		m_impact = m_entity.m_position;
-	}
+	if(distance(m_entity.m_position, Zero3) > 1000.f)
+		m_destroy = true;
 
 	m_entity.set_position(m_entity.m_position + m_velocity);
 	//m_collider.update_transform();
@@ -210,7 +212,7 @@ void Tank::next_frame(size_t tick, size_t delta)
 			vector_remove_pt(m_slugs, *slug);
 	}
 
-	bool ia = m_faction.m_id != 0;
+	bool ia = m_faction.m_id != 1;
 	if(!ia)
 		return;
 
@@ -282,9 +284,10 @@ BlockWorld::BlockWorld(const std::string& name)
 	, m_block_size(vec3(m_block_subdiv) * m_tile_scale)
 	, m_world_size(m_block_size)
 {
-	m_factions.emplace_back(0, Colour::Red, CM_ENERGY_0);
-	m_factions.emplace_back(1, Colour::Pink, CM_ENERGY_1);
-	m_factions.emplace_back(2, Colour::Cyan, CM_ENERGY_2);
+	TPool<Faction>& pool = GlobalPool::me().pool<Faction>();
+	m_factions.push_back(&pool.construct(0, Colour::Red, CM_ENERGY_0));
+	m_factions.push_back(&pool.construct(0, Colour::Pink, CM_ENERGY_1));
+	m_factions.push_back(&pool.construct(0, Colour::Cyan, CM_ENERGY_2));
 }
 
 BlockWorld::~BlockWorld()
@@ -309,7 +312,7 @@ void BlockWorld::generate_block(GfxSystem& gfx_system, const ivec2& coord)
 
 Player::Player(BlockWorld& world)
 	: m_world(&world)
-	, m_tank(0, world.m_world.origin(), Y3 * 20.f, world.m_factions[0])
+	, m_tank(0, world.m_world.origin(), Y3 * 20.f, *world.m_factions[0])
 {}
 
 void paint_well(Gnode& parent, Well& well)
@@ -317,35 +320,57 @@ void paint_well(Gnode& parent, Well& well)
 	UNUSED(parent); UNUSED(well);
 }
 
+Model& faction_fresnel_material(GfxSystem& gfx_system, Model& model)
+{
+	static Material& material = highlight_material("no_highlight", Colour::Black, 0);
+
+	std::string name = model.m_name + "_dead";
+	return model_variant(gfx_system, model, name.c_str(), carray<cstring, 2>{ "Highlight11", "Highlight2" }, 
+														  carray<Material*, 2>{ &material, &material });
+}
+
 void paint_shield(Gnode& parent, Shield& shield)
 {
-	static ParticleGenerator* shimmer = parent.m_scene->m_gfx_system.particles().file("shield");
+	static Material* discharge = &parent.m_scene->m_gfx_system.fetch_material("shield_discharge", "fresnel");
+
+	static std::vector<Material*> power = std::vector<Material*>(4);
+
+	auto fresnel_material = [&](Material& material, Colour colour)
+	{
+		material.m_fresnel_block.m_enabled = true;
+		material.m_fresnel_block.m_value.m_value = colour;
+		material.m_fresnel_block.m_value.m_texture = parent.m_scene->m_gfx_system.textures().file("beehive.png");
+	};
+
+	if(power[shield.m_faction.m_id] == nullptr)
+	{
+		Material* material = &parent.m_scene->m_gfx_system.fetch_material(("shield_faction_" + to_string(shield.m_faction.m_id)).c_str(), "fresnel");
+		fresnel_material(*material, shield.m_faction.m_colour * 4.f);
+		power[shield.m_faction.m_id] = material;
+	}
 
 	if(shield.m_discharge > 0.f)
-	{
 		toy::sound(parent, "bzwomb");
-		//toy::sound(parent, "grzzt");
-		//toy::sound(parent, "zap");
-		//Gnode& node = gfx::node(parent, {}, parent.m_attach->m_position);
-		//gfx::particles(node, *shimmer);
-	}
 
 	static Clock clock;
 
-	float period = remap_trig(sin(clock.read()), 0.f, 1.f);
+	float period = remap_trig(sin(clock.read() * 2.f), 0.f, 0.05f);
 
-	//printf("shield period %f\n", period);
-
-	Colour colour = shield.m_faction.m_colour * 4.f * shield.m_charge; // * period;
-	colour.m_a = min(1.f, colour.m_a);
+	auto paint = [&](Material& material, float bias, Colour& colour)
+	{
+		fresnel_material(material, colour);
+		material.m_fresnel_block.m_fresnel_bias = bias;
+		gfx::shape(parent, Sphere(shield.m_radius), Symbol(Colour::None, colour), 0U, &material);
+	};
 
 	if(shield.m_discharge > 0.f)
 	{
-		colour = hsl_to_rgb(random_scalar(0.f, 1.f), 1.f, 0.5f) * shield.m_discharge * 10.f;
-		gfx::shape(parent, Sphere(shield.m_radius), Symbol(colour));
+		paint(*discharge, shield.m_discharge, hsl_to_rgb(random_scalar(0.f, 1.f), 1.f, 0.5f) * shield.m_discharge * 10.f);
 	}
-
-	//gfx::shape(parent, Spheroid(shield.m_radius), Symbol(shield.m_colour * 3.f));
+	else
+	{
+		paint(*power[shield.m_faction.m_id], period, shield.m_faction.m_colour * 4.f * shield.m_charge);
+	}
 }
 
 void paint_shell(Gnode& parent, Slug& shell)
@@ -357,7 +382,7 @@ void paint_shell(Gnode& parent, Slug& shell)
 	Gnode& source = gfx::node(parent, Ref(&shell), shell.m_source, shell.m_entity.m_rotation);
 	gfx::particles(source, *flash);
 
-	toy::sound(source, "bang");
+	bool active = toy::sound(source, "bang");
 
 	if(!shell.m_impacted)
 	{
@@ -369,11 +394,11 @@ void paint_shell(Gnode& parent, Slug& shell)
 	if(shell.m_impacted)
 	{
 		Gnode& hit = gfx::node(parent, Ref(&shell), shell.m_impact, shell.m_entity.m_rotation);
-		Particles& part = gfx::particles(hit, *impact);
-		toy::sound(hit, "explode");
-		if(part.m_ended)
-			shell.m_destroy = true;
+		active |= !gfx::particles(hit, *impact).m_ended;
+		active |= toy::sound(hit, "explode");
 	}
+
+	shell.m_destroy |= !active;
 }
 
 Model& faction_model_dead_variant(GfxSystem& gfx_system, Model& model)
@@ -402,6 +427,14 @@ void hud_bar(Gnode& parent, const vec3& position, const vec2& offset, float perc
 
 void paint_tank(Gnode& parent, Tank& tank)
 {
+	static Material* debug = &parent.m_scene->m_gfx_system.debug_material();
+	static Material* stealth = &parent.m_scene->m_gfx_system.fetch_material("tank_stealth", "fresnel");
+	{
+		stealth->m_fresnel_block.m_enabled = true;
+		stealth->m_fresnel_block.m_value.m_value = { 0.f, 0.3f, 2.f };
+		//stealth->m_fresnel_block.m_value.m_texture = parent.m_scene->m_gfx_system.textures().file("beehive.png");
+	}
+
 	GfxSystem& gfx_system = parent.m_scene->m_gfx_system;
 
 	static std::vector<Model*> tank_base_models = std::vector<Model*>(size_t(Faction::s_max_factions));
@@ -420,8 +453,16 @@ void paint_tank(Gnode& parent, Tank& tank)
 
 	if(tank.m_hitpoints > 0.f)
 	{
-		gfx::item(parent, *tank_base_models[tank.m_faction.m_id]);
-		gfx::item(turret, *tank_turret_models[tank.m_faction.m_id]);
+		if(tank.m_stealth)
+		{
+			gfx::item(parent, tank_base_dead, 0U, stealth);
+			gfx::item(turret, tank_turret_dead, 0U, stealth);
+		}
+		else
+		{
+			gfx::item(parent, *tank_base_models[tank.m_faction.m_id]);
+			gfx::item(turret, *tank_turret_models[tank.m_faction.m_id]);
+		}
 	}
 	else
 	{
@@ -429,32 +470,41 @@ void paint_tank(Gnode& parent, Tank& tank)
 		gfx::item(turret, tank_turret_dead);
 	}
 
+	enum States { Alive = 2, Dead = 3, Slugs = 4 };
+
 	if(tank.m_hitpoints > 0.f)
 	{
-		//if(player)
-		Gnode& symbol = gfx::node(parent, {}, parent.m_attach->m_position, parent.m_attach->m_rotation);
-		gfx::shape(parent, Torus(4.f, 0.1f), Symbol(Colour::None, tank.m_faction.m_colour * 2.f));
-		//gfx::shape(parent, Circle(4.f), Symbol(tank.m_faction.m_colour));
+		Gnode& alive = parent.subx(Alive);
+		Gnode& symbol = gfx::node(alive, {}, parent.m_attach->m_position, parent.m_attach->m_rotation);
+		gfx::shape(alive, Torus(4.f, 0.1f), Symbol(Colour::None, tank.m_faction.m_colour * 2.f));
+		//gfx::shape(alive, Circle(4.f), Symbol(tank.m_faction.m_colour));
 
-		//Gnode& light = gfx::node(parent, {}, parent.m_attach->m_position + Y3 * 2.f, tank.turret_rotation());
+		//Gnode& light = gfx::node(alive, {}, parent.m_attach->m_position + Y3 * 2.f, tank.turret_rotation());
 		//gfx::light(light, LightType::Point, false, tank.m_faction.m_colour * 1.5f, 20.f, 0.4f);
 
 		static const Colour energy = { 0.f, 0.6f, 1.f };
 		static const Colour life = { 0.f, 1.f, 0.2f };
 
-		hud_bar(parent, Zero3, vec2(0.f), max(0.f, tank.m_hitpoints * 0.01f), life);
-		hud_bar(parent, Zero3, vec2(0.f, -0.4f), max(0.f, tank.m_energy * 0.01f), energy);
+		if(false)
+		{
+			hud_bar(alive, Zero3, vec2(0.f), max(0.f, tank.m_hitpoints * 0.01f), life);
+			hud_bar(alive, Zero3, vec2(0.f, -0.4f), max(0.f, tank.m_energy * 0.01f), energy);
+		}
 	}
 	else
 	{
+		Gnode& dead = parent.subx(Dead);
 		static ParticleGenerator* explode = parent.m_scene->m_gfx_system.particles().file("explode");
 
-		gfx::particles(parent, *explode);
-		toy::sound(parent, "explosion");
+		gfx::particles(dead, *explode);
+		toy::sound(dead, "explosion");
 	}
 
-	for(auto& slug : tank.m_slugs)
-		paint_shell(parent, *slug);
+	Gnode& slugs = parent.subx(Slugs);
+	//for(auto& slug : tank.m_slugs)
+	//	paint_shell(slugs.subi(slug.get()), *slug);
+	for(size_t i = 0; i < tank.m_slugs.size(); ++i)
+		paint_shell(slugs.subx(i), *tank.m_slugs[i]);
 }
 
 void paint_block_wire(Gnode& parent, Block& block)
@@ -469,7 +519,7 @@ void paint_block(Gnode& parent, TileBlock& block)
 
 #define TOY_GI 0
 
-void paint_scene(Gnode& parent)
+void paint_scene(Gnode& parent, bool radiance)
 {
 #ifdef TOY_SOUND
 	parent.m_sound_manager->threadUpdate();
@@ -480,7 +530,8 @@ void paint_scene(Gnode& parent)
 	light.m_shadow_range = 500.f;
 #endif
 
-	gfx::radiance(parent, "radiance/tiber_1_1k.hdr", BackgroundMode::None);
+	gfx::radiance(parent, "radiance/tiber_1_1k.hdr", radiance ? BackgroundMode::Radiance
+															  : BackgroundMode::None);
 
 #if TOY_GI
 	GIProbe& probe = gfx::gi_probe(parent);
@@ -501,21 +552,6 @@ void paint_viewer(Viewer& viewer)
 	viewer.m_filters.m_glow.m_levels_1_4 = { 1.f, 1.f, 0.f, 0.f };
 	viewer.m_filters.m_glow.m_bicubic_filter = true;
 #endif
-
-	return;
-
-	Fog& fog = viewer.m_scene->m_environment.m_fog;
-
-	static bool once = false;
-	if(!fog.m_enabled)
-	{
-		fog.m_enabled = true;
-		fog.m_colour = Colour::Red * 0.3f;
-		fog.m_density = 0.01f;
-		fog.m_height_curve = 0.1f;
-		fog.m_depth_begin = 50.f;
-		once = true;
-	}
 }
 
 struct KeyMove
@@ -555,6 +591,63 @@ static void tank_velocity_controller(Widget& widget, Tank& tank)
 		tank_control_key(widget, tank.m_force, tank.m_torque, key_move);
 }
 
+Style& screen_style()
+{
+	static Style style = { "GameScreen", styles().wedge, [](Layout& l) { l.m_space = LAYOUT; l.m_padding = vec4(30.f); } };
+	return style;
+}
+
+Style& right_panel_style(UiWindow& ui_window)
+{
+	static ImageSkin skin = { *ui_window.find_image("graphic/red_on"), 46, 28, 38, 30 };
+	
+	static Style style = { "GameMenu", styles().wedge, [](Layout& l) { l.m_space = UNIT; l.m_align = { RIGHT, CENTER }; l.m_padding = vec4(30.f); l.m_spacing = vec2(30.f); },
+													   [](InkStyle& s) { s.m_empty = false; s.m_image_skin = skin; } };
+	return style;
+}
+
+Style& center_panel_style(UiWindow& ui_window)
+{
+	static ImageSkin skin = { *ui_window.find_image("graphic/red_on"), 46, 28, 38, 30 };
+	
+	static Style style = { "GameMenu", styles().wedge, [](Layout& l) { l.m_space = UNIT; l.m_align = { CENTER, CENTER }; l.m_padding = vec4(30.f); l.m_spacing = vec2(30.f); },
+													   [](InkStyle& s) { s.m_empty = false; s.m_image_skin = skin; } };
+	return style;
+}
+
+Style& left_panel_style(UiWindow& ui_window)
+{
+	static ImageSkin skin = { *ui_window.find_image("graphic/red_on"), 46, 28, 38, 30 };
+	
+	static Style style = { "GameMenu", styles().wedge, [](Layout& l) { l.m_space = UNIT; l.m_align = { LEFT, CENTER }; l.m_padding = vec4(30.f); l.m_spacing = vec2(30.f); },
+													   [](InkStyle& s) { s.m_empty = false; s.m_image_skin = skin; } };
+	return style;
+}
+
+Style& menu_style()
+{
+	static Style style = { "GameMenu", styles().wedge, [](Layout& l) { l.m_space = UNIT; l.m_align = { LEFT, CENTER }; l.m_padding = vec4(120.f); l.m_padding.x = 240.f; l.m_spacing = vec2(30.f); } };
+	return style;
+}
+
+Style& button_style(UiWindow& ui_window)
+{
+	static ImageSkin skin = { *ui_window.find_image("graphic/red_off"), 46, 28, 38, 30 };
+	static ImageSkin skin_focused = { *ui_window.find_image("graphic/red_on"), 46, 28, 38, 30 };
+
+	static Style style = { "GameButton", styles().button, [](Layout& l) { l.m_size = { 400.f, 80.f }; },
+														  [](InkStyle& s) { s.m_empty = false; s.m_text_colour = Colour::White; s.m_text_font = "veramono"; s.m_text_size = 24.f; s.m_padding = vec4(40.f, 20.f, 40.f, 20.f); s.m_image_skin = skin; },
+														  [](Style& s) { s.decline_skin(HOVERED).m_text_colour = Colour::White; s.decline_skin(HOVERED).m_image_skin = skin_focused; } };
+	return style;
+}
+
+Style& label_style()
+{
+	static Style style = { "GameLabel", styles().button, [](Layout& l) {},
+														 [](InkStyle& s) { s.m_empty = false; s.m_text_colour = Colour::White; s.m_text_font = "veramono"; s.m_text_size = 14.f;  } };
+	return style;
+}
+
 void ex_blocks_game_ui(Widget& parent, GameScene& game)
 {
 	Player& player = val<Player>(game.m_player);
@@ -578,7 +671,10 @@ void ex_blocks_game_ui(Widget& parent, GameScene& game)
 
 	tank_velocity_controller(viewer, player.m_tank);
 
-	if(viewer.mouse_event(DeviceType::MouseLeft, EventType::Stroked))
+	if(KeyEvent key_event = viewer.key_event(KC_LCONTROL))
+		player.m_tank.m_stealth = !player.m_tank.m_stealth;
+
+	if(MouseEvent mouse_event = viewer.mouse_event(DeviceType::MouseLeft, EventType::Stroked))
 	{
 		viewer.take_focus();
 		player.m_tank.shoot();
@@ -602,6 +698,22 @@ void ex_blocks_game_ui(Widget& parent, GameScene& game)
 	}
 
 	paint_viewer(viewer);
+
+	static Style& style_screen = screen_style();
+	static Style& style_right_panel = right_panel_style(parent.ui_window());
+	static Style& style_center_panel = center_panel_style(parent.ui_window());
+	static Style& style_left_panel = left_panel_style(parent.ui_window());
+	static Style& style_label = label_style();
+
+	Widget& screen = ui::widget(viewer, style_screen);
+	Widget& board = ui::board(screen);
+	Widget& row = ui::row(screen);
+	Widget& left_panel = ui::widget(row, style_left_panel);
+	Widget& center_panel = ui::widget(row, style_center_panel);
+
+	ui::item(left_panel, style_label, "Destroy All Enemy Shields");
+
+	ui::icon(center_panel, "(World)");
 }
 
 Viewer& ex_blocks_menu_viewport(Widget& parent, GameShell& app)
@@ -614,14 +726,14 @@ Viewer& ex_blocks_menu_viewport(Widget& parent, GameShell& app)
 #endif
 
 	paint_viewer(viewer);
-	paint_scene(scene);
+	paint_scene(scene, false);
 
 	static Model& tank_base = *viewer.m_scene->m_gfx_system.models().file("scifi_tank_base");
 	static Model& tank_turret = *viewer.m_scene->m_gfx_system.models().file("scifi_tank_turret");
 
 	static Clock clock;
 
-	Gnode& node = gfx::node(scene, {}, -Y3 * 0.2f, angle_axis(fmod(clock.read() / 2.f, 2.f * c_pi), Y3), Unit3 * 0.2f);
+	Gnode& node = gfx::node(scene, {}, -Y3 * 0.2f + X3 * 0.3f, angle_axis(fmod(clock.read() / 2.f, 2.f * c_pi), Y3), Unit3 * 0.2f);
 	//gfx::shape(node, Cube(), Symbol());
 	gfx::item(node, tank_base);
 	gfx::item(node, tank_turret);
@@ -631,47 +743,34 @@ Viewer& ex_blocks_menu_viewport(Widget& parent, GameShell& app)
 	return viewer;
 }
 
-Style& menu_style()
-{
-	static Style style("GameMenu", styles().wedge, [](Layout& l) { l.m_space = { PARAGRAPH, SHRINK, SHRINK };
-																   l.m_align = { CENTER, CENTER };
-																   l.m_padding = vec4(15.f);
-																   l.m_spacing = vec2(10.f); });
-	return style;
-}
-
-Style& button_style()
-{
-	static Style style("GameButton", styles().button, [](Layout& l) {},
-													  [](InkStyle& s) { s.m_empty = false; s.m_text_colour = Colour::AlphaWhite; s.m_text_size = 24.f; },
-													  [](Style& s) { s.decline_skin(HOVERED).m_text_colour = Colour::White; });
-	return style;
-}
-
 void ex_blocks_menu(Widget& parent, Game& game)
 {
+	static Style& style_button = button_style(parent.ui_window());
+	static Style& style_menu = menu_style();
+
 	Widget& self = ui::board(parent);
 
 	Viewer& viewer = ex_blocks_menu_viewport(self, *game.m_shell);
 	Widget& overlay = ui::screen(viewer);
 
-	Widget& menu = ui::widget(overlay, menu_style());
+	Widget& menu = ui::widget(overlay, style_menu);
 
-	if(ui::button(menu, button_style(), "Start game").activated())
+	ui::icon(menu, "(toy)");
+
+	if(ui::button(menu, style_button, "Start game").activated())
 	{
 		ex_blocks_start(*game.m_shell, game);
 	}
 
-	ui::button(menu, button_style(), "Continue game");
-	ui::button(menu, button_style(), "Quit");
+	ui::button(menu, style_button, "Continue game");
+	ui::button(menu, style_button, "Quit");
 }
 
 void ex_blocks_pump_game(GameShell& app, Game& game, Widget& parent)
 {
-	//BlockWorld& world = as<BlockWorld>(game.m_world->m_complex);
-	//world.next_frame();
-
 	static GameScene& scene = app.add_scene();
+
+	game.m_world->next_frame();
 	scene.m_scene->next_frame();
 
 	ex_blocks_game_ui(parent, scene);
@@ -702,7 +801,7 @@ void ex_blocks_start(GameShell& app, Game& game)
 	BlockWorld& world = GlobalPool::me().pool<BlockWorld>().construct("Arcadia");
 	game.m_world = &world.m_world;
 
-	app.m_core->section(0).add_task(game.m_world);
+	//app.m_core->section(0).add_task(game.m_world);
 
 	static Player player = { world };
 	game.m_player = Ref(&player);
@@ -718,7 +817,7 @@ void ex_blocks_scene(GameShell& app, GameScene& scene)
 	scene_painters(*scene.m_scene, vision.m_store);
 	
 	scene.m_scene->painter("World", [&](size_t index, VisuScene& scene, Gnode& parent) {
-		UNUSED(scene); paint_scene(parent.sub((void*)index));
+		UNUSED(scene); paint_scene(parent.subi((void*)index), true);
 	});
 	scene.m_scene->entity_painter<Shield>("Shields", vision.m_store, paint_shield);
 	scene.m_scene->entity_painter<Well>("Well", vision.m_store, paint_well);

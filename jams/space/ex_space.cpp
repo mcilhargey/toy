@@ -16,6 +16,8 @@ using namespace toy;
 
 float g_hullWeight[8] = { 2.f, 6.f, 20.f, 50.f, 100.f, 150.f, 200.f, 250.f };
 
+TurnStep g_turn_steps[size_t(TurnStage::Count)] = { turn_begin, turn_divisions, turn_jumps, turn_combats, turn_stars, turn_constructions, turn_fleets, turn_technology, turn_scans };
+
 void fleet_potential(const std::vector<CombatFleet>& flotilla, float* damage, float* metal)
 {
 	for(const CombatFleet& combat_fleet : flotilla)
@@ -25,7 +27,7 @@ void fleet_potential(const std::vector<CombatFleet>& flotilla, float* damage, fl
 		for(auto& kv : fleet.m_ships)
 		{
 			ShipSchema& ship = *kv.first;
-			int number = kv.second;
+			//int number = kv.second;
 
 			for(size_t i = 0; i < 8; ++i)
 			{
@@ -97,7 +99,7 @@ void SpatialCombat::apply_losses()
 		for(auto& kv : combat_fleet.m_fleet->m_ships)
 		{
 			ShipSchema& ship = *kv.first;
-			combat_fleet.m_fleet->add_ships(ship, -combat_fleet.m_losses[&ship]);
+			combat_fleet.m_fleet->add_ships(ship, -int(combat_fleet.m_losses[&ship]));
 		}
 	};
 
@@ -109,6 +111,7 @@ void SpatialCombat::apply_losses()
 
 void gather_allies(Fleet& fleet, CombatType combat_type, std::vector<CombatFleet>& allies, std::vector<CombatFleet>& enemies)
 {
+	UNUSED(combat_type);
 	for(Fleet* other : fleet.galaxy().m_grid.m_fleets[fleet.m_coord])
 	{
 		if(other->m_commander->allied(*fleet.m_commander))
@@ -118,7 +121,7 @@ void gather_allies(Fleet& fleet, CombatType combat_type, std::vector<CombatFleet
 	}
 }
 
-void spatial_combat(Turn& turn, Galaxy& galaxy, Fleet& fleet)
+void spatial_combat(Turn& turn, Fleet& fleet)
 {
 	SpatialCombat combat = { fleet.m_coord, fleet.m_entity.m_last_tick };
 
@@ -127,14 +130,13 @@ void spatial_combat(Turn& turn, Galaxy& galaxy, Fleet& fleet)
 	if(!combat.m_enemies.empty())
 	{
 		resolve_combat(combat);
-		galaxy.m_combats.push_back(combat);
-		turn.m_spatial_combats.push_back(&galaxy.m_combats.back());
+		turn.m_spatial_combats.push_back(combat);
 	}
 }
 
-void planetary_combat(Turn& turn, Galaxy& galaxy, Fleet& fleet)
+void planetary_combat(Turn& turn, Fleet& fleet)
 {
-	UNUSED(turn); UNUSED(galaxy); UNUSED(fleet);
+	UNUSED(turn); UNUSED(fleet);
 }
 
 void extract_resources(Turn& turn, Commander& commander, Star& star)
@@ -152,7 +154,7 @@ void extract_resources(Turn& turn, Commander& commander, Star& star)
 		if(extracted > 0)
 		{
 			star.m_stocks[size_t(resource)] += extracted;
-			turn.add_item(Stage::Systems, commander, "System " + star.m_name + " extracted " + to_string(extracted) + " " + to_string(resource));
+			turn.add_item(TurnStage::Systems, commander, "System " + star.m_name + " extracted " + to_string(extracted) + " " + to_string(resource));
 		}
 	}
 }
@@ -168,12 +170,12 @@ void commit_construction(Turn& turn, Commander& commander, Star& star, Construct
 	if(construction.m_destination)
 	{
 		construction.m_destination->add_ships(*static_cast<ShipSchema*>(construction.m_schema), number);
-		turn.add_item(Stage::Constructions, commander, "Construction of " + to_string(number) + " " + construction.m_schema->m_code + " for fleet " + construction.m_destination->m_name);
+		turn.add_item(TurnStage::Constructions, commander, "Construction of " + to_string(number) + " " + construction.m_schema->m_code + " for fleet " + construction.m_destination->m_name);
 	}
 	else
 	{
 		star.m_buildings[static_cast<BuildingSchema*>(construction.m_schema)] += number;
-		turn.add_item(Stage::Constructions, commander, "Construction of " + to_string(number) + " " + construction.m_schema->m_code + " on system " + star.m_name);
+		turn.add_item(TurnStage::Constructions, commander, "Construction of " + to_string(number) + " " + construction.m_schema->m_code + " on system " + star.m_name);
 	}
 }
 
@@ -194,7 +196,7 @@ void grow_population(Turn& turn, Commander& commander, Star& star)
 	if(growth > 0)
 	{
 		star.m_population += growth;
-		turn.add_item(Stage::Systems, commander, "Population of " + star.m_name + " grew by " + to_string(growth) + " units");
+		turn.add_item(TurnStage::Systems, commander, "Population of " + star.m_name + " grew by " + to_string(growth) + " units");
 	}
 }
 
@@ -202,7 +204,7 @@ void collect_taxes(Turn& turn, Commander& commander, Star& star)
 {
 	float revenue = star.m_population * (star_revenue(star.m_taxation) + commander.level(Technology::Administration) * 0.02f);
 	commander.m_centaures += revenue;
-	turn.add_item(Stage::Systems, commander, "System " + star.m_name + " collected " + to_string(revenue) + "C in taxes");
+	turn.add_item(TurnStage::Systems, commander, "System " + star.m_name + " collected " + to_string(revenue) + "C in taxes");
 }
 
 void service_fleet(Turn& turn, Commander& commander, Fleet& fleet)
@@ -210,7 +212,7 @@ void service_fleet(Turn& turn, Commander& commander, Fleet& fleet)
 	float upkeep_factor = (100.f + eco_energy(commander.level(Technology::EcoEnergy)) / 100.f);
 	float upkeep = fleet.m_upkeep * upkeep_factor;
 	commander.m_centaures -= upkeep;
-	turn.add_item(Stage::Payments, commander, "Fleet " + fleet.m_name + " servicing cost " + to_string(upkeep) + "C");
+	turn.add_item(TurnStage::Fleets, commander, "Fleet " + fleet.m_name + " servicing cost " + to_string(upkeep) + "C");
 }
 
 void advance_technology(Turn& turn, Commander& commander, Technology tech, TechDomain& domain)
@@ -221,33 +223,49 @@ void advance_technology(Turn& turn, Commander& commander, Technology tech, TechD
 	if(level != domain.m_level)
 	{
 		domain.m_level = level;
-		turn.add_item(Stage::Technology, commander, "Technology " + to_string(tech) + " has reached level " + to_string(level));
+		turn.add_item(TurnStage::Technology, commander, "Technology " + to_string(tech) + " has reached level " + to_string(level));
 	}
 }
 
-void next_turn(Turn& turn, Galaxy& galaxy)
+void turn_begin(Turn& turn)
 {
-	for(Commander* commander : galaxy.m_commanders)
-		for(Fleet* fleet : commander->m_fleets)
-			if(fleet->m_jump.m_state == FleetJump::START)
-			{
-				fleet->jump();
-			}
+	UNUSED(turn);
+}
 
-	for(Commander* commander : galaxy.m_commanders)
+void turn_divisions(Turn& turn)
+{
+	UNUSED(turn);
+}
+
+void turn_jumps(Turn& turn)
+{
+	for(Commander* commander : turn.m_commanders)
+		for(Fleet* fleet : commander->m_fleets)
+			if(fleet->m_jump.m_state == FleetJump::Ordered)
+			{
+				turn.m_jumps.push_back(fleet);
+			}
+}
+
+void turn_combats(Turn& turn)
+{
+	for(Commander* commander : turn.m_commanders)
 		for(Fleet* fleet : commander->m_fleets)
 		{
 			if(fleet->m_stance == FleetStance::SpatialAttack)
-				spatial_combat(turn, galaxy, *fleet);
+				spatial_combat(turn, *fleet);
 
 			if(fleet->m_stance == FleetStance::PlanetaryAttack)
 			{
-				spatial_combat(turn, galaxy, *fleet);
-				planetary_combat(turn, galaxy, *fleet);
+				spatial_combat(turn, *fleet);
+				planetary_combat(turn, *fleet);
 			}
 		}
+}
 
-	for(Commander* commander : galaxy.m_commanders)
+void turn_stars(Turn& turn)
+{
+	for(Commander* commander : turn.m_commanders)
 	{
 		for(Star* star : commander->m_stars)
 		{
@@ -257,18 +275,59 @@ void next_turn(Turn& turn, Galaxy& galaxy)
 			grow_population(turn, *commander, *star);
 			collect_taxes(turn, *commander, *star);
 			extract_resources(turn, *commander, *star);
+		}
+	}
+}
+
+void turn_constructions(Turn& turn)
+{
+	for(Commander* commander : turn.m_commanders)
+	{
+		for(Star* star : commander->m_stars)
+		{
+			if(star->m_revolt)
+				continue;
+
 			advance_constructions(turn, *commander, *star);
 		}
-
+	}
+}
+void turn_fleets(Turn& turn)
+{
+	for(Commander* commander : turn.m_commanders)
+	{
 		for(Fleet* fleet : commander->m_fleets)
 			service_fleet(turn, *commander, *fleet);
+	}
+}
 
-		//for(TechDomain& tech : commander->m_technology)
+void turn_technology(Turn& turn)
+{
+	for(Commander* commander : turn.m_commanders)
+	{
 		for(Technology tech = Technology(0); tech != Technology::Count; tech = Technology(size_t(tech) + 1))
 			advance_technology(turn, *commander, tech, commander->m_technology[size_t(tech)]);
+	}
+}
 
+void turn_scans(Turn& turn)
+{
+	for(Commander* commander : turn.m_commanders)
+	{
 		commander->update_scans();
 	}
+}
+
+void next_turn(Turn& turn)
+{
+	turn_divisions(turn);
+	turn_jumps(turn);
+	turn_combats(turn);
+	turn_stars(turn);
+	turn_constructions(turn);
+	turn_fleets(turn);
+	turn_technology(turn);
+	turn_scans(turn);
 }
 
 BuildingDatabase::BuildingDatabase()
@@ -496,13 +555,17 @@ vec3 Fleet::base_position()
 	return vec3{ m_coord.x, 0.f, m_coord.y } + 0.5f + Y3;
 }
 
+void update_visu_fleet(VisuFleet& visu, size_t tick, size_t delta)
+{
+	float speed = 0.001f;
+	visu.m_angle = fmod(visu.m_angle + delta * speed, 2 * c_pi);
+	visu.m_offset = sin(tick * speed);
+	visu.m_dilate.z = remap_trig(visu.m_offset, 0.7f, 1.f);
+}
+
 void Fleet::next_frame(size_t tick, size_t delta)
 {
-	UNUSED(tick); UNUSED(delta); 
-	float speed = 0.001f;
-	m_visu.m_angle = fmod(m_visu.m_angle + delta * speed, 2 * c_pi);
-	m_visu.m_offset = sin(tick * speed);
-	m_visu.m_dilate.z = remap_trig(m_visu.m_offset, 0.7f, 1.f);
+	update_visu_fleet(m_visu, tick, delta);
 }
 
 void Fleet::set_ships(ShipSchema& schema, size_t number)
@@ -517,7 +580,7 @@ void Fleet::set_ships(ShipSchema& schema, size_t number)
 	this->update_stats();
 }
 
-void Fleet::add_ships(ShipSchema& schema, size_t number)
+void Fleet::add_ships(ShipSchema& schema, int number)
 {
 	this->set_ships(schema, m_ships[&schema] + number);
 }
@@ -527,7 +590,7 @@ void Fleet::set_ships(const std::string& code, size_t number)
 	this->set_ships(ShipDatabase::me().schema(code), number);
 }
 
-void Fleet::add_ships(const std::string& code, size_t number)
+void Fleet::add_ships(const std::string& code, int number)
 {
 	this->add_ships(ShipDatabase::me().schema(code), number);
 }
@@ -543,28 +606,29 @@ void Fleet::update_stats()
 	for(auto& ship_number : m_ships)
 	{
 		ShipSchema& ship = *ship_number.first;
-		float number = ship_number.second;
+		size_t number = ship_number.second;
 
 		//m_spatial_power += ship.m_spatial;
-		m_spatial += ship.m_spatial * number;
-		m_planetary_power += ship.m_planetary * number;
+		m_spatial += ship.m_spatial * float(number);
+		m_planetary_power += ship.m_planetary * float(number);
 		m_speed = min(m_speed, ship.m_speed);
 		m_scan = max(m_scan, ship.m_scan);
 		m_upkeep += ship.m_cost * ship.m_upkeep_factor * 0.1f;
 	}
 }
 
-static inline FleetJump::State jump_done(Fleet& fleet, float elapsed) { UNUSED(fleet); return FleetJump::DONE; }
-static inline FleetJump::State jump_start(Fleet& fleet, float elapsed) { if(elapsed > 0.5f) { fleet.jump(); return FleetJump::JUMP; } else return FleetJump::START; }
-static inline FleetJump::State jump_jump(Fleet& fleet, float elapsed) { UNUSED(fleet); if(elapsed > 0.25f) return FleetJump::END; else return FleetJump::JUMP; }
-static inline FleetJump::State jump_end(Fleet& fleet, float elapsed) { UNUSED(fleet); if(elapsed > 0.5f) return FleetJump::DONE; else return FleetJump::END; }
+static inline FleetJump::State jump_none(Fleet& fleet, float elapsed) { UNUSED(fleet); UNUSED(elapsed); return FleetJump::None; }
+static inline FleetJump::State jump_ordered(Fleet& fleet, float elapsed) { UNUSED(fleet); UNUSED(elapsed); return FleetJump::Start; }
+static inline FleetJump::State jump_start(Fleet& fleet, float elapsed) { if(elapsed > 3.0f) { fleet.jump(); return FleetJump::Jump; } else return FleetJump::Start; }
+static inline FleetJump::State jump_jump(Fleet& fleet, float elapsed) { UNUSED(fleet); if(elapsed > 0.25f) return FleetJump::End; else return FleetJump::Jump; }
+static inline FleetJump::State jump_end(Fleet& fleet, float elapsed) { UNUSED(fleet); if(elapsed > 0.5f) return FleetJump::None; else return FleetJump::End; }
 
 using StateFunc = FleetJump::State(*)(Fleet&, float);
-static constexpr StateFunc s_fleet_states[4] = { jump_done, jump_start, jump_jump, jump_end };
+static constexpr StateFunc s_fleet_states[5] = { jump_none, jump_ordered, jump_start, jump_jump, jump_end };
 
 void FleetJump::update(Fleet& fleet, size_t tick)
 {
-	float elapsed = float(tick - m_state_updated) * c_tick_interval;
+	float elapsed = float((tick - m_state_updated) * c_tick_interval);
 	State old_state = m_state;
 	m_state = s_fleet_states[static_cast<size_t>(m_state)](fleet, elapsed);
 	m_state_updated = old_state == m_state ? m_state_updated : tick;
@@ -594,7 +658,7 @@ void Fleet::jump()
 	m_stance = m_jump.m_stance;
 
 	vec3 position = vec3{ coord.x, 0.f, coord.y } + 0.5f + Y3;
-	animate(Ref(&m_entity), member(&Entity::m_position), var(position), 0.25f);
+	animate(Ref(&as<Transform>(m_entity)), member(&Entity::m_position), var(position), 0.25f);
 
 	//m_entity.set_position(m_jump.m_destination);
 }
@@ -695,11 +759,15 @@ void CommanderBrush::update(const vec3& position)
 {
 	if(!m_commander) return;
 
-	//Galaxy& galaxy = *as<Universe>(*m_context.m_origin->m_world.m_construct).m_galaxies[0];
-	//for(Star* star : galaxy.m_stars)
-	//	if(distance(star->m_entity.m_position, position) <= m_radius)
-	//		m_commander->takeStar(*star);
+	Galaxy& galaxy = m_commander->m_stars[0]->galaxy();
+	for(Star* star : galaxy.m_stars)
+		if(distance(star->m_entity.m_position, position) <= m_radius)
+			m_commander->take_star(*star);
 }
+
+Player::Player(Galaxy* galaxy, Commander* commander)
+	: m_galaxy(galaxy), m_commander(commander), m_last_turn(galaxy->m_commanders), m_turn_replay(galaxy->m_commanders)
+{}
 
 void ex_space_lua_check(GameShell& shell, Galaxy& galaxy)
 {
@@ -730,8 +798,10 @@ void ex_space_lua_check(GameShell& shell, Galaxy& galaxy)
 
 void ex_space_scene(GameShell& app, GameScene& scene, Player& player)
 {
+	UNUSED(app);
 	scene.m_scene->painter("Galaxy", [&](size_t, VisuScene&, Gnode& parent) {
 		paint_galaxy(parent, *player.m_galaxy);
+		paint_scene(parent);
 	});
 	scene.m_scene->object_painter<Star>("Stars", player.m_galaxy->m_stars, paint_star);
 	scene.m_scene->object_painter<Star>("Stars", player.m_commander->m_stars, paint_scan_star);
@@ -740,8 +810,8 @@ void ex_space_scene(GameShell& app, GameScene& scene, Player& player)
 	scene.m_scene->object_painter<Fleet>("Fleets", player.m_commander->m_scans.m_fleets, paint_scan_fleet);
 	
 	scene.m_scene->painter("Combat", [&](size_t, VisuScene&, Gnode& parent) {
-		if(player.m_current_combat)
-			paint_combat(parent, *player.m_current_combat);
+		if(player.m_turn_replay.current_combat())
+			paint_combat(parent, *player.m_turn_replay.current_combat());
 	});
 
 	scene.m_camera.m_entity.m_position = player.m_commander->m_capital->m_entity.m_position;
@@ -771,8 +841,6 @@ void ex_space_start(GameShell& app, Game& game)
 	Universe& universe = GlobalPool::me().pool<Universe>().construct("Arcadia");
 	game.m_world = &universe.m_world;
 
-	app.m_core->section(0).add_task(game.m_world);
-
 	VisualScript& generator = space_generator(app);
 	generator(carray<Var, 2>{ Ref(game.m_world), Ref(&game.m_world->origin()) });
 
@@ -787,18 +855,18 @@ void ex_space_start(GameShell& app, Game& game)
 
 Style& menu_style()
 {
-	static Style style("GameMenu", styles().wedge, [](Layout& l) { l.m_space = { PARAGRAPH, SHRINK, SHRINK };
-																   l.m_align = { CENTER, CENTER };
-																   l.m_padding = vec4(15.f);
-																   l.m_spacing = vec2(10.f); });
+	static Style style = { "GameMenu", styles().wedge, [](Layout& l) { l.m_space = UNIT; l.m_align = { LEFT, CENTER }; l.m_padding = vec4(120.f); l.m_padding.x = 240.f; l.m_spacing = vec2(30.f); } };
 	return style;
 }
 
-Style& button_style()
+Style& button_style(UiWindow& ui_window)
 {
-	static Style style("GameButton", styles().button, [](Layout& l) {},
-													  [](InkStyle& s) { s.m_empty = false; s.m_text_colour = Colour::AlphaWhite; s.m_text_size = 24.f; },
-													  [](Style& s) { s.decline_skin(HOVERED).m_text_colour = Colour::White; });
+	static ImageSkin skin = { *ui_window.find_image("graphic/blue_off"), 46, 28, 38, 30 };
+	static ImageSkin skin_focused = { *ui_window.find_image("graphic/blue_on"), 46, 28, 38, 30 };
+
+	static Style style = { "GameButton", styles().button, [](Layout& l) { l.m_size = { 400.f, 80.f }; },
+														  [](InkStyle& s) { s.m_empty = false; s.m_text_colour = Colour::White; s.m_text_font = "veramono"; s.m_text_size = 24.f; s.m_padding = vec4(40.f, 20.f, 40.f, 20.f); s.m_image_skin = skin; },
+														  [](Style& s) { s.decline_skin(HOVERED).m_text_colour = Colour::White; s.decline_skin(HOVERED).m_image_skin = skin_focused; } };
 	return style;
 }
 
@@ -814,11 +882,32 @@ Viewer& ex_space_menu_viewport(Widget& parent, GameShell& app)
 	paint_viewer(viewer);
 	paint_scene(scene);
 
+	static std::map<ShipSchema*, size_t> ships;
+	static VisuFleet fleet;
+	if(fleet.m_updated == 0)
+	{
+		auto set_ships = [&](const std::string& code, size_t number) { ships[&ShipDatabase::me().schema(code)] = number; };
+		set_ships("sonde", 5);
+		set_ships("cha", 40);
+		set_ships("chabom", 20);
+		set_ships("bom", 20);
+		set_ships("cor", 10);
+
+		fill_fleet(fleet, ships);
+		fleet.m_updated = 1;
+	}
+
 	static Clock clock;
 
-	Gnode& node = gfx::node(scene, {}, -Y3 * 0.45f, angle_axis(fmod(clock.read(), 2.f * c_pi), Y3), Unit3 * 0.05f);
-	Item* item = gfx::model(node, "spaceship");
+	size_t tick = clock.readTick();
+	size_t delta = clock.stepTick();
 
+	update_visu_fleet(fleet, tick, delta);
+
+	float angle = fmod(float(clock.read()) / 20.f, 2.f * c_pi);
+	Gnode& node = gfx::node(scene, {}, Zero3 + X3 * 0.4f, angle_axis(angle, Y3), Unit3);
+	paint_fleet_ships(node, fleet, 0.8f, 0.1f);
+	
 	//toy::sound(node, "complexambient", true);
 
 	return viewer;
@@ -826,20 +915,25 @@ Viewer& ex_space_menu_viewport(Widget& parent, GameShell& app)
 
 void ex_space_menu(Widget& parent, Game& game)
 {
+	static Style& style_button = button_style(parent.ui_window());
+	static Style& style_menu = menu_style();
+
 	Widget& self = ui::board(parent);
 
 	Viewer& viewer = ex_space_menu_viewport(self, *game.m_shell);
 	Widget& overlay = ui::screen(viewer);
 
-	Widget& menu = ui::widget(overlay, menu_style());
+	Widget& menu = ui::widget(overlay, style_menu);
 
-	if(ui::button(menu, button_style(), "Start game").activated())
+	ui::icon(menu, "(toy)");
+
+	if(ui::button(menu, style_button, "Start game").activated())
 	{
 		ex_space_start(*game.m_shell, game);
 	}
 
-	ui::button(menu, button_style(), "Continue game");
-	ui::button(menu, button_style(), "Quit");
+	ui::button(menu, style_button, "Continue game");
+	ui::button(menu, style_button, "Quit");
 }
 
 void ex_space_pump(GameShell& app, Game& game, Widget& parent, Dockbar* dockbar = nullptr)
@@ -852,6 +946,8 @@ void ex_space_pump(GameShell& app, Game& game, Widget& parent, Dockbar* dockbar 
 	else
 	{
 		static GameScene& scene = app.add_scene();
+
+		game.m_world->next_frame();
 		scene.m_scene->next_frame();
 
 		ex_space_ui(parent, scene);

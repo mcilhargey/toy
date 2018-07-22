@@ -19,25 +19,25 @@ using namespace mud; namespace toy
 		void default_velocities();
 		void set_velocities(const std::map<KeyCode, vec3>& velocities);
 
-		void rotateLeft();
-		void rotateRight();
+		void rotate_left();
+		void rotate_right();
 
-		void stopRotateLeft();
-		void stopRotateRight();
+		void stop_rotate_left();
+		void stop_rotate_right();
 
 		void stop();
 
-		void zoomIn();
-		void zoomOut();
+		void zoom_in();
+		void zoom_out();
 
-		void pitchLensUp();
-		void pitchLensDown();
+		void pitch_lens_up();
+		void pitch_lens_down();
 
 	protected:
 		Viewer& m_viewer;
 		Camera& m_camera;
 		Movable& m_movable;
 		float m_velocity;
-		float m_angularVelocity;
+		float m_angular_velocity;
 	};
 }

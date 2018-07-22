@@ -5,10 +5,10 @@
 
 #include <toy/toy.h>
 
-ParticleGenerator jump_particles(Gnode& parent, VisuFleet& visu_fleet)
+ParticleGenerator jump_particles(VisuFleet& visu_fleet)
 {
+	UNUSED(visu_fleet);
 	ParticleGenerator emitter;
-	float radius = 0.4f;
 	float scale = 0.02f;
 	emitter.m_rate = { 500 };
 	emitter.m_colour = { std::vector<Colour>({ Colour::Transparent, Colour::White }) };
@@ -19,10 +19,10 @@ ParticleGenerator jump_particles(Gnode& parent, VisuFleet& visu_fleet)
 	return emitter;
 }
 
-ParticleGenerator in_jump_particles(Gnode& parent, VisuFleet& visu_fleet)
+ParticleGenerator in_jump_particles(VisuFleet& visu_fleet)
 {
 	float scale = 0.02f;
-	ParticleGenerator emitter = jump_particles(parent, visu_fleet);
+	ParticleGenerator emitter = jump_particles(visu_fleet);
 	emitter.m_colour = { Colour::White };
 	emitter.m_blend = { std::vector<float>({ 1.f, 0.f }) };
 	emitter.m_scale = { std::vector<float>({ scale, scale * 0.3f }) };
@@ -112,8 +112,8 @@ void paint_range_sonar(Gnode& parent, const Colour& colour, int range)
 {
 	static Clock clock;
 
-	float angle = fmod(clock.read(), 2.f * c_pi);
-	float length = min(abs(sec(angle)), abs(csc(angle)));
+	float angle = fmod(float(clock.read()), 2.f * c_pi);
+	float length = min(abs(sec(angle)), abs(csc(angle))) * range;
 	vec3 end = rotate(X3 * length, angle, Y3);
 
 	Gnode& projected = gfx::node(parent, {}, { parent.m_attach->m_position.x, 0.5f, parent.m_attach->m_position.z });
@@ -125,8 +125,8 @@ void paint_scan_star(Gnode& parent, Star& star, Player& player)
 	gfx::shape(parent, Circle(0.4f, Axis::Y), Symbol(Colour::None, Colour::Invisible), ITEM_SELECTABLE);
 	gfx::shape(parent, Sphere(0.01f), Symbol(Colour::None, Colour::White * 4.f), ITEM_SELECTABLE);
 
-	bool hovered = player.m_hovered_item == Ref(&star.m_entity);
-	bool selected = player.m_selected_item == Ref(&star.m_entity);
+	bool hovered = player.m_hovered_item == Ref(&star);
+	bool selected = player.m_selected_item == Ref(&star);
 
 	Colour colour = star.m_commander ? star.m_commander->m_colour * 3.f : Colour{ 0.3f, 0.3f, 0.3f, 0.1f };
 	if(player.m_mode == GameMode::Empire && star.m_commander != player.m_commander)
@@ -167,21 +167,14 @@ void paint_scan_star(Gnode& parent, Star& star)
 
 static float spaceship_sizes[8] = { 0.01f, 0.02f, 0.03f, 0.04f, 0.05f, 0.06f, 0.08f, 0.1f };
 
-vec3 ship_position(VisuFleet& fleet, VisuShip& ship)
-{
-	float radius = 0.4f;
-	quat rot = angle_axis(fleet.m_angle, Z3);
-	return rotate(rot, fleet.m_dilate * ship.m_spot * radius);
-}
-
-void fill_fleet(VisuFleet& visu, Fleet& fleet)
+void fill_fleet(VisuFleet& visu, const std::map<ShipSchema*, size_t>& ships)
 {
 	for(size_t i = 0; i < 8; ++i)
 		visu.m_ships[i].clear();
 
 	visu.m_points.m_points.clear();
 
-	for(auto& kv : fleet.m_ships)
+	for(auto& kv : ships)
 	{
 		ShipSchema& schema = *kv.first;
 		for(size_t i = 0; i < kv.second; ++i)
@@ -210,26 +203,36 @@ void fill_fleet(VisuFleet& visu, Fleet& fleet)
 	}
 }
 
-void update_fleet_positions(VisuFleet& visu)
+vec3 ship_position(VisuFleet& fleet, VisuShip& ship, float radius)
+{
+	quat rot = angle_axis(fleet.m_angle, Z3);
+	return rotate(rot, fleet.m_dilate * ship.m_spot * radius);
+}
+
+void update_fleet_positions(VisuFleet& visu, float radius)
 {
 	size_t index = 0;
 	for(size_t size = 0; size < 8; ++size)
 		for(size_t i = 0; i < visu.m_ships[size].size(); ++i)
 		{
-			visu.m_ships[size][i].m_position = ship_position(visu, visu.m_ships[size][i]);
+			visu.m_ships[size][i].m_position = ship_position(visu, visu.m_ships[size][i], radius);
 			visu.m_points.m_points[index++] = visu.m_ships[size][i].m_position;
 		}
 }
 
-mat4 ship_transform(VisuShip& ship, const mat4& transform, const vec3& position)
+mat4 ship_transform(VisuShip& ship, const mat4& transform, const vec3& position, float ship_scale)
 {
-	vec3 scale = ship.m_destroyed ? Zero3 : vec3{ ship.m_radius  * 0.05f };
+	vec3 scale = ship.m_destroyed ? Zero3 : vec3{ ship.m_radius  * ship_scale };
 	mat4 ship_mat = bxSRT(scale, Zero3, position);
 	return bxmul(ship_mat, transform);
 }
 
-void paint_fleet_ships(Gnode& parent, Fleet& fleet, VisuFleet& visu)
+void paint_fleet_ships(Gnode& parent, VisuFleet& visu, float radius, float ship_scale)
 {
+	//toy::sound(parent, "thrusters", true);
+
+	update_fleet_positions(visu, radius);
+
 	size_t index = 0;
 	for(size_t size = 0; size < 8; ++size)
 		if(!visu.m_ships[size].empty())
@@ -237,55 +240,74 @@ void paint_fleet_ships(Gnode& parent, Fleet& fleet, VisuFleet& visu)
 			Item* item = gfx::model(parent, "spaceship", ITEM_LOD_0, nullptr, visu.m_ships[size].size());
 			mat4 transform = parent.m_attach->transform();
 			for(size_t i = 0; i < visu.m_ships[size].size(); ++i)
-				item->m_instances[i] = ship_transform(visu.m_ships[size][i], transform, visu.m_points.m_points[index++]);
+				item->m_instances[i] = ship_transform(visu.m_ships[size][i], transform, visu.m_points.m_points[index++], ship_scale);
 		}
+}
+
+void debug_tree(Gnode& node, size_t index = 0, size_t depth = 0)
+{
+	auto print_depth = [](size_t depth) { for(size_t i = 0; i < depth; ++i) printf("    "); };
+	print_depth(depth);
+	printf("node %i\n", int(index));
+	if(node.m_item)
+	{
+		print_depth(depth + 1);
+		printf("item %s\n", node.m_item->m_model->m_name.c_str());
+	}
+	for(size_t i = 0; i < node.m_nodes.size(); ++i)
+		debug_tree(*node.m_nodes[i], i, depth + 1);
 }
 
 void paint_fleet_orders(Gnode& parent, Fleet& fleet, const Colour& colour)
 {
-	vec3 start = Zero3;
-	vec3 end = to_xz(vec2(fleet.m_jump.m_destination));
-	vec3 middle = (end - start) / 2.f + Y3;
-	gfx::shape(parent, Line(start, end), Symbol(colour));
-	gfx::shape(parent, ArcLine(start, middle, end), Symbol(colour));
+	if(fleet.m_jump.m_state == FleetJump::Ordered)
+	{
+		vec3 start = to_xz(vec2(fleet.m_coord)) + 0.5f;
+		vec3 end = to_xz(vec2(fleet.m_jump.m_destination)) + 0.5f;
+		vec3 middle = (end + start) / 2.f + Y3 * 2.f;// * length(end - start);
+		gfx::shape(parent, ArcLine(-start, start, middle, end), Symbol(colour));
+	}
+	//else
+	//{
+	//	debug_tree(*parent.m_parent);
+	//}
 }
 
-void paint_fleet_jumping(Gnode& parent, Fleet& fleet, VisuFleet& visu, const Colour& colour)
+void paint_fleet_jumping(Gnode& parent, VisuFleet& visu, const Colour& colour)
 {
-	static ParticleGenerator particles = jump_particles(parent, visu);
+	static ParticleGenerator particles = jump_particles(visu);
 	//particles.m_shape = &visu.m_points;
 	gfx::particles(parent, particles);
 	gfx::shape(parent, Circle(0.4f, Axis::Z), Symbol(colour, Colour::Invisible), ITEM_BILLBOARD);
 }
 
-void paint_fleet_warp(Gnode& parent, Fleet& fleet, VisuFleet& visu)
+void paint_fleet_warp(Gnode& parent, VisuFleet& visu)
 {
-	static ParticleGenerator particles = in_jump_particles(parent, visu);
+	static ParticleGenerator particles = in_jump_particles(visu);
 	//particles.m_shape = &visu.m_points;
 	gfx::particles(parent, particles);
-	//toy::sound(parent, "Jump", false);
 }
 
-void paint_fleet_stationary(Gnode& parent, Fleet& fleet, VisuFleet& visu, const Colour& colour)
+void paint_fleet_stationary(Gnode& parent, VisuFleet& visu, const Colour& colour)
 {
 	gfx::shape(parent, Triangle({ 0.4f, 0.6f }), Symbol(colour, Colour::Invisible), ITEM_BILLBOARD | ITEM_SELECTABLE);
-	paint_fleet_ships(parent, fleet, visu);
+	paint_fleet_ships(parent, visu);
 }
 
 void paint_scan_fleet(Gnode& parent, Fleet& fleet, Player& player)
 {
+	enum States {  Fleet = 0, Warp = 1, Jump = 2, Orders = 3, ScanRange = 4, JumpRange = 5 };
+
 	VisuFleet& visu = fleet.m_visu;
 
 	if(fleet.m_ships_updated > visu.m_updated)
 	{
-		fill_fleet(visu, fleet);
+		fill_fleet(visu, fleet.m_ships);
 		visu.m_updated = fleet.m_ships_updated;
 	}
 
-	update_fleet_positions(visu);
-
-	bool hovered = player.m_hovered_item == Ref(&fleet.m_entity);
-	bool selected = player.m_selected_item == Ref(&fleet.m_entity);
+	bool hovered = player.m_hovered_item == Ref(&fleet);
+	bool selected = player.m_selected_item == Ref(&fleet);
 
 	Colour colour = fleet.m_commander->m_colour * 2.5f;
 	if(player.m_mode == GameMode::Empire && fleet.m_commander != player.m_commander)
@@ -293,23 +315,26 @@ void paint_scan_fleet(Gnode& parent, Fleet& fleet, Player& player)
 	if(hovered)
 		colour = colour * 1.5f;
 
-	//if(fleet.m_jump.m_state != FleetJump::DONE)
-	//	paint_fleet_orders(parent, fleet, colour);
-	//if(fleet.m_jump.m_state != FleetJump::JUMP)
-		paint_fleet_stationary(parent, fleet, visu, colour);
-	//if(fleet.m_jump.m_state == FleetJump::START || fleet.m_jump.m_state == FleetJump::END)
-	//	paint_fleet_jumping(parent, fleet, visu, colour);
-	//if(fleet.m_jump.m_state == FleetJump::JUMP || fleet.m_jump.m_state == FleetJump::END)
-	//	paint_fleet_warp(parent, fleet, visu);
+	//if(fleet.m_jump.m_state != FleetJump::Jump)
+		paint_fleet_stationary(parent.subx(Fleet), visu, colour);
+	if(fleet.m_jump.m_state >= FleetJump::Start)
+		toy::sound(parent.subx(Warp), "warp", false);
+	if(fleet.m_jump.m_state == FleetJump::Start || fleet.m_jump.m_state == FleetJump::End)
+		paint_fleet_jumping(parent.subx(Jump), visu, colour);
+	//if(fleet.m_jump.m_state == FleetJump::Jump || fleet.m_jump.m_state == FleetJump::End)
+	//	paint_fleet_warp(parent, visu);
+
+	if(fleet.m_commander == player.m_commander)
+		paint_fleet_orders(parent.subx(Orders), fleet, colour);
 
 	if(player.m_mode == GameMode::Empire && fleet.m_commander == player.m_commander)
 	{
-		paint_range(parent, colour, fleet.m_scan);
+		paint_range(parent.subx(ScanRange), colour, fleet.m_scan);
 	}
 
 	if((selected || hovered) && fleet.m_commander == player.m_commander)
 	{
-		paint_range(parent, colour, fleet.m_speed);
+		paint_range(parent.subx(JumpRange), colour, fleet.m_speed);
 		//if(fleet.m_scan > 0)
 			//paint_range(parent, fleet.m_commander->m_colour * 2.f, fleet.m_scan);
 	}
@@ -383,9 +408,9 @@ bool paint_weapon_ray(Gnode& parent, const WeaponRay& ray, WeaponType weapon)
 
 	vec3 current = ray.m_start + ray.m_dir * ray.m_d;
 
-	Gnode& source = gfx::node(parent, {}, ray.m_start, ray.m_angle);
+	//Gnode& source = gfx::node(parent, {}, ray.m_start, ray.m_angle);
 	Gnode& projectile = gfx::node(parent, {}, current, ray.m_angle);
-	Gnode& hit = gfx::node(parent, {}, ray.m_end, ray.m_angle);
+	//Gnode& hit = gfx::node(parent, {}, ray.m_end, ray.m_angle);
 
 	//gfx::particles(out, flash);
 
@@ -465,6 +490,8 @@ void paint_combat_fleet(Gnode& parent, const std::vector<CombatFleet>& flotilla,
 
 void paint_combat(Gnode& parent, SpatialCombat& combat)
 {
+	toy::sound(parent, "hornwar");
+
 	vec3 offset = Z3 * 0.5f;
 
 	if(combat.m_state == SpatialCombat::APPROACH)
@@ -478,7 +505,7 @@ void paint_combat(Gnode& parent, SpatialCombat& combat)
 	}
 
 	static Clock clock;
-	float delta = clock.step();
+	float delta = float(clock.step());
 
 	const float length = 20.f;
 
@@ -487,9 +514,10 @@ void paint_combat(Gnode& parent, SpatialCombat& combat)
 	combat.m_t += dt;
 	combat.m_t = min(1.f, combat.m_t);
 
-	combat.m_t_position = sin(combat.m_t * c_pi);
+	float s = sin(combat.m_t * c_pi);
+	combat.m_t_position = s;
 
-	combat.m_dt_intensity = sin(combat.m_t * c_pi) * dt;
+	combat.m_dt_intensity = s * 2.f * dt;
 	combat.m_t_damage += combat.m_dt_intensity;
 	combat.m_t_damage = min(1.f, combat.m_t_damage);
 
@@ -548,7 +576,28 @@ void paint_scene(Gnode& parent)
 	gfx::radiance(parent, "equirectangular_space_sampler.jpg", BackgroundMode::None);
 	//gfx::custom_sky(parent, "start_nest");
 
-	//toy::sound(parent, "Wind", true);
+	toy::sound(parent, "deep", true);
+
+	static float crackle = 170.f;
+	static float grtgrtttt = 55.f;
+	static float grzzt = 0.f;
+
+	static Clock clock;
+	float step = float(clock.step());
+
+	auto update_sound = [&](float& counter, cstring name, float period, float volume)
+	{
+		counter += step;
+		if(counter > period)
+		{
+			toy::sound(parent, name, false, volume);
+			counter = 0.f;
+		}
+	};
+
+	update_sound(crackle, "crackle", 180.f, 0.3f);
+	//update_sound(grtgrtttt, "grtgrtttt", 60.f, 0.1f);
+	//update_sound(grzzt, "grzzt", 10.f);
 }
 
 void paint_viewer(Viewer& viewer)

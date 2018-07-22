@@ -47,7 +47,7 @@ namespace mud
             },
             // members
             {
-                { type<toy::Active>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Link }
+                { type<toy::Active>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Active>(object).m_entity); } }
             },
             // methods
             {
@@ -81,7 +81,7 @@ namespace mud
             },
             // members
             {
-                { type<toy::Actor>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Link }
+                { type<toy::Actor>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Actor>(object).m_entity); } }
             },
             // methods
             {
@@ -115,9 +115,9 @@ namespace mud
             },
             // members
             {
-                { type<toy::Agent>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Link },
-                { type<toy::Agent>(), member_address(&toy::Agent::m_radius), type<float>(), "radius", var(float()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<toy::Agent>(), member_address(&toy::Agent::m_height), type<float>(), "height", var(float()), Member::Flags(Member::Value|Member::Mutable) }
+                { type<toy::Agent>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Agent>(object).m_entity); } },
+                { type<toy::Agent>(), member_address(&toy::Agent::m_radius), type<float>(), "radius", var(float()), Member::Value, nullptr },
+                { type<toy::Agent>(), member_address(&toy::Agent::m_height), type<float>(), "height", var(float()), Member::Value, nullptr }
             },
             // methods
             {
@@ -215,7 +215,7 @@ namespace mud
             },
             // members
             {
-                { type<toy::Behavior>(), Address(), type<mud::Type>(), "type", Ref(type<mud::Type>()), Member::Link }
+                { type<toy::Behavior>(), Address(), type<mud::Type>(), "type", Ref(type<mud::Type>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Behavior>(object).m_type); } }
             },
             // methods
             {
@@ -252,9 +252,9 @@ namespace mud
             },
             // members
             {
-                { type<toy::BufferPage>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Link },
-                { type<toy::BufferPage>(), Address(), type<toy::WorldPage>(), "world_page", Ref(type<toy::WorldPage>()), Member::Link },
-                { type<toy::BufferPage>(), member_address(&toy::BufferPage::m_loaded), type<bool>(), "loaded", var(bool()), Member::Value }
+                { type<toy::BufferPage>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::BufferPage>(object).m_entity); } },
+                { type<toy::BufferPage>(), Address(), type<toy::WorldPage>(), "world_page", Ref(type<toy::WorldPage>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::BufferPage>(object).m_world_page); } },
+                { type<toy::BufferPage>(), member_address(&toy::BufferPage::m_loaded), type<bool>(), "loaded", var(bool()), Member::Value, nullptr }
             },
             // methods
             {
@@ -320,12 +320,12 @@ namespace mud
             },
             // members
             {
-                { type<toy::Camera>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Link },
-                { type<toy::Camera>(), member_address(&toy::Camera::m_lensDistance), type<float>(), "lensDistance", var(float()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<toy::Camera>(), member_address(&toy::Camera::m_lensAngle), type<float>(), "lensAngle", var(float(0.f)), Member::Flags(Member::Value|Member::Mutable) },
-                { type<toy::Camera>(), member_address(&toy::Camera::m_nearClipDistance), type<float>(), "nearClipDistance", var(float()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<toy::Camera>(), member_address(&toy::Camera::m_farClipDistance), type<float>(), "farClipDistance", var(float()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<toy::Camera>(), member_address(&toy::Camera::m_aspectRatio), type<float>(), "aspectRatio", var(float()), Member::Flags(Member::Value|Member::Mutable) }
+                { type<toy::Camera>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Camera>(object).m_entity); } },
+                { type<toy::Camera>(), member_address(&toy::Camera::m_lens_distance), type<float>(), "lens_distance", var(float()), Member::Value, nullptr },
+                { type<toy::Camera>(), member_address(&toy::Camera::m_lens_angle), type<float>(), "lens_angle", var(float(0.f)), Member::Value, nullptr },
+                { type<toy::Camera>(), member_address(&toy::Camera::m_near), type<float>(), "near", var(float()), Member::Value, nullptr },
+                { type<toy::Camera>(), member_address(&toy::Camera::m_far), type<float>(), "far", var(float()), Member::Value, nullptr },
+                { type<toy::Camera>(), member_address(&toy::Camera::m_aspect), type<float>(), "aspect", var(float()), Member::Value, nullptr }
             },
             // methods
             {
@@ -591,7 +591,7 @@ namespace mud
             },
             // members
             {
-                { type<toy::Emitter>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Link }
+                { type<toy::Emitter>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Emitter>(object).m_entity); } }
             },
             // methods
             {
@@ -605,47 +605,6 @@ namespace mud
         init_pool<toy::Emitter>(); 
         
         meta_class<toy::Emitter>();
-    }
-    
-    
-        
-    // toy::Entity
-    {
-        static Meta meta = { type<toy::Entity>(), &namspc({ "toy" }), "Entity", sizeof(toy::Entity), TypeClass::Object };
-        static Class cls = { type<toy::Entity>(),
-            // bases
-            {  },
-            {  },
-            // constructors
-            {
-                { type<toy::Entity>(), [](Ref ref, array<Var> args) { new(&val<toy::Entity>(ref)) toy::Entity( val<mud::Id>(args[0]), val<mud::Complex>(args[1]), val<toy::Entity>(args[2]), val<mud::vec3>(args[3]), val<mud::quat>(args[4]) ); }, { { "id", var(mud::Id()) }, { "complex", Ref(type<mud::Complex>()) }, { "parent", Ref(type<toy::Entity>()) }, { "position", var(mud::vec3()) }, { "rotation", var(mud::quat()) } } },
-                { type<toy::Entity>(), [](Ref ref, array<Var> args) { new(&val<toy::Entity>(ref)) toy::Entity( val<mud::Id>(args[0]), val<mud::Complex>(args[1]), val<toy::World>(args[2]), &val<toy::Entity>(args[3]), val<mud::vec3>(args[4]), val<mud::quat>(args[5]) ); }, { { "id", var(mud::Id()) }, { "complex", Ref(type<mud::Complex>()) }, { "world", Ref(type<toy::World>()) }, { "parent", Ref(type<toy::Entity>()), Param::Nullable }, { "position", var(mud::vec3()) }, { "rotation", var(mud::quat()) } } }
-            },
-            // copy constructor
-            {
-            },
-            // members
-            {
-                { type<toy::Entity>(), member_address(&toy::Entity::m_id), type<mud::Id>(), "id", var(mud::Id()), Member::Value },
-                { type<toy::Entity>(), Address(), type<mud::Complex>(), "complex", Ref(type<mud::Complex>()), Member::Link },
-                { type<toy::Entity>(), Address(), type<toy::World>(), "world", Ref(type<toy::World>()), Member::Link },
-                { type<toy::Entity>(), member_address(&toy::Entity::m_parent), type<toy::Entity>(), "parent", Ref(type<toy::Entity>()), Member::Flags(Member::Pointer|Member::Mutable|Member::Link) },
-                { type<toy::Entity>(), member_address(&toy::Entity::m_position), type<mud::vec3>(), "position", var(mud::vec3()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<toy::Entity>(), member_address(&toy::Entity::m_rotation), type<mud::quat>(), "rotation", var(mud::quat()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<toy::Entity>(), member_address(&toy::Entity::m_contents), type<toy::Array<toy::Entity>>(), "contents", Ref(type<toy::Array<toy::Entity>>()), Member::Structure }
-            },
-            // methods
-            {
-            },
-            // static members
-            {
-            }
-        };
-        
-        
-        init_pool<toy::Entity>(); 
-        
-        meta_class<toy::Entity>();
     }
     
     
@@ -700,7 +659,7 @@ namespace mud
             },
             // members
             {
-                { type<toy::EventRelay>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Link }
+                { type<toy::EventRelay>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::EventRelay>(object).m_entity); } }
             },
             // methods
             {
@@ -771,8 +730,8 @@ namespace mud
             },
             // members
             {
-                { type<toy::LightReflector>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Link },
-                { type<toy::LightReflector>(), member_address(&toy::LightReflector::m_brightness), type<mud::Ratio>(), "brightness", var(mud::Ratio()), Member::Value }
+                { type<toy::LightReflector>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::LightReflector>(object).m_entity); } },
+                { type<toy::LightReflector>(), member_address(&toy::LightReflector::m_brightness), type<mud::Ratio>(), "brightness", var(mud::Ratio()), Member::Value, nullptr }
             },
             // methods
             {
@@ -806,12 +765,12 @@ namespace mud
             },
             // members
             {
-                { type<toy::LightSource>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Link },
-                { type<toy::LightSource>(), Address(), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Link },
-                { type<toy::LightSource>(), member_address(&toy::LightSource::m_range), type<float>(), "range", var(float()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<toy::LightSource>(), member_address(&toy::LightSource::m_intensity), type<float>(), "intensity", var(float()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<toy::LightSource>(), member_address(&toy::LightSource::m_colour), type<mud::Colour>(), "colour", var(mud::Colour()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<toy::LightSource>(), member_address(&toy::LightSource::m_shadows), type<bool>(), "shadows", var(bool()), Member::Flags(Member::Value|Member::Mutable) }
+                { type<toy::LightSource>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::LightSource>(object).m_entity); } },
+                { type<toy::LightSource>(), Address(), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::LightSource>(object).m_emitter); } },
+                { type<toy::LightSource>(), member_address(&toy::LightSource::m_range), type<float>(), "range", var(float()), Member::Value, nullptr },
+                { type<toy::LightSource>(), member_address(&toy::LightSource::m_intensity), type<float>(), "intensity", var(float()), Member::Value, nullptr },
+                { type<toy::LightSource>(), member_address(&toy::LightSource::m_colour), type<mud::Colour>(), "colour", var(mud::Colour()), Member::Value, nullptr },
+                { type<toy::LightSource>(), member_address(&toy::LightSource::m_shadows), type<bool>(), "shadows", var(bool()), Member::Value, nullptr }
             },
             // methods
             {
@@ -850,7 +809,7 @@ namespace mud
             },
             // members
             {
-                { type<toy::Movable>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Link }
+                { type<toy::Movable>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Movable>(object).m_entity); } }
             },
             // methods
             {
@@ -885,10 +844,11 @@ namespace mud
             },
             // members
             {
-                { type<toy::Navblock>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Link },
-                { type<toy::Navblock>(), Address(), type<toy::WorldPage>(), "world_page", Ref(type<toy::WorldPage>()), Member::Link },
-                { type<toy::Navblock>(), Address(), type<toy::Navmesh>(), "navmesh", Ref(type<toy::Navmesh>()), Member::Link },
-                { type<toy::Navblock>(), member_address(&toy::Navblock::m_updated), type<size_t>(), "updated", var(size_t()), Member::Value }
+                { type<toy::Navblock>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Navblock>(object).m_entity); } },
+                { type<toy::Navblock>(), Address(), type<toy::WorldPage>(), "world_page", Ref(type<toy::WorldPage>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Navblock>(object).m_world_page); } },
+                { type<toy::Navblock>(), Address(), type<toy::Navmesh>(), "navmesh", Ref(type<toy::Navmesh>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Navblock>(object).m_navmesh); } },
+                { type<toy::Navblock>(), member_address(&toy::Navblock::m_auto_update), type<bool>(), "auto_update", var(bool(false)), Member::Value, nullptr },
+                { type<toy::Navblock>(), member_address(&toy::Navblock::m_updated), type<size_t>(), "updated", var(size_t()), Member::Value, nullptr }
             },
             // methods
             {
@@ -922,9 +882,9 @@ namespace mud
             },
             // members
             {
-                { type<toy::Navmesh>(), Address(), type<toy::World>(), "world", Ref(type<toy::World>()), Member::Link },
-                { type<toy::Navmesh>(), member_address(&toy::Navmesh::m_updated), type<size_t>(), "updated", var(size_t()), Member::Value },
-                { type<toy::Navmesh>(), member_address(&toy::Navmesh::m_dirty), type<bool>(), "dirty", var(bool(false)), Member::Value }
+                { type<toy::Navmesh>(), Address(), type<toy::World>(), "world", Ref(type<toy::World>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Navmesh>(object).m_world); } },
+                { type<toy::Navmesh>(), member_address(&toy::Navmesh::m_updated), type<size_t>(), "updated", var(size_t()), Member::Value, nullptr },
+                { type<toy::Navmesh>(), member_address(&toy::Navmesh::m_dirty), type<bool>(), "dirty", var(bool(false)), Member::Value, nullptr }
             },
             // methods
             {
@@ -959,8 +919,8 @@ namespace mud
             },
             // members
             {
-                { type<toy::Obstacle>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Link },
-                { type<toy::Obstacle>(), member_address(&toy::Obstacle::m_shape), type<toy::CollisionShape>(), "shape", Ref(type<toy::CollisionShape>()), Member::None }
+                { type<toy::Obstacle>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Obstacle>(object).m_entity); } },
+                { type<toy::Obstacle>(), member_address(&toy::Obstacle::m_shape), type<toy::CollisionShape>(), "shape", Ref(type<toy::CollisionShape>()), Member::None, nullptr }
             },
             // methods
             {
@@ -1028,7 +988,7 @@ namespace mud
             },
             // members
             {
-                { type<toy::PhysicWorld>(), Address(), type<toy::World>(), "world", Ref(type<toy::World>()), Member::Link }
+                { type<toy::PhysicWorld>(), Address(), type<toy::World>(), "world", Ref(type<toy::World>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::PhysicWorld>(object).m_world); } }
             },
             // methods
             {
@@ -1062,8 +1022,8 @@ namespace mud
             },
             // members
             {
-                { type<toy::Reactive>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Link },
-                { type<toy::Reactive>(), member_address(&toy::Reactive::m_controller), type<toy::Behavior>(), "controller", Ref(type<toy::Behavior>()), Member::Flags(Member::Pointer|Member::Link) }
+                { type<toy::Reactive>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Reactive>(object).m_entity); } },
+                { type<toy::Reactive>(), member_address(&toy::Reactive::m_controller), type<toy::Behavior>(), "controller", Ref(type<toy::Behavior>()), Member::Flags(Member::Pointer|Member::Link), nullptr }
             },
             // methods
             {
@@ -1097,7 +1057,7 @@ namespace mud
             },
             // members
             {
-                { type<toy::Receptor>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Link }
+                { type<toy::Receptor>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Receptor>(object).m_entity); } }
             },
             // methods
             {
@@ -1131,7 +1091,7 @@ namespace mud
             },
             // members
             {
-                { type<toy::Selector>(), Address(), type<toy::User>(), "user", Ref(type<toy::User>()), Member::Link }
+                { type<toy::Selector>(), Address(), type<toy::User>(), "user", Ref(type<toy::User>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Selector>(object).m_user); } }
             },
             // methods
             {
@@ -1267,9 +1227,9 @@ namespace mud
             },
             // members
             {
-                { type<toy::Symbolic>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Link },
-                { type<toy::Symbolic>(), member_address(&toy::Symbolic::m_symbols), type<std::vector<mud::Symbol>>(), "symbols", var(std::vector<mud::Symbol>()), Member::Value },
-                { type<toy::Symbolic>(), member_address(&toy::Symbolic::m_updated), type<size_t>(), "updated", var(size_t()), Member::Value }
+                { type<toy::Symbolic>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Symbolic>(object).m_entity); } },
+                { type<toy::Symbolic>(), member_address(&toy::Symbolic::m_symbols), type<std::vector<mud::Symbol>>(), "symbols", var(std::vector<mud::Symbol>()), Member::Value, nullptr },
+                { type<toy::Symbolic>(), member_address(&toy::Symbolic::m_updated), type<size_t>(), "updated", var(size_t()), Member::Value, nullptr }
             },
             // methods
             {
@@ -1439,7 +1399,7 @@ namespace mud
             },
             // members
             {
-                { type<toy::View>(), Address(), type<mud::Type>(), "type", Ref(type<mud::Type>()), Member::Link }
+                { type<toy::View>(), Address(), type<mud::Type>(), "type", Ref(type<mud::Type>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::View>(object).m_type); } }
             },
             // methods
             {
@@ -1473,8 +1433,8 @@ namespace mud
             },
             // members
             {
-                { type<toy::Vision>(), Address(), type<toy::World>(), "world", Ref(type<toy::World>()), Member::Link },
-                { type<toy::Vision>(), member_address(&toy::Vision::m_player), type<mud::Ref>(), "player", Ref(type<mud::Ref>()), Member::None }
+                { type<toy::Vision>(), Address(), type<toy::World>(), "world", Ref(type<toy::World>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Vision>(object).m_world); } },
+                { type<toy::Vision>(), member_address(&toy::Vision::m_player), type<mud::Ref>(), "player", Ref(type<mud::Ref>()), Member::None, nullptr }
             },
             // methods
             {
@@ -1541,11 +1501,11 @@ namespace mud
             },
             // members
             {
-                { type<toy::World>(), member_address(&toy::World::m_id), type<mud::Id>(), "id", var(mud::Id()), Member::Value },
-                { type<toy::World>(), Address(), type<mud::Complex>(), "complex", Ref(type<mud::Complex>()), Member::Link },
-                { type<toy::World>(), member_address(&toy::World::m_name), type<std::string>(), "name", var(std::string()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<toy::World>(), member_address(&toy::World::origin), type<toy::Entity>(), "origin", Ref(type<toy::Entity>()), Member::Flags(Member::Structure|Member::Link) },
-                { type<toy::World>(), member_address(&toy::World::unworld), type<toy::Entity>(), "unworld", Ref(type<toy::Entity>()), Member::Flags(Member::Structure|Member::Link) }
+                { type<toy::World>(), member_address(&toy::World::m_id), type<mud::Id>(), "id", var(mud::Id()), Member::Value, nullptr },
+                { type<toy::World>(), Address(), type<mud::Complex>(), "complex", Ref(type<mud::Complex>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::World>(object).m_complex); } },
+                { type<toy::World>(), member_address(&toy::World::m_name), type<std::string>(), "name", var(std::string()), Member::Value, nullptr },
+                { type<toy::World>(), member_address(&toy::World::origin), type<toy::Entity>(), "origin", Ref(type<toy::Entity>()), Member::Flags(Member::NonMutable|Member::Structure|Member::Link), [](Ref object) { return Ref(&val<toy::World>(object).origin()); } },
+                { type<toy::World>(), member_address(&toy::World::unworld), type<toy::Entity>(), "unworld", Ref(type<toy::Entity>()), Member::Flags(Member::NonMutable|Member::Structure|Member::Link), [](Ref object) { return Ref(&val<toy::World>(object).unworld()); } }
             },
             // methods
             {
@@ -1632,6 +1592,45 @@ namespace mud
     
     
         
+    // toy::Entity
+    {
+        static Meta meta = { type<toy::Entity>(), &namspc({ "toy" }), "Entity", sizeof(toy::Entity), TypeClass::Object };
+        static Class cls = { type<toy::Entity>(),
+            // bases
+            { &type<mud::Transform>() },
+            { base_offset<toy::Entity, mud::Transform>() },
+            // constructors
+            {
+                { type<toy::Entity>(), [](Ref ref, array<Var> args) { new(&val<toy::Entity>(ref)) toy::Entity( val<mud::Id>(args[0]), val<mud::Complex>(args[1]), val<toy::Entity>(args[2]), val<mud::vec3>(args[3]), val<mud::quat>(args[4]) ); }, { { "id", var(mud::Id()) }, { "complex", Ref(type<mud::Complex>()) }, { "parent", Ref(type<toy::Entity>()) }, { "position", var(mud::vec3()) }, { "rotation", var(mud::quat()) } } },
+                { type<toy::Entity>(), [](Ref ref, array<Var> args) { new(&val<toy::Entity>(ref)) toy::Entity( val<mud::Id>(args[0]), val<mud::Complex>(args[1]), val<toy::World>(args[2]), &val<toy::Entity>(args[3]), val<mud::vec3>(args[4]), val<mud::quat>(args[5]) ); }, { { "id", var(mud::Id()) }, { "complex", Ref(type<mud::Complex>()) }, { "world", Ref(type<toy::World>()) }, { "parent", Ref(type<toy::Entity>()), Param::Nullable }, { "position", var(mud::vec3()) }, { "rotation", var(mud::quat()) } } }
+            },
+            // copy constructor
+            {
+            },
+            // members
+            {
+                { type<toy::Entity>(), member_address(&toy::Entity::m_id), type<mud::Id>(), "id", var(mud::Id()), Member::Value, nullptr },
+                { type<toy::Entity>(), Address(), type<mud::Complex>(), "complex", Ref(type<mud::Complex>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Entity>(object).m_complex); } },
+                { type<toy::Entity>(), Address(), type<toy::World>(), "world", Ref(type<toy::World>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Entity>(object).m_world); } },
+                { type<toy::Entity>(), member_address(&toy::Entity::m_parent), type<toy::Entity>(), "parent", Ref(type<toy::Entity>()), Member::Flags(Member::Pointer|Member::Link), nullptr },
+                { type<toy::Entity>(), member_address(&toy::Entity::m_contents), type<toy::Array<toy::Entity>>(), "contents", Ref(type<toy::Array<toy::Entity>>()), Member::Structure, nullptr }
+            },
+            // methods
+            {
+            },
+            // static members
+            {
+            }
+        };
+        
+        
+        init_pool<toy::Entity>(); 
+        
+        meta_class<toy::Entity>();
+    }
+    
+    
+        
     // toy::NavmeshShape
     {
         static Meta meta = { type<toy::NavmeshShape>(), &namspc({ "toy" }), "NavmeshShape", sizeof(toy::NavmeshShape), TypeClass::Object };
@@ -1681,9 +1680,9 @@ namespace mud
             },
             // members
             {
-                { type<toy::DefaultWorld>(), member_address(&toy::DefaultWorld::m_world), type<toy::World>(), "world", Ref(type<toy::World>()), Member::Component },
-                { type<toy::DefaultWorld>(), member_address(&toy::DefaultWorld::m_bullet_world), type<toy::BulletWorld>(), "bullet_world", Ref(type<toy::BulletWorld>()), Member::Component },
-                { type<toy::DefaultWorld>(), member_address(&toy::DefaultWorld::m_navmesh), type<toy::Navmesh>(), "navmesh", Ref(type<toy::Navmesh>()), Member::Component }
+                { type<toy::DefaultWorld>(), member_address(&toy::DefaultWorld::m_world), type<toy::World>(), "world", Ref(type<toy::World>()), Member::Component, nullptr },
+                { type<toy::DefaultWorld>(), member_address(&toy::DefaultWorld::m_bullet_world), type<toy::BulletWorld>(), "bullet_world", Ref(type<toy::BulletWorld>()), Member::Component, nullptr },
+                { type<toy::DefaultWorld>(), member_address(&toy::DefaultWorld::m_navmesh), type<toy::Navmesh>(), "navmesh", Ref(type<toy::Navmesh>()), Member::Component, nullptr }
             },
             // methods
             {
@@ -1717,10 +1716,10 @@ namespace mud
             },
             // members
             {
-                { type<toy::OCamera>(), member_address(&toy::OCamera::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component },
-                { type<toy::OCamera>(), member_address(&toy::OCamera::m_movable), type<toy::Movable>(), "movable", Ref(type<toy::Movable>()), Member::Component },
-                { type<toy::OCamera>(), member_address(&toy::OCamera::m_receptor), type<toy::Receptor>(), "receptor", Ref(type<toy::Receptor>()), Member::Component },
-                { type<toy::OCamera>(), member_address(&toy::OCamera::m_camera), type<toy::Camera>(), "camera", Ref(type<toy::Camera>()), Member::Component }
+                { type<toy::OCamera>(), member_address(&toy::OCamera::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr },
+                { type<toy::OCamera>(), member_address(&toy::OCamera::m_movable), type<toy::Movable>(), "movable", Ref(type<toy::Movable>()), Member::Component, nullptr },
+                { type<toy::OCamera>(), member_address(&toy::OCamera::m_receptor), type<toy::Receptor>(), "receptor", Ref(type<toy::Receptor>()), Member::Component, nullptr },
+                { type<toy::OCamera>(), member_address(&toy::OCamera::m_camera), type<toy::Camera>(), "camera", Ref(type<toy::Camera>()), Member::Component, nullptr }
             },
             // methods
             {
@@ -1754,9 +1753,9 @@ namespace mud
             },
             // members
             {
-                { type<toy::OLight>(), member_address(&toy::OLight::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component },
-                { type<toy::OLight>(), member_address(&toy::OLight::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component },
-                { type<toy::OLight>(), member_address(&toy::OLight::m_light), type<toy::LightSource>(), "light", Ref(type<toy::LightSource>()), Member::Component }
+                { type<toy::OLight>(), member_address(&toy::OLight::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr },
+                { type<toy::OLight>(), member_address(&toy::OLight::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component, nullptr },
+                { type<toy::OLight>(), member_address(&toy::OLight::m_light), type<toy::LightSource>(), "light", Ref(type<toy::LightSource>()), Member::Component, nullptr }
             },
             // methods
             {
@@ -1790,7 +1789,7 @@ namespace mud
             },
             // members
             {
-                { type<toy::OWaypoint>(), member_address(&toy::OWaypoint::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component }
+                { type<toy::OWaypoint>(), member_address(&toy::OWaypoint::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr }
             },
             // methods
             {
@@ -1824,7 +1823,7 @@ namespace mud
             },
             // members
             {
-                { type<toy::Origin>(), member_address(&toy::Origin::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component }
+                { type<toy::Origin>(), member_address(&toy::Origin::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr }
             },
             // methods
             {
@@ -1839,6 +1838,7 @@ namespace mud
         
         meta_class<toy::Origin>();
     }
+    
     
     
         
@@ -1870,39 +1870,6 @@ namespace mud
         
         
         meta_class<toy::Action>();
-    }
-    
-    
-        
-    // toy::BulletWorld
-    {
-        static Meta meta = { type<toy::BulletWorld>(), &namspc({ "toy" }), "BulletWorld", sizeof(toy::BulletWorld), TypeClass::Object };
-        static Class cls = { type<toy::BulletWorld>(),
-            // bases
-            { &type<toy::PhysicWorld>() },
-            { base_offset<toy::BulletWorld, toy::PhysicWorld>() },
-            // constructors
-            {
-                { type<toy::BulletWorld>(), [](Ref ref, array<Var> args) { new(&val<toy::BulletWorld>(ref)) toy::BulletWorld( val<toy::World>(args[0]) ); }, { { "world", Ref(type<toy::World>()) } } }
-            },
-            // copy constructor
-            {
-            },
-            // members
-            {
-            },
-            // methods
-            {
-            },
-            // static members
-            {
-            }
-        };
-        
-        
-        init_pool<toy::BulletWorld>(); 
-        
-        meta_class<toy::BulletWorld>();
     }
     
     
@@ -1955,8 +1922,8 @@ namespace mud
             },
             // members
             {
-                { type<toy::Area>(), member_address(&toy::Area::entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Link },
-                { type<toy::Area>(), member_address(&toy::Area::shape), type<toy::CollisionShape>(), "shape", Ref(type<toy::CollisionShape>()), Member::Link }
+                { type<toy::Area>(), member_address(&toy::Area::entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Area>(object).entity()); } },
+                { type<toy::Area>(), member_address(&toy::Area::shape), type<toy::CollisionShape>(), "shape", Ref(type<toy::CollisionShape>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Area>(object).shape()); } }
             },
             // methods
             {
@@ -1990,13 +1957,12 @@ namespace mud
             },
             // members
             {
-                { type<toy::WorldPage>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Link },
-                { type<toy::WorldPage>(), Address(), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Link },
-                { type<toy::WorldPage>(), member_address(&toy::WorldPage::m_open), type<bool>(), "open", var(bool()), Member::Flags(Member::Value|Member::Mutable) },
-                { type<toy::WorldPage>(), member_address(&toy::WorldPage::m_extents), type<mud::vec3>(), "extents", var(mud::vec3()), Member::Value },
-                { type<toy::WorldPage>(), Address(), type<toy::World>(), "world", Ref(type<toy::World>()), Member::Link },
-                { type<toy::WorldPage>(), member_address(&toy::WorldPage::m_last_rebuilt), type<size_t>(), "last_rebuilt", var(size_t()), Member::Value },
-                { type<toy::WorldPage>(), member_address(&toy::WorldPage::m_updated), type<size_t>(), "updated", var(size_t()), Member::Value }
+                { type<toy::WorldPage>(), Address(), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::WorldPage>(object).m_entity); } },
+                { type<toy::WorldPage>(), Address(), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::WorldPage>(object).m_emitter); } },
+                { type<toy::WorldPage>(), member_address(&toy::WorldPage::m_open), type<bool>(), "open", var(bool()), Member::Value, nullptr },
+                { type<toy::WorldPage>(), member_address(&toy::WorldPage::m_extents), type<mud::vec3>(), "extents", var(mud::vec3()), Member::Value, nullptr },
+                { type<toy::WorldPage>(), Address(), type<toy::World>(), "world", Ref(type<toy::World>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::WorldPage>(object).m_world); } },
+                { type<toy::WorldPage>(), member_address(&toy::WorldPage::m_last_rebuilt), type<size_t>(), "last_rebuilt", var(size_t()), Member::Value, nullptr }
             },
             // methods
             {
@@ -2066,8 +2032,8 @@ namespace mud
             },
             // members
             {
-                { type<toy::ObstacleBody>(), member_address(&toy::ObstacleBody::collision_shape), type<toy::CollisionShape>(), "collision_shape", Ref(type<toy::CollisionShape>()), Member::Link },
-                { type<toy::ObstacleBody>(), member_address(&toy::ObstacleBody::m_throughput), type<float>(), "throughput", var(float()), Member::Flags(Member::Value|Member::Mutable) }
+                { type<toy::ObstacleBody>(), member_address(&toy::ObstacleBody::collision_shape), type<toy::CollisionShape>(), "collision_shape", Ref(type<toy::CollisionShape>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::ObstacleBody>(object).collision_shape()); } },
+                { type<toy::ObstacleBody>(), member_address(&toy::ObstacleBody::m_throughput), type<float>(), "throughput", var(float()), Member::Value, nullptr }
             },
             // methods
             {
@@ -2113,103 +2079,6 @@ namespace mud
         
         
         meta_class<toy::PhysicScope>();
-    }
-    
-    
-    
-        
-    // toy::MonoSection
-    {
-        static Meta meta = { type<toy::MonoSection>(), &namspc({ "toy" }), "MonoSection", sizeof(toy::MonoSection), TypeClass::Object };
-        static Class cls = { type<toy::MonoSection>(),
-            // bases
-            { &type<toy::TaskSection>() },
-            { base_offset<toy::MonoSection, toy::TaskSection>() },
-            // constructors
-            {
-            },
-            // copy constructor
-            {
-            },
-            // members
-            {
-            },
-            // methods
-            {
-            },
-            // static members
-            {
-            }
-        };
-        
-        
-        
-        
-        meta_class<toy::MonoSection>();
-    }
-    
-    
-        
-    // toy::ParallelSection
-    {
-        static Meta meta = { type<toy::ParallelSection>(), &namspc({ "toy" }), "ParallelSection", sizeof(toy::ParallelSection), TypeClass::Object };
-        static Class cls = { type<toy::ParallelSection>(),
-            // bases
-            { &type<toy::TaskSection>() },
-            { base_offset<toy::ParallelSection, toy::TaskSection>() },
-            // constructors
-            {
-            },
-            // copy constructor
-            {
-            },
-            // members
-            {
-            },
-            // methods
-            {
-            },
-            // static members
-            {
-            }
-        };
-        
-        
-        
-        
-        meta_class<toy::ParallelSection>();
-    }
-    
-    
-        
-    // toy::QueueSection
-    {
-        static Meta meta = { type<toy::QueueSection>(), &namspc({ "toy" }), "QueueSection", sizeof(toy::QueueSection), TypeClass::Object };
-        static Class cls = { type<toy::QueueSection>(),
-            // bases
-            { &type<toy::TaskSection>() },
-            { base_offset<toy::QueueSection, toy::TaskSection>() },
-            // constructors
-            {
-            },
-            // copy constructor
-            {
-            },
-            // members
-            {
-            },
-            // methods
-            {
-            },
-            // static members
-            {
-            }
-        };
-        
-        
-        
-        
-        meta_class<toy::QueueSection>();
     }
     
     
@@ -2438,6 +2307,135 @@ namespace mud
     
     
         
+    // toy::MonoSection
+    {
+        static Meta meta = { type<toy::MonoSection>(), &namspc({ "toy" }), "MonoSection", sizeof(toy::MonoSection), TypeClass::Object };
+        static Class cls = { type<toy::MonoSection>(),
+            // bases
+            { &type<toy::TaskSection>() },
+            { base_offset<toy::MonoSection, toy::TaskSection>() },
+            // constructors
+            {
+            },
+            // copy constructor
+            {
+            },
+            // members
+            {
+            },
+            // methods
+            {
+            },
+            // static members
+            {
+            }
+        };
+        
+        
+        
+        
+        meta_class<toy::MonoSection>();
+    }
+    
+    
+        
+    // toy::ParallelSection
+    {
+        static Meta meta = { type<toy::ParallelSection>(), &namspc({ "toy" }), "ParallelSection", sizeof(toy::ParallelSection), TypeClass::Object };
+        static Class cls = { type<toy::ParallelSection>(),
+            // bases
+            { &type<toy::TaskSection>() },
+            { base_offset<toy::ParallelSection, toy::TaskSection>() },
+            // constructors
+            {
+            },
+            // copy constructor
+            {
+            },
+            // members
+            {
+            },
+            // methods
+            {
+            },
+            // static members
+            {
+            }
+        };
+        
+        
+        
+        
+        meta_class<toy::ParallelSection>();
+    }
+    
+    
+        
+    // toy::QueueSection
+    {
+        static Meta meta = { type<toy::QueueSection>(), &namspc({ "toy" }), "QueueSection", sizeof(toy::QueueSection), TypeClass::Object };
+        static Class cls = { type<toy::QueueSection>(),
+            // bases
+            { &type<toy::TaskSection>() },
+            { base_offset<toy::QueueSection, toy::TaskSection>() },
+            // constructors
+            {
+            },
+            // copy constructor
+            {
+            },
+            // members
+            {
+            },
+            // methods
+            {
+            },
+            // static members
+            {
+            }
+        };
+        
+        
+        
+        
+        meta_class<toy::QueueSection>();
+    }
+    
+    
+        
+    // toy::BulletWorld
+    {
+        static Meta meta = { type<toy::BulletWorld>(), &namspc({ "toy" }), "BulletWorld", sizeof(toy::BulletWorld), TypeClass::Object };
+        static Class cls = { type<toy::BulletWorld>(),
+            // bases
+            { &type<toy::PhysicWorld>() },
+            { base_offset<toy::BulletWorld, toy::PhysicWorld>() },
+            // constructors
+            {
+                { type<toy::BulletWorld>(), [](Ref ref, array<Var> args) { new(&val<toy::BulletWorld>(ref)) toy::BulletWorld( val<toy::World>(args[0]) ); }, { { "world", Ref(type<toy::World>()) } } }
+            },
+            // copy constructor
+            {
+            },
+            // members
+            {
+            },
+            // methods
+            {
+            },
+            // static members
+            {
+            }
+        };
+        
+        
+        init_pool<toy::BulletWorld>(); 
+        
+        meta_class<toy::BulletWorld>();
+    }
+    
+    
+        
     // toy::ReceptorView
     {
         static Meta meta = { type<toy::ReceptorView>(), &namspc({ "toy" }), "ReceptorView", sizeof(toy::ReceptorView), TypeClass::Object };
@@ -2551,7 +2549,6 @@ namespace mud
         m.m_types.push_back(&type<toy::DetourPath>());
         m.m_types.push_back(&type<toy::Effect>());
         m.m_types.push_back(&type<toy::Emitter>());
-        m.m_types.push_back(&type<toy::Entity>());
         m.m_types.push_back(&type<toy::EventFilter>());
         m.m_types.push_back(&type<toy::EventRelay>());
         m.m_types.push_back(&type<toy::GroundMotion>());
@@ -2579,6 +2576,7 @@ namespace mud
         m.m_types.push_back(&type<toy::WorldClock>());
         m.m_types.push_back(&type<toy::WorldMedium>());
         m.m_types.push_back(&type<std::vector<mud::Symbol>>());
+        m.m_types.push_back(&type<toy::Entity>());
         m.m_types.push_back(&type<toy::NavmeshShape>());
         m.m_types.push_back(&type<toy::DefaultWorld>());
         m.m_types.push_back(&type<toy::OCamera>());
@@ -2586,16 +2584,12 @@ namespace mud
         m.m_types.push_back(&type<toy::OWaypoint>());
         m.m_types.push_back(&type<toy::Origin>());
         m.m_types.push_back(&type<toy::Action>());
-        m.m_types.push_back(&type<toy::BulletWorld>());
         m.m_types.push_back(&type<toy::BulletCollider>());
         m.m_types.push_back(&type<toy::Area>());
         m.m_types.push_back(&type<toy::WorldPage>());
         m.m_types.push_back(&type<toy::Solid>());
         m.m_types.push_back(&type<toy::ObstacleBody>());
         m.m_types.push_back(&type<toy::PhysicScope>());
-        m.m_types.push_back(&type<toy::MonoSection>());
-        m.m_types.push_back(&type<toy::ParallelSection>());
-        m.m_types.push_back(&type<toy::QueueSection>());
         m.m_types.push_back(&type<toy::BulletSolid>());
         m.m_types.push_back(&type<toy::EmitterScope>());
         m.m_types.push_back(&type<toy::ReceptorScope>());
@@ -2603,6 +2597,10 @@ namespace mud
         m.m_types.push_back(&type<toy::ReceptorSphere>());
         m.m_types.push_back(&type<toy::EventEmitter>());
         m.m_types.push_back(&type<toy::EventReceptor>());
+        m.m_types.push_back(&type<toy::MonoSection>());
+        m.m_types.push_back(&type<toy::ParallelSection>());
+        m.m_types.push_back(&type<toy::QueueSection>());
+        m.m_types.push_back(&type<toy::BulletWorld>());
         m.m_types.push_back(&type<toy::ReceptorView>());
         m.m_types.push_back(&type<toy::StoreView>());
         m.m_types.push_back(&type<toy::OmniVision>());

@@ -18,11 +18,11 @@ using namespace mud; namespace toy
 		constr_ Actor(Entity& entity);
         ~Actor();
 
-		 attr_ Entity& m_entity;
+		attr_ Entity& m_entity;
 
-		 Array<ProcedureType> m_actions;
-		 std::vector<object_ptr<Procedure>> m_queued;
-		 std::vector<object_ptr<Procedure>> m_execution;
+		Array<ProcedureType> m_actions;
+		std::vector<object_ptr<Procedure>> m_queued;
+		std::vector<object_ptr<Procedure>> m_execution;
 
 		void next_frame(size_t tick, size_t delta);
 

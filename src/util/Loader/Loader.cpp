@@ -4,6 +4,7 @@
 
 
 #include <util/Types.h>
+#include <proto/Types.h>
 #include <util/Loader/Loader.h>
 
 #include <pool/ObjectPool.h>
@@ -132,7 +133,7 @@ using namespace mud; namespace toy
 		//		m_injectors.emplace_back(*type, cls(*type).m_constructors[size_t(ConstructorIndex::ProtoParts)]);
 
 		m_injector = &m_injectors.front();
-		m_args = m_injector->m_args;
+		m_args = m_injector->m_arguments;
 
 		const Constructor& constructor = *cls(m_type).constructor(cls(m_type).m_members.size());
 		for(const Param& param : constructor.m_params)
@@ -263,10 +264,10 @@ using namespace mud; namespace toy
 		m_prototype = &val<Prototype>(m_args[m_protoIndex]);
 
 		for(Injector& injector : m_injectors)
-			if(g_prototypes[injector.m_type.m_id])
+			if(g_prototypes[injector.m_object_type.m_id])
 			{
 				m_injector = &injector;
-				m_args = m_injector->m_args;
+				m_args = m_injector->m_arguments;
 			}
 	}
 
@@ -386,7 +387,8 @@ using namespace mud; namespace toy
 			++depth;
 		for(size_t i = 0; i < depth; ++i)
 			printf("  ");
-		printf("%s %s : %s\n", message, m_type.m_name, meta(m_type).m_type_class == TypeClass::Complex ? val<Complex>(object).m_prototype.m_type.m_name : "");
+		string prototype = meta(m_type).m_type_class == TypeClass::Complex ? val<Complex>(object).m_prototype.m_type.m_name : "";
+		printf("%s %s : %s\n", message, m_type.m_name, prototype.c_str());
 	}
 
 

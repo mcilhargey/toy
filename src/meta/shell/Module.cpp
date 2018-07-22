@@ -33,7 +33,7 @@ namespace toy
         mud_ui::m();
         mud_uio::m();
         mud_snd::m();
-        //mud_ctx_glfw::m();
+        mud_ctx_glfw::m();
         mud_ui_vg::m();
         mud_bgfx::m();
         mud_gfx::m();

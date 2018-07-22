@@ -44,10 +44,10 @@ using namespace mud; namespace toy
 		attr_ vec3 m_world_size;
 		attr_ vec3 m_center_offset;
 
-		attr_ mut_ std::vector<Element*> m_elements;
+		attr_ std::vector<Element*> m_elements;
 
-		attr_ mut_ std::vector<Sector*> m_sectors;
-		attr_ mut_ Grid<Block*> m_blocks;
+		attr_ std::vector<Sector*> m_sectors;
+		attr_ Grid<Block*> m_blocks;
 
 	};
 

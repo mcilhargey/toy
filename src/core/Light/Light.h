@@ -37,10 +37,10 @@ using namespace mud; namespace toy
 
 		attr_ Entity& m_entity;
 		attr_ Emitter& m_emitter;
-		attr_ mut_ float m_range;
-		attr_ mut_ float m_intensity;
-		attr_ mut_ Colour m_colour;
-		attr_ mut_ bool m_shadows;
+		attr_ float m_range;
+		attr_ float m_intensity;
+		attr_ Colour m_colour;
+		attr_ bool m_shadows;
 
 		virtual void handle_add(Entity& contact);
 		virtual void handle_remove(Entity& contact);

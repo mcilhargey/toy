@@ -10,6 +10,8 @@
 
 #include <infra/StringConvert.h>
 #include <obj/Indexer.h>
+#include <refl/System.h>
+#include <refl/Class.h>
 #include <refl/Meta.h>
 
 #include <edit/Editor/Editor.h>
@@ -105,25 +107,40 @@ using namespace mud; namespace toy
 		object_indexer(parent, indexer);
 	}
 
-	void registry_creator(Widget& parent, Type& type)
+	std::vector<Type*> entity_types()
 	{
-		if(!modal_dialog(parent, ("Create " + string(type.m_name)).c_str()))
-			object_creator(parent, type);
+		auto has_component = [](Class& cls, Type& component)
+		{
+			for(Member* member : cls.m_components)
+				if(member->m_type->is(component))
+					return true;
+			return false;
+		};
+
+		std::vector<Type*> types;
+		for(Type* type : system().m_types)
+			if(g_class[type->m_id])
+			{
+				if(has_component(cls(*type), mud::type<Entity>()))
+					types.push_back(type);
+			}
+		return types;
 	}
 
 	void registry_section(Widget& parent, Indexer& indexer, Selection& selection)
 	{
-		enum Modes { CREATE_OBJECT = 1 << 0 };
+		enum Modes { CREATE = 1 << 0 };
 
-		ActionList actions = {
-			{ "Create", [&] { parent.m_switch |= CREATE_OBJECT; } }
-		};
+		Section& self = section(parent, (string(indexer.m_type.m_name) + " Registry").c_str());
+		registry(*self.m_body, indexer, selection);
 
-		Widget& self = section(parent, (string(indexer.m_type.m_name) + " Registry").c_str(), actions);
-		registry(self, indexer, selection);
+		if(ui::modal_button(self, *self.m_toolbar, "Create", CREATE))
+		{
+			static std::vector<Type*> types = entity_types();
 
-		if((parent.m_switch & CREATE_OBJECT) != 0)
-			registry_creator(self, indexer.m_type);
+			Widget& modal = ui::auto_modal(self, CREATE, { 600, 400 });
+			object_switch_creator(*modal.m_body, types);
+		}
 	}
 
 	void library(Widget& parent, const std::vector<Type*>& types, Selection& selection)
@@ -139,8 +156,8 @@ using namespace mud; namespace toy
 
 	void library_section(Widget& parent, const std::vector<Type*>& types, Selection& selection)
 	{
-		Widget& self = section(parent, "Library");
-		library(self, types, selection);
+		Section& self = section(parent, "Library");
+		library(*self.m_body, types, selection);
 	}
 
 	void editor_menu(Widget& parent, ActionGroup& action_group)
@@ -177,7 +194,7 @@ using namespace mud; namespace toy
 	{
 		TreeNode& self = ui::tree_node(parent, carray<cstring, 2>{ entity_icon(entity).c_str(), entity_name(entity).c_str() }, false, false);
 
-		self.set_state(SELECTED, vector_has(selection, Ref(&entity.m_complex)));
+		self.m_header->set_state(SELECTED, vector_has(selection, Ref(&entity.m_complex)));
 
 		if(self.m_header->activated())
 			vector_select(selection, Ref(&entity.m_complex));
@@ -185,9 +202,9 @@ using namespace mud; namespace toy
 		//object_item(self, object);
 
 		if(self.m_body)
-			for(Entity* entity : entity.m_contents.store())
+			for(Entity* child : entity.m_contents.store())
 			{
-				outliner_node(*self.m_body, *entity, selection);
+				outliner_node(*self.m_body, *child, selection);
 			}
 	}
 
@@ -210,21 +227,53 @@ using namespace mud; namespace toy
 		outliner_graph(*self.m_body, origin, selection);
 	}
 
-	void editor_components(Widget& parent, Editor& editor)
+	void graphics_debug_section(Widget& parent, Dockspace& dockspace, Editor& editor)
+	{
+		for(Scene* scene : editor.m_scenes)
+		{
+			editor.m_graphics_debug.m_debug_draw_csm = true;
+			if(editor.m_graphics_debug.m_debug_draw_csm)
+			{
+				Widget* dock = ui::dockitem(dockspace, "Screen", carray<uint16_t, 2>{ 0U, 1U });
+				//if(dock)
+				{
+					//Viewer& viewer = ui::viewer(*dock, *scene);
+					Viewer& viewer = ui::viewer(parent, *scene);
+					viewer.m_camera.m_far = 1000.f;
+					ui::orbit_controller(viewer);
+
+					scene->m_pool->iterate_objects<Light>([&](Light& light) {
+						debug_draw_light_slices(scene->m_graph, light);
+					});
+				}
+			}
+		}
+	}
+	
+	Docksystem& editor_docksystem()
 	{
 		static Docksystem docksystem;
+		return docksystem;
+	}
+
+	void editor_components(Widget& parent, Editor& editor)
+	{
+		editor.m_tool_context.m_action_stack = &editor.m_action_stack;
+		editor.m_tool_context.m_work_plane = &editor.m_work_plane;
+
+		static Docksystem& docksystem = editor_docksystem();
 		Dockspace& dockspace = ui::dockspace(parent, docksystem);
 
 		std::vector<Type*> library_types = { &type<Entity>(), &type<World>() };
-		//if(Widget* dock = ui::dockitem(dockspace, "Library", carray<uint16_t, 1>{ 0U })) //carray<uint16_t, 2>{ 0U, 0U }))
-		//	library_section(*dock, library_types, editor.m_selection);
+		if(Widget* dock = ui::dockitem(dockspace, "Outliner", carray<uint16_t, 2>{ 0U, 0U })) //carray<uint16_t, 2>{ 0U, 0U }))
+			editor_graph(*dock, editor, editor.m_selection);
+		if(Widget* dock = ui::dockitem(dockspace, "Library", carray<uint16_t, 2>{ 0U, 0U })) //carray<uint16_t, 2>{ 0U, 0U }))
+			library_section(*dock, library_types, editor.m_selection);
 		if(Widget* dock = ui::dockitem(dockspace, "Inspector", carray<uint16_t, 2>{ 0U, 2U })) //carray<uint16_t, 2>{ 0U, 2U }))
 			object_editor(*dock, editor.m_selection);
 		//edit_selector(self, editor.m_selection); // dockid { 0, 2 }
-		if(Widget* dock = ui::dockitem(dockspace, "Graph", carray<uint16_t, 2>{ 0U, 0U })) //carray<uint16_t, 2>{ 0U, 0U }))
-			editor_graph(*dock, editor, editor.m_selection);
-		//if(Widget* dock = ui::dockitem(dockspace, "Script", carray<uint16_t, 1>{ 1U }))
-		//	script_editor(*dock, editor.m_script_editor);
+		if(Widget* dock = ui::dockitem(dockspace, "Script", carray<uint16_t, 2>{ 0U, 2U }))
+			script_editor(*dock, editor.m_script_editor);
 		//current_brush_edit(self, editor); // dockid { 0, 0 }
 		//ui_edit(self, editor.m_selection); // dockid { 0, 2 }
 
@@ -235,6 +284,16 @@ using namespace mud; namespace toy
 			//scene_viewport(self, *editor.m_editedScene); // dockid { 0, 1 } dockspan 4.f
 			//painter_panel(self, *editor.m_editedScene); // dockid { 0, 2 }
 		}
+
+		if(editor.m_spatial_tool && editor.m_viewer)
+			editor.m_spatial_tool->process(*editor.m_viewer, editor.m_selection);
+	}
+
+	void editor_viewer_overlay(Viewer& viewer, Editor& editor)
+	{
+		Widget& layout = ui::screen(*editor.m_viewer);
+		Widget& toolbar = ui::row(layout);
+		tools_transform(toolbar, editor);
 	}
 
 	void editor(Widget& parent, Editor& editor)

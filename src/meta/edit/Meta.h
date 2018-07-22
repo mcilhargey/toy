@@ -154,6 +154,39 @@ namespace mud
     
     
         
+    // toy::GraphicsDebug
+    {
+        static Meta meta = { type<toy::GraphicsDebug>(), &namspc({ "toy" }), "GraphicsDebug", sizeof(toy::GraphicsDebug), TypeClass::Struct };
+        static Class cls = { type<toy::GraphicsDebug>(),
+            // bases
+            {  },
+            {  },
+            // constructors
+            {
+            },
+            // copy constructor
+            {
+                { type<toy::GraphicsDebug>(), [](Ref ref, Ref other) { new(&val<toy::GraphicsDebug>(ref)) toy::GraphicsDebug(val<toy::GraphicsDebug>(other)); } }
+            },
+            // members
+            {
+            },
+            // methods
+            {
+            },
+            // static members
+            {
+            }
+        };
+        
+        
+        
+        
+        meta_class<toy::GraphicsDebug>();
+    }
+    
+    
+        
     // toy::Paste
     {
         static Meta meta = { type<toy::Paste>(), &namspc({ "toy" }), "Paste", sizeof(toy::Paste), TypeClass::Object };
@@ -259,36 +292,6 @@ namespace mud
     
     
     
-        
-    // toy::Editor
-    {
-        static Meta meta = { type<toy::Editor>(), &namspc({ "toy" }), "Editor", sizeof(toy::Editor), TypeClass::Object };
-        static Class cls = { type<toy::Editor>(),
-            // bases
-            { &type<mud::EditContext>() },
-            { base_offset<toy::Editor, mud::EditContext>() },
-            // constructors
-            {
-            },
-            // copy constructor
-            {
-            },
-            // members
-            {
-            },
-            // methods
-            {
-            },
-            // static members
-            {
-            }
-        };
-        
-        
-        
-        
-        meta_class<toy::Editor>();
-    }
     
     
     
@@ -323,17 +326,83 @@ namespace mud
         meta_class<toy::DynamicToolbox>();
     }
     
+    
+        
+    // toy::PlayTool
+    {
+        static Meta meta = { type<toy::PlayTool>(), &namspc({ "toy" }), "PlayTool", sizeof(toy::PlayTool), TypeClass::Object };
+        static Class cls = { type<toy::PlayTool>(),
+            // bases
+            { &type<mud::Tool>() },
+            { base_offset<toy::PlayTool, mud::Tool>() },
+            // constructors
+            {
+            },
+            // copy constructor
+            {
+            },
+            // members
+            {
+            },
+            // methods
+            {
+            },
+            // static members
+            {
+            }
+        };
+        
+        
+        
+        
+        meta_class<toy::PlayTool>();
+    }
+    
+    
+        
+    // toy::Editor
+    {
+        static Meta meta = { type<toy::Editor>(), &namspc({ "toy" }), "Editor", sizeof(toy::Editor), TypeClass::Object };
+        static Class cls = { type<toy::Editor>(),
+            // bases
+            { &type<mud::EditContext>() },
+            { base_offset<toy::Editor, mud::EditContext>() },
+            // constructors
+            {
+            },
+            // copy constructor
+            {
+            },
+            // members
+            {
+            },
+            // methods
+            {
+            },
+            // static members
+            {
+            }
+        };
+        
+        
+        
+        
+        meta_class<toy::Editor>();
+    }
+    
 
     
         m.m_types.push_back(&type<toy::ActionGroup>());
         m.m_types.push_back(&type<toy::Clone>());
         m.m_types.push_back(&type<toy::Cut>());
         m.m_types.push_back(&type<toy::Edit>());
+        m.m_types.push_back(&type<toy::GraphicsDebug>());
         m.m_types.push_back(&type<toy::Paste>());
         m.m_types.push_back(&type<toy::Toolbelt>());
         m.m_types.push_back(&type<toy::Toolbox>());
-        m.m_types.push_back(&type<toy::Editor>());
         m.m_types.push_back(&type<toy::DynamicToolbox>());
+        m.m_types.push_back(&type<toy::PlayTool>());
+        m.m_types.push_back(&type<toy::Editor>());
     
     }
 }

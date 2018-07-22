@@ -23,7 +23,17 @@ _SPACE_EXPORT void ex_space_pump(GameShell& app, Game& game);
 }
 
 struct Turn;
-_SPACE_EXPORT void next_turn(Turn& turn, Galaxy& galaxy);
+_SPACE_EXPORT void next_turn(Turn& turn);
+
+_SPACE_EXPORT void turn_begin(Turn& turn);
+_SPACE_EXPORT void turn_divisions(Turn& turn);
+_SPACE_EXPORT void turn_jumps(Turn& turn);
+_SPACE_EXPORT void turn_combats(Turn& turn);
+_SPACE_EXPORT void turn_stars(Turn& turn);
+_SPACE_EXPORT void turn_constructions(Turn& turn);
+_SPACE_EXPORT void turn_fleets(Turn& turn);
+_SPACE_EXPORT void turn_technology(Turn& turn);
+_SPACE_EXPORT void turn_scans(Turn& turn);
 
 enum class refl_ GameMode : size_t
 {
@@ -318,18 +328,22 @@ struct VisuFleet
 	size_t m_updated = 0;
 };
 
-enum class Stage : unsigned int
+enum class TurnStage : unsigned int
 {
-	Divisions = 0,
-	Movements = 1,
-	Combats = 2,
-	Systems = 3,
-	Constructions = 4,
-	Revolts = 5,
-	Technology = 6,
-	Payments = 7,
-	Count = 8
+	None = 0,
+	Divisions = 1,
+	Movements = 2,
+	Combats = 3,
+	Systems = 4,
+	Constructions = 5,
+	Fleets = 6,
+	Technology = 7,
+	Scans = 8,
+	Count = 9
 };
+
+using TurnStep = void(*)(Turn&);
+export_ extern _SPACE_EXPORT TurnStep g_turn_steps[size_t(TurnStage::Count)];
 
 struct TurnEvents
 {
@@ -338,31 +352,44 @@ struct TurnEvents
 		std::string m_summary;
 	};
 
-	enum_array<Stage, std::vector<Item>> m_items;
+	enum_array<TurnStage, std::vector<Item>> m_items;
 };
 
 struct Turn
 {
-	Stage m_stage = Stage::Divisions;
+	Turn(std::vector<Commander*> commanders) : m_commanders(commanders) {}
 
-	void next_state() { m_stage = Stage(uint(m_stage) + 1); }
+	std::vector<Commander*> m_commanders;
 
-	void add_item(Stage stage, Commander& commander, std::string summary)
+	TurnStage m_stage = TurnStage::None;
+
+	void next_stage() { m_stage = TurnStage(uint(m_stage) + 1); g_turn_steps[size_t(m_stage)](*this);  }
+
+	void add_item(TurnStage stage, Commander& commander, std::string summary)
 	{
 		m_events[&commander].m_items[size_t(stage)].push_back({ summary });
 	}
 
 	std::map<Commander*, TurnEvents> m_events;
 
-	std::vector<SpatialCombat*> m_spatial_combats;
+	std::vector<Fleet*> m_divisions;
+	std::vector<Fleet*> m_jumps;
+	std::vector<Fleet*> m_tracks;
+	std::vector<SpatialCombat> m_spatial_combats;
 	std::vector<PlanetaryCombat> m_planetary_combats;
+
+	size_t m_current_combat = 0;
+	size_t m_current_jump = 0;
+
+	SpatialCombat* current_combat() { return m_current_combat < m_spatial_combats.size() ? &m_spatial_combats[m_current_combat] : nullptr; }
+	Fleet* current_jump() { return m_current_jump < m_jumps.size() ? m_jumps[m_current_jump] : nullptr; }
 };
 
 class refl_ _SPACE_EXPORT Player
 {
 public:
-	Player(Galaxy* galaxy, Commander* commander) : m_galaxy(galaxy), m_commander(commander) {}
-	Colour col;
+	Player(Galaxy* galaxy, Commander* commander);
+
 	Galaxy* m_galaxy;
 	Commander* m_commander;
 
@@ -373,8 +400,6 @@ public:
 
 	Turn m_last_turn;
 	Turn m_turn_replay;
-
-	SpatialCombat* m_current_combat;
 };
 
 struct refl_ _SPACE_EXPORT SpatialPower
@@ -408,8 +433,8 @@ public:
 	comp_ attr_ Receptor m_receptor;
 	comp_ attr_ Active m_active;
 
-	attr_ mut_ uvec2 m_coord;
-	attr_ mut_ std::string m_name;
+	attr_ uvec2 m_coord;
+	attr_ std::string m_name;
 	
 	enum_array<Resource, int> m_resources;
 	enum_array<Resource, int> m_stocks;
@@ -420,19 +445,19 @@ public:
 
 	std::vector<Construction> m_constructions;
 
-	attr_ mut_ int m_stability = 100;
-	attr_ mut_ bool m_revolt = false;
+	attr_ int m_stability = 100;
+	attr_ bool m_revolt = false;
 
-	attr_ mut_ int m_environment = 10;
-	attr_ mut_ int m_terraformation = 0;
+	attr_ int m_environment = 10;
+	attr_ int m_terraformation = 0;
 
-	attr_ mut_ int m_base_population = 0;
-	attr_ mut_ int m_max_population = 0;
-	attr_ mut_ int m_population = 0;
+	attr_ int m_base_population = 0;
+	attr_ int m_max_population = 0;
+	attr_ int m_population = 0;
 
-	attr_ mut_ Taxation m_taxation = Taxation::Medium;
+	attr_ Taxation m_taxation = Taxation::Medium;
 
-	attr_ mut_ Commander* m_commander = nullptr;
+	attr_ Commander* m_commander = nullptr;
 
 	attr_ int m_scan = 0;
 
@@ -447,15 +472,16 @@ public:
 
 struct refl_ _SPACE_EXPORT FleetJump
 {
-	FleetJump() : m_state(DONE) {}
-	FleetJump(uvec2 dest, FleetStance stance, size_t tick) : m_destination(dest), m_stance(stance), m_state(START), m_state_updated(tick) {}
+	FleetJump() : m_state(None) {}
+	FleetJump(uvec2 dest, FleetStance stance, size_t tick) : m_destination(dest), m_stance(stance), m_state(Ordered), m_state_updated(tick) {}
 
 	enum State : unsigned int
 	{
-		DONE,
-		START,
-		JUMP,
-		END,
+		None,
+		Ordered,
+		Start,
+		Jump,
+		End,
 	};
 
 	void update(Fleet& fleet, size_t tick);
@@ -468,15 +494,14 @@ struct refl_ _SPACE_EXPORT FleetJump
 
 struct refl_ _SPACE_EXPORT FleetSplit
 {
-	FleetSplit() : m_state(DONE) {}
-	FleetSplit(const std::string& name, FleetStance stance, std::map<ShipSchema*, size_t> ships, size_t tick) : m_name(name), m_stance(stance), m_ships(ships), m_state(START), m_state_updated(tick) {}
+	FleetSplit() : m_state(None) {}
+	FleetSplit(const std::string& name, FleetStance stance, std::map<ShipSchema*, size_t> ships, size_t tick) : m_name(name), m_stance(stance), m_ships(ships), m_state(Ordered), m_state_updated(tick) {}
 
 	enum State : unsigned int
 	{
-		DONE,
-		START,
-		JUMP,
-		END,
+		None,
+		Ordered,
+		Divide,
 	};
 
 	void update(Fleet& fleet, size_t tick);
@@ -499,22 +524,22 @@ public:
 	comp_ attr_ Receptor m_receptor;
 	comp_ attr_ Active m_active;
 
-	attr_ mut_ Commander* m_commander;
-	attr_ mut_ uvec2 m_coord;
-	attr_ mut_ std::string m_name;
+	attr_ Commander* m_commander;
+	attr_ uvec2 m_coord;
+	attr_ std::string m_name;
 
-	attr_ mut_ float m_experience = 0.f;
-	attr_ mut_ SpatialPower m_spatial;
-	attr_ mut_ float m_spatial_power = 0.f;
-	attr_ mut_ float m_planetary_power = 0.f;
-	attr_ mut_ size_t m_speed = 0;
-	attr_ mut_ size_t m_scan = 0;
-	attr_ mut_ float m_upkeep = 0.f;
+	attr_ float m_experience = 0.f;
+	attr_ SpatialPower m_spatial;
+	attr_ float m_spatial_power = 0.f;
+	attr_ float m_planetary_power = 0.f;
+	attr_ size_t m_speed = 0;
+	attr_ size_t m_scan = 0;
+	attr_ float m_upkeep = 0.f;
 
-	attr_ mut_ FleetStance m_stance = FleetStance::Movement;
+	attr_ FleetStance m_stance = FleetStance::Movement;
 	
-	attr_ mut_ FleetJump m_jump;
-	attr_ mut_ FleetSplit m_split;
+	attr_ FleetJump m_jump;
+	attr_ FleetSplit m_split;
 
 	attr_ bool m_fought = false;
 	
@@ -531,10 +556,10 @@ public:
 
 	vec3 base_position();
 
-	void add_ships(ShipSchema& schema, size_t number);
+	void add_ships(ShipSchema& schema, int number);
 	void set_ships(ShipSchema& schema, size_t number);
 
-	void add_ships(const std::string& code, size_t number);
+	void add_ships(const std::string& code, int number);
 	void set_ships(const std::string& code, size_t number);
 
 	void update_stats();
@@ -557,23 +582,23 @@ struct refl_ _SPACE_EXPORT Schema
 		, m_andrium(andrium), m_planetary(planetary), m_spatial(spatial), m_resistance(resistance), m_speed(speed), m_scan(scan)
 	{}
 
-	attr_ mut_ std::string m_code;
-	attr_ mut_ std::string m_name;
-	attr_ mut_ std::string m_conceptor;
+	attr_ std::string m_code;
+	attr_ std::string m_name;
+	attr_ std::string m_conceptor;
 
-	attr_ mut_ size_t m_level = 1;
+	attr_ size_t m_level = 1;
 
-	attr_ mut_ float m_cost = 0.f;
-	attr_ mut_ float m_minerals = 0.f;
-	attr_ mut_ float m_andrium = 0.f;
+	attr_ float m_cost = 0.f;
+	attr_ float m_minerals = 0.f;
+	attr_ float m_andrium = 0.f;
 	
-	attr_ mut_ float m_planetary = 0.f;
-	attr_ mut_ SpatialPower m_spatial = {};
-	attr_ mut_ float m_resistance = 0.f;
-	attr_ mut_ size_t m_speed = 0;
-	attr_ mut_ size_t m_scan = 0;
+	attr_ float m_planetary = 0.f;
+	attr_ SpatialPower m_spatial = {};
+	attr_ float m_resistance = 0.f;
+	attr_ size_t m_speed = 0;
+	attr_ size_t m_scan = 0;
 
-	attr_ mut_ float m_upkeep_factor = 1.f;
+	attr_ float m_upkeep_factor = 1.f;
 };
 
 struct refl_ _SPACE_EXPORT ShipHull : public Schema
@@ -608,11 +633,11 @@ struct refl_ _SPACE_EXPORT ShipSchema : public Schema
 			}
 	}
 
-	attr_ mut_ size_t m_size;
+	attr_ size_t m_size;
 
 	std::array<uint, 6> m_weapon_count;
 
-	attr_ mut_ WeaponType m_main_weapon = WeaponType::None;
+	attr_ WeaponType m_main_weapon = WeaponType::None;
 
 	//ShipHull* m_hull;
 	//ShipEngine* m_engine;
@@ -677,12 +702,12 @@ public:
 
 	//comp_ attr_ Entity m_entity;
 
-	attr_ mut_ Id m_id;
-	attr_ mut_ std::string m_name;
-	attr_ mut_ Race m_race;
-	attr_ mut_ int m_command;
-	attr_ mut_ int m_commerce;
-	attr_ mut_ int m_diplomacy;
+	attr_ Id m_id;
+	attr_ std::string m_name;
+	attr_ Race m_race;
+	attr_ int m_command;
+	attr_ int m_commerce;
+	attr_ int m_diplomacy;
 
 	Colour m_colour;
 	Image256 m_avatar;
@@ -815,8 +840,6 @@ public:
 
 	GalaxyGrid m_grid;
 
-	std::vector<SpatialCombat> m_combats;
-
 	uvec3 m_scale;
 	Plane m_plane;
 	uvec2 m_highlight;
@@ -841,8 +864,8 @@ class refl_ _SPACE_EXPORT CommanderBrush : public Brush
 public:
 	CommanderBrush(ToolContext& context);
 
-	attr_ mut_ Commander* m_commander;
-	attr_ mut_ float m_radius;
+	attr_ Commander* m_commander;
+	attr_ float m_radius;
 
 	virtual ToolState start();
 	virtual void update(const vec3& position);

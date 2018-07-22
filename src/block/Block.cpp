@@ -162,7 +162,7 @@ using namespace mud; namespace toy
 
 	vec3 Block::chunk_coord(size_t index)
 	{
-		vec3 coordinates = this->chunk_coord(index);
+		vec3 coordinates = this->local_chunk_coord(index);
 
 		if(m_parentblock)
 			coordinates += m_parentblock->block_coord(*this) * float(this->subdiv());

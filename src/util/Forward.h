@@ -35,7 +35,7 @@ namespace glm {
     
 }
 
-namespace bx {
+namespace bgfx {
 
     
     
@@ -97,7 +97,7 @@ namespace toy {
     class Scheduler;
 }
 
-namespace bgfx {
+namespace bx {
 
     
     

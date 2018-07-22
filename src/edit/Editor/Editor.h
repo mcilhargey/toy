@@ -32,6 +32,11 @@ using namespace mud; namespace toy
 		std::map<string, std::function<void()>> m_actions;
 	};
 
+	struct refl_ TOY_EDIT_EXPORT GraphicsDebug
+	{
+		bool m_debug_draw_csm = false;
+	};
+
 	class refl_ TOY_EDIT_EXPORT Editor : public EditContext
     {
     public:
@@ -43,6 +48,10 @@ using namespace mud; namespace toy
 
 		World* m_edited_world = nullptr;
 		bool m_run_game = false;
+
+		std::vector<Scene*> m_scenes;
+
+		GraphicsDebug m_graphics_debug;
 
 		void create_scripted_brush();
 

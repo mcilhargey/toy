@@ -17,7 +17,7 @@ using namespace mud; namespace toy
 		ObstacleBody(Entity& entity, Medium& medium, const CollisionShape& shape, float throughput);
 
 		attr_ inline CollisionShape& collision_shape() { return m_collision_shape; }
-		attr_ mut_ float m_throughput;
+		attr_ float m_throughput;
 	};
 
 	class refl_ TOY_CORE_EXPORT Obstacle : public NonCopy

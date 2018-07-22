@@ -41,12 +41,25 @@ public:
 	void open_blocks(GfxSystem& gfx_system, const vec3& position, const ivec2& radius);
 };
 
-struct Bullet
+class refl_ _PLATFORM_EXPORT Bullet : public Complex, public ColliderObject
 {
-	vec3 m_source;
-	quat m_rotation;
-	vec3 m_impact;
-	size_t m_age;
+public:
+	Bullet(Entity& parent, const vec3& source, const quat& rotation, const vec3& velocity);
+	~Bullet();
+
+	comp_ attr_ Entity m_entity;
+
+	attr_ vec3 m_source;
+	attr_ vec3 m_velocity;
+
+	bool m_impacted = false;
+	bool m_destroy = false;
+	vec3 m_impact = Zero3;
+
+	//Solid m_solid;
+	Collider m_collider;
+
+	void update();
 };
 
 enum class refl_ Faction
@@ -59,6 +72,7 @@ struct Aim
 {
 	quat rotation;
 	vec3 start;
+	vec3 direction;
 	vec3 end;
 	Entity* hit;
 };
@@ -93,7 +107,7 @@ public:
 	bool m_walk = true;
 	float m_energy = 100.f;
 
-	std::vector<Bullet> m_bullets;
+	std::vector<unique_ptr<Bullet>> m_bullets;
 
 	Human* m_target = nullptr;
 	vec3 m_dest = Zero3;

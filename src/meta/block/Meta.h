@@ -74,10 +74,10 @@ namespace mud
             },
             // members
             {
-                { type<toy::Element>(), member_address(&toy::Element::m_id), type<mud::Id>(), "id", var(mud::Id()), Member::Value },
-                { type<toy::Element>(), member_address(&toy::Element::m_name), type<std::string>(), "name", var(std::string()), Member::Value },
-                { type<toy::Element>(), member_address(&toy::Element::m_state), type<toy::MatterState>(), "state", var(toy::MatterState()), Member::Value },
-                { type<toy::Element>(), member_address(&toy::Element::m_colour), type<mud::Colour>(), "colour", var(mud::Colour()), Member::Value }
+                { type<toy::Element>(), member_address(&toy::Element::m_id), type<mud::Id>(), "id", var(mud::Id()), Member::Value, nullptr },
+                { type<toy::Element>(), member_address(&toy::Element::m_name), type<std::string>(), "name", var(std::string()), Member::Value, nullptr },
+                { type<toy::Element>(), member_address(&toy::Element::m_state), type<toy::MatterState>(), "state", var(toy::MatterState()), Member::Value, nullptr },
+                { type<toy::Element>(), member_address(&toy::Element::m_colour), type<mud::Colour>(), "colour", var(mud::Colour()), Member::Value, nullptr }
             },
             // methods
             {
@@ -153,12 +153,12 @@ namespace mud
             },
             // members
             {
-                { type<toy::Block>(), member_address(&toy::Block::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component },
-                { type<toy::Block>(), member_address(&toy::Block::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component },
-                { type<toy::Block>(), member_address(&toy::Block::m_parentblock), type<toy::Block>(), "parentblock", Ref(type<toy::Block>()), Member::Flags(Member::Pointer|Member::Link) },
-                { type<toy::Block>(), member_address(&toy::Block::m_index), type<size_t>(), "index", var(size_t()), Member::Value },
-                { type<toy::Block>(), member_address(&toy::Block::m_size), type<mud::vec3>(), "size", var(mud::vec3()), Member::Value },
-                { type<toy::Block>(), member_address(&toy::Block::m_updated), type<size_t>(), "updated", var(size_t()), Member::Value }
+                { type<toy::Block>(), member_address(&toy::Block::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr },
+                { type<toy::Block>(), member_address(&toy::Block::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component, nullptr },
+                { type<toy::Block>(), member_address(&toy::Block::m_parentblock), type<toy::Block>(), "parentblock", Ref(type<toy::Block>()), Member::Flags(Member::Pointer|Member::Link), nullptr },
+                { type<toy::Block>(), member_address(&toy::Block::m_index), type<size_t>(), "index", var(size_t()), Member::Value, nullptr },
+                { type<toy::Block>(), member_address(&toy::Block::m_size), type<mud::vec3>(), "size", var(mud::vec3()), Member::Value, nullptr },
+                { type<toy::Block>(), member_address(&toy::Block::m_updated), type<size_t>(), "updated", var(size_t()), Member::Value, nullptr }
             },
             // methods
             {
@@ -196,11 +196,11 @@ namespace mud
             },
             // members
             {
-                { type<toy::Chunk>(), member_address(&toy::Chunk::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component },
-                { type<toy::Chunk>(), member_address(&toy::Chunk::m_index), type<size_t>(), "index", var(size_t()), Member::Value },
-                { type<toy::Chunk>(), Address(), type<toy::Block>(), "block", Ref(type<toy::Block>()), Member::Link },
-                { type<toy::Chunk>(), Address(), type<toy::Element>(), "element", Ref(type<toy::Element>()), Member::Link },
-                { type<toy::Chunk>(), member_address(&toy::Chunk::m_size), type<float>(), "size", var(float()), Member::Value }
+                { type<toy::Chunk>(), member_address(&toy::Chunk::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr },
+                { type<toy::Chunk>(), member_address(&toy::Chunk::m_index), type<size_t>(), "index", var(size_t()), Member::Value, nullptr },
+                { type<toy::Chunk>(), Address(), type<toy::Block>(), "block", Ref(type<toy::Block>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Chunk>(object).m_block); } },
+                { type<toy::Chunk>(), Address(), type<toy::Element>(), "element", Ref(type<toy::Element>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Chunk>(object).m_element); } },
+                { type<toy::Chunk>(), member_address(&toy::Chunk::m_size), type<float>(), "size", var(float()), Member::Value, nullptr }
             },
             // methods
             {
@@ -234,9 +234,9 @@ namespace mud
             },
             // members
             {
-                { type<toy::Heap>(), member_address(&toy::Heap::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component },
-                { type<toy::Heap>(), Address(), type<toy::Element>(), "element", Ref(type<toy::Element>()), Member::Link },
-                { type<toy::Heap>(), member_address(&toy::Heap::m_radius), type<float>(), "radius", var(float()), Member::Value }
+                { type<toy::Heap>(), member_address(&toy::Heap::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr },
+                { type<toy::Heap>(), Address(), type<toy::Element>(), "element", Ref(type<toy::Element>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::Heap>(object).m_element); } },
+                { type<toy::Heap>(), member_address(&toy::Heap::m_radius), type<float>(), "radius", var(float()), Member::Value, nullptr }
             },
             // methods
             {
@@ -270,14 +270,14 @@ namespace mud
             },
             // members
             {
-                { type<toy::Sector>(), member_address(&toy::Sector::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component },
-                { type<toy::Sector>(), member_address(&toy::Sector::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component },
-                { type<toy::Sector>(), member_address(&toy::Sector::m_world_page), type<toy::WorldPage>(), "world_page", Ref(type<toy::WorldPage>()), Member::Component },
-                { type<toy::Sector>(), member_address(&toy::Sector::m_bufferPage), type<toy::BufferPage>(), "bufferPage", Ref(type<toy::BufferPage>()), Member::Component },
-                { type<toy::Sector>(), member_address(&toy::Sector::m_navblock), type<toy::Navblock>(), "navblock", Ref(type<toy::Navblock>()), Member::Component },
-                { type<toy::Sector>(), member_address(&toy::Sector::m_coordinate), type<mud::uvec3>(), "coordinate", var(mud::uvec3()), Member::Value },
-                { type<toy::Sector>(), member_address(&toy::Sector::m_size), type<mud::vec3>(), "size", var(mud::vec3()), Member::Value },
-                { type<toy::Sector>(), member_address(&toy::Sector::m_block), type<toy::Block>(), "block", Ref(type<toy::Block>()), Member::Flags(Member::Pointer|Member::Mutable|Member::Link) }
+                { type<toy::Sector>(), member_address(&toy::Sector::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr },
+                { type<toy::Sector>(), member_address(&toy::Sector::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component, nullptr },
+                { type<toy::Sector>(), member_address(&toy::Sector::m_world_page), type<toy::WorldPage>(), "world_page", Ref(type<toy::WorldPage>()), Member::Component, nullptr },
+                { type<toy::Sector>(), member_address(&toy::Sector::m_bufferPage), type<toy::BufferPage>(), "bufferPage", Ref(type<toy::BufferPage>()), Member::Component, nullptr },
+                { type<toy::Sector>(), member_address(&toy::Sector::m_navblock), type<toy::Navblock>(), "navblock", Ref(type<toy::Navblock>()), Member::Component, nullptr },
+                { type<toy::Sector>(), member_address(&toy::Sector::m_coordinate), type<mud::uvec3>(), "coordinate", var(mud::uvec3()), Member::Value, nullptr },
+                { type<toy::Sector>(), member_address(&toy::Sector::m_size), type<mud::vec3>(), "size", var(mud::vec3()), Member::Value, nullptr },
+                { type<toy::Sector>(), member_address(&toy::Sector::m_block), type<toy::Block>(), "block", Ref(type<toy::Block>()), Member::Flags(Member::Pointer|Member::Link), nullptr }
             },
             // methods
             {
@@ -311,11 +311,13 @@ namespace mud
             },
             // members
             {
-                { type<toy::TileBlock>(), member_address(&toy::TileBlock::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component },
-                { type<toy::TileBlock>(), member_address(&toy::TileBlock::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component },
-                { type<toy::TileBlock>(), member_address(&toy::TileBlock::m_world_page), type<toy::WorldPage>(), "world_page", Ref(type<toy::WorldPage>()), Member::Component },
-                { type<toy::TileBlock>(), member_address(&toy::TileBlock::m_navblock), type<toy::Navblock>(), "navblock", Ref(type<toy::Navblock>()), Member::Component },
-                { type<toy::TileBlock>(), member_address(&toy::TileBlock::m_wfc_block), type<mud::WfcBlock>(), "wfc_block", Ref(type<mud::WfcBlock>()), Member::None }
+                { type<toy::TileBlock>(), member_address(&toy::TileBlock::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr },
+                { type<toy::TileBlock>(), member_address(&toy::TileBlock::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component, nullptr },
+                { type<toy::TileBlock>(), member_address(&toy::TileBlock::m_world_page), type<toy::WorldPage>(), "world_page", Ref(type<toy::WorldPage>()), Member::Component, nullptr },
+                { type<toy::TileBlock>(), member_address(&toy::TileBlock::m_navblock), type<toy::Navblock>(), "navblock", Ref(type<toy::Navblock>()), Member::Component, nullptr },
+                { type<toy::TileBlock>(), member_address(&toy::TileBlock::m_wfc_block), type<mud::WfcBlock>(), "wfc_block", Ref(type<mud::WfcBlock>()), Member::None, nullptr },
+                { type<toy::TileBlock>(), member_address(&toy::TileBlock::m_setup), type<bool>(), "setup", var(bool(false)), Member::Value, nullptr },
+                { type<toy::TileBlock>(), member_address(&toy::TileBlock::m_populated), type<bool>(), "populated", var(bool(false)), Member::Value, nullptr }
             },
             // methods
             {

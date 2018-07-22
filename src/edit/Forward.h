@@ -39,7 +39,7 @@ namespace glm {
     
 }
 
-namespace bx {
+namespace bgfx {
 
     
     
@@ -93,11 +93,13 @@ namespace toy {
     class Toolbox;
     class DynamicToolbox;
     class Toolbelt;
+    class PlayTool;
     struct ActionGroup;
+    struct GraphicsDebug;
     class Editor;
 }
 
-namespace bgfx {
+namespace bx {
 
     
     

@@ -13,7 +13,6 @@
 #include <core/Movable/Movable.h>
 #include <core/Physic/Scope.h>
 #include <core/Entity/EntityObserver.h>
-#include <core/Camera/CameraObserver.h>
 
 #ifndef MUD_CPP_20
 #include <functional>
@@ -25,55 +24,50 @@ using namespace mud; namespace toy
 	class refl_ TOY_CORE_EXPORT Camera : public Updatable
 	{
 	public:
-		constr_ Camera(Entity& entity, float lensDistance = 1.f, float nearClipDistance = 0.001f, float farClipDistance = 1000.f);
+		constr_ Camera(Entity& entity, float lensDistance = 1.f, float near = 0.001f, float far = 1000.f);
 		~Camera();
 
 		attr_ Entity& m_entity;
 
-		attr_ mut_ float m_lensDistance;
-		attr_ mut_ float m_lensAngle = 0.f;
+		attr_ float m_lens_distance = 1.f;
+		attr_ float m_lens_angle = 0.f;
 
-		attr_ mut_ float m_nearClipDistance;
-		attr_ mut_ float m_farClipDistance;
+		attr_ float m_near = 0.001f;
+		attr_ float m_far = 1000.f;
 
-		attr_ mut_ float m_aspectRatio;
+		attr_ float m_aspect;
 
-		bool m_lensUpdated = true;
+		bool m_lens_updated = true;
 
-		vec3 m_lensPosition = Zero3;
-		quat m_lensRotation = ZeroQuat;
+		vec3 m_lens_position = Zero3;
+		quat m_lens_rotation = ZeroQuat;
 
 		size_t m_last_updated = 0;
 
 		void next_frame(size_t tick, size_t delta);
 
-		void calcLensPosition();
-		void calcLensRotation();
+		void calc_lens_position();
+		void calc_lens_rotation();
 
-		void setLensDistance(float distance);
+		void set_lens_distance(float distance);
 		void zoom(float amount);
 
-		void setLensAngle(float angle);
-		void pitchLens(float amount);
+		void set_lens_angle(float angle);
+		void pitch_lens(float amount);
 
 		//void viewportRay(float tx, float ty, vec3& from, vec3& to);
 		//void planarRay(float tx, float ty, vec3& from, vec3& to);
 
-		vec3 lensDirection();
-
-		void observe(CameraObserver& observer);
-		void unobserve(CameraObserver& observer);
+		vec3 lens_direction();
 
 	private:
 		bool m_planar;
-		float m_verticalAngle;
-		float m_planeDistance;
+		float m_vertical_angle;
+		float m_plane_distance;
 
 #ifdef TOY_THREADED
 		TransfomReceiver m_receiver;
 #endif
-
-		std::vector<CameraObserver*> m_observers;
 	};
 
 	class refl_ TOY_CORE_EXPORT OCamera : public Complex
@@ -87,6 +81,6 @@ using namespace mud; namespace toy
 		comp_ attr_ Camera m_camera;
 	};
 
-	export_ TOY_CORE_EXPORT void jump_camera_to(Camera& camera, const vec3& position);
+	export_ TOY_CORE_EXPORT void jump_camera_to(Camera& camera, const vec3& position, float distance = 1.f, float rotation = 0.f);
 	export_ TOY_CORE_EXPORT void move_camera_to(Camera& camera, const vec3& position);
 }

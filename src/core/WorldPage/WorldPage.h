@@ -41,11 +41,11 @@ using namespace mud; namespace toy
 
 		attr_ Entity& m_entity;
 		attr_ Emitter& m_emitter;
-		attr_ mut_ bool m_open;
+		attr_ bool m_open;
 		attr_ vec3 m_extents;
 		attr_ World& m_world;
 		attr_ size_t m_last_rebuilt = 0;
-		attr_ std::atomic<size_t> m_updated = { 0 };
+		std::atomic<size_t> m_updated = { 0 };
 
 		std::vector<string> m_geometry_filter;
 

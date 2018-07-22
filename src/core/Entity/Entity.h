@@ -23,7 +23,7 @@ using namespace mud; namespace toy
 {
 	template class refl_ TOY_CORE_EXPORT Array<Entity>;
 
-	class refl_ TOY_CORE_EXPORT Entity : public Updatable
+	class refl_ TOY_CORE_EXPORT Entity : public Updatable, public Transform
     {
 	public:
 		constr_ Entity(Id id, Complex& complex, Entity& parent, const vec3& position, const quat& rotation);
@@ -33,10 +33,8 @@ using namespace mud; namespace toy
 		attr_ Id m_id;
 		attr_ Complex& m_complex;
 		attr_ World& m_world;
-		attr_ mut_ link_ Entity* m_parent;
+		attr_ link_ Entity* m_parent;
 
-		attr_ mut_ vec3 m_position;
-		attr_ mut_ quat m_rotation;
 		attr_ graph_ Array<Entity> m_contents;
 
 		size_t m_last_tick = 0;

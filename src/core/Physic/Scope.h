@@ -64,7 +64,7 @@ using namespace mud; namespace toy
 		constr_ Emitter(Entity& entity);
 		~Emitter();
 
-		 attr_ Entity& m_entity;
+		attr_ Entity& m_entity;
 
 		EmitterScope& addScope(Medium& medium, const CollisionShape& collision_shape, CollisionGroup group);
 		EmitterSphere& addSphere(Medium& medium, float radius, CollisionGroup group = CM_SOURCE);
@@ -79,7 +79,7 @@ using namespace mud; namespace toy
 		constr_ Receptor(Entity& entity);
 		~Receptor();
 
-		 attr_ Entity& m_entity;
+		attr_ Entity& m_entity;
 
 		ReceptorScope& addScope(object_ptr<ReceptorScope> emitter);
 		ReceptorSphere& addSphere(Medium& medium, float radius, CollisionGroup group = CM_RECEPTOR);

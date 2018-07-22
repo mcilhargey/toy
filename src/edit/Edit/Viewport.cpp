@@ -31,7 +31,7 @@ using namespace mud; namespace toy
 	Viewer& scene_viewport(Widget& parent, VisuScene& scene, Camera& camera, Selection& selection)
 	{
 		Widget& board = ui::widget(parent, styles().sheet, &scene);
-		Viewer& viewer = board.child_args<Viewer, Scene&>(scene.m_scene);
+		Viewer& viewer = board.suba<Viewer, Scene&>(scene.m_scene);
 		if(viewer.once())
 		{
 			viewer.m_controller = make_unique<RTSCameraController>(viewer, camera);

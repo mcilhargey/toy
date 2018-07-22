@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
 		app.run_editor(game);
 	}
 
-	app.run_editor("ex_space");
+	//app.run_editor("ex_space");
 	//app.run_editor("ex_platform");
-	//app.run_editor("ex_blocks");
+	app.run_editor("ex_blocks");
 }
