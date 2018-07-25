@@ -28,12 +28,8 @@ namespace mud
     export_ template <> TOY_VISU_EXPORT Type& type<toy::PhysicDebugDraw>();
     export_ template <> TOY_VISU_EXPORT Type& type<toy::SoundSource>();
     export_ template <> TOY_VISU_EXPORT Type& type<toy::VisuScene>();
-    export_ template <> TOY_VISU_EXPORT Type& type<toy::VisuSystem>();
-    export_ template <> TOY_VISU_EXPORT Type& type<toy::VisuModule>();
     
 	export_ template struct TOY_VISU_EXPORT Typed<std::vector<toy::PhysicDebugDraw*>>;
 	export_ template struct TOY_VISU_EXPORT Typed<std::vector<toy::SoundSource*>>;
 	export_ template struct TOY_VISU_EXPORT Typed<std::vector<toy::VisuScene*>>;
-	export_ template struct TOY_VISU_EXPORT Typed<std::vector<toy::VisuSystem*>>;
-	export_ template struct TOY_VISU_EXPORT Typed<std::vector<toy::VisuModule*>>;
 }

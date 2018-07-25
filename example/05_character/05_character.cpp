@@ -11,9 +11,6 @@ Human::Human(Id id, Entity& parent, const vec3& position, float radius, float he
 	, m_next_change(5.f)
 	//, m_solid(make_unique<Solid>(m_entity, *this, CollisionShape(Cylinder(0.35f, 2.f), Y3 * 1.f), SolidMedium::me(), CM_SOLID, false, 1.f))
 {
-	// @5603 : adding to nested only when object is finish -> in prototype
-	m_entity.m_parent->m_contents.add(m_entity);
-
 	m_entity.m_world.add_task(this, 3); // TASK_GAMEOBJECT
 
 	m_entity.part<Active>().addState("idle", 1, 0.5f);
@@ -173,7 +170,7 @@ void ex_05_character_init(GameShell& shell, Game& game)
 void ex_05_character_start(GameShell& shell, Game& game)
 {
 	UNUSED(shell);
-	game.m_world = &GlobalPool::me().pool<DefaultWorld>().construct("Arcadia").m_world;
+	game.m_world = &global_pool<DefaultWorld>().construct("Arcadia").m_world;
 }
 
 void ex_05_character_pump(GameShell& shell, Game& game, Widget& parent, Dockbar& dockbar)

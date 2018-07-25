@@ -125,10 +125,7 @@ Bullet::Bullet(Entity& parent, const vec3& source, const quat& rotation, float v
 	, m_velocity(rotate(rotation, -Z3) * velocity)
 	//, m_solid(m_entity, *this, Sphere(0.1f), SolidMedium::me(), CollisionGroup(energy), false, 1.f)
 	, m_collider(m_entity, *this, Sphere(0.1f), SolidMedium::me(), CM_SOLID)
-{
-	// @5603 : adding to nested only when object is finish -> in prototype
-	m_entity.m_parent->m_contents.add(m_entity);
-}
+{}
 
 Bullet::~Bullet()
 {}
@@ -176,12 +173,13 @@ float Human::headlight_angle = 40.f;
 //float Human::headlight_angle = 20.f;
 
 Human::Human(Id id, Entity& parent, const vec3& position, Faction faction)
-	: Complex(id, type<Human>(), m_movable, m_emitter, m_receptor, m_active, *this)
+	: Complex(id, type<Human>(), m_movable, m_emitter, m_receptor, m_active, m_script, *this)
 	, m_entity(id, *this, parent, position, ZeroQuat)
 	, m_movable(m_entity)
 	, m_emitter(m_entity)
 	, m_receptor(m_entity)
 	, m_active(m_entity)
+	, m_script(m_entity)
 	, m_faction(faction)
 	, m_walk(false)
 	, m_solid(m_entity, *this, CollisionShape(Capsule(0.35f, 1.1f), Y3 * 0.9f), SolidMedium::me(), CM_SOLID, false, 1.f)
@@ -190,9 +188,6 @@ Human::Human(Id id, Entity& parent, const vec3& position, Faction faction)
 
 	m_emitter.addSphere(VisualMedium::me(), 0.1f);
 	m_receptor.addSphere(VisualMedium::me(), 30.f);
-
-	// @5603 : adding to nested only when object is finish -> in prototype
-	m_entity.m_parent->m_contents.add(m_entity);
 }
 
 Human::~Human()
@@ -256,15 +251,22 @@ void Human::next_frame(size_t tick, size_t delta)
 				}
 		}
 
+		auto stop = [&]
+		{
+			m_state = { "IdleAim", true };
+			m_movable.m_linear_velocity = Zero3;
+			m_dest = Zero3;
+		};
+
+
 		m_cooldown = max(0.f, m_cooldown - float(delta) * 0.05f);
 		if(m_target)
 		{
-			m_movable.m_linear_velocity = Zero3;
-			m_dest = Zero3;
+			stop();
 
-			auto x0z = [](const vec3& v) -> vec3 { return { v.x, 0.f, v.z }; };
-
+			auto x0z = [](const vec3& v) -> vec3 { return{ v.x, 0.f, v.z }; };
 			m_entity.set_rotation(look_at(x0z(m_entity.m_position), x0z(m_target->m_entity.m_position)));
+
 			if(m_cooldown == 0.f)
 			{
 				this->shoot();
@@ -288,9 +290,7 @@ void Human::next_frame(size_t tick, size_t delta)
 			{
 				if(steer_2d(m_movable, m_dest, 3.f, float(delta) * float(c_tick_interval), 1.f))
 				{
-					m_state = { "IdleAim", true };
-					m_movable.m_linear_velocity = Zero3;
-					m_dest = Zero3;
+					stop();
 				}
 				else
 				{
@@ -311,11 +311,10 @@ Aim Human::aim()
 {
 	quat rotation = this->sight(m_aiming);
 	vec3 muzzle = m_entity.m_position + rotate(m_entity.m_rotation, Human::muzzle_offset);
-	vec3 direction = rotate(rotation, -Z3);
 	vec3 end = muzzle + rotate(rotation, -Z3) * 1000.f;
 
 	Collision hit = m_entity.m_world.part<PhysicWorld>().raycast({ muzzle, end }, CM_GROUND | CM_SOLID);
-	return { rotation, muzzle, direction, hit.m_second ? hit.m_hit_point : end, hit.m_second ? &hit.m_second->m_entity : nullptr };
+	return { rotation, muzzle, hit.m_second ? hit.m_hit_point : end, hit.m_second ? &hit.m_second->m_entity : nullptr };
 }
 
 void Human::shoot()
@@ -341,10 +340,7 @@ Lamp::Lamp(Id id, Entity& parent, const vec3& position)
 	: Complex(id, type<Lamp>(), m_movable, *this)
 	, m_entity(id, *this, parent, position, ZeroQuat)
 	, m_movable(m_entity)
-{
-	// @5603 : adding to nested only when object is finish -> in prototype
-	m_entity.m_parent->m_contents.add(m_entity);
-}
+{}
 
 Crate::Crate(Id id, Entity& parent, const vec3& position, const vec3& extents)
 	: Complex(id, type<Crate>(), m_movable, *this)
@@ -352,10 +348,7 @@ Crate::Crate(Id id, Entity& parent, const vec3& position, const vec3& extents)
 	, m_movable(m_entity)
 	, m_extents(extents)
 	, m_solid(m_entity, *this, Cube(extents), SolidMedium::me(), CM_SOLID, false, 10.f)
-{
-	// @5603 : adding to nested only when object is finish -> in prototype
-	m_entity.m_parent->m_contents.add(m_entity);
-}
+{}
 
 Player::Player(TileWorld& world)
 	: m_world(&world)
@@ -541,10 +534,6 @@ void paint_crate(Gnode& parent, Crate& crate)
 
 void paint_scene(Gnode& parent)
 {
-#ifdef TOY_SOUND
-	parent.m_sound_manager->threadUpdate();
-#endif
-
 	parent.m_scene->m_environment.m_radiance.m_energy = 0.2f;
 	parent.m_scene->m_environment.m_radiance.m_ambient = 0.04f;
 
@@ -556,8 +545,6 @@ void paint_scene(Gnode& parent)
 void paint_viewer(Viewer& viewer)
 {
 	viewer.m_filters.m_glow.m_enabled = true;
-	viewer.m_filters.m_glow.m_levels_1_4 = { 1.f, 0.f, 0.f, 0.f };
-	viewer.m_filters.m_glow.m_intensity = 0.4f;
 #ifndef MUD_PLATFORM_EMSCRIPTEN
 	viewer.m_filters.m_glow.m_bicubic_filter = true;
 #endif
@@ -565,9 +552,9 @@ void paint_viewer(Viewer& viewer)
 
 void physic_painter(GameScene& scene)
 {
-	static PhysicDebugDraw physic_draw = { *scene.m_scene->m_scene.m_immediate };
+	static PhysicDebugDraw physic_draw = { *scene.m_scene.m_immediate };
 
-	scene.m_scene->painter("PhysicsDebug", [&](size_t index, VisuScene& visu_scene, Gnode& parent) {
+	scene.painter("PhysicsDebug", [&](size_t index, VisuScene& visu_scene, Gnode& parent) {
 		UNUSED(index); UNUSED(visu_scene); physic_draw.draw_physics(parent, *scene.m_game.m_world, VisualMedium::me());
 	});
 }
@@ -591,22 +578,22 @@ inline void range_entity_painter(VisuScene& scene, Entity& reference, float rang
 void ex_platform_scene(GameShell& app, GameScene& scene)
 {
 	static OmniVision vision = { *scene.m_game.m_world };
-	scene.m_camera.m_entity.set_position(Zero3);
+	//scene.m_camera.m_entity.set_position(Zero3);
 
-	//scene_painters(*scene.m_scene, vision.m_store);
-	scene.m_scene->painter("World", [&](size_t index, VisuScene& scene, Gnode& parent) {
+	//scene_painters(scene, vision.m_store);
+	scene.painter("World", [&](size_t index, VisuScene& scene, Gnode& parent) {
 		UNUSED(scene); paint_scene(parent.subi((void*)index));
 	});
 	
 	Entity& reference = val<Player>(scene.m_player).m_human->m_entity;
 	
-	range_entity_painter<Lamp>(*scene.m_scene, reference, 100.f, "Lamps", vision.m_store, paint_lamp);
-	range_entity_painter<Human>(*scene.m_scene, reference, 100.f, "Humans", vision.m_store, paint_human);
-	range_entity_painter<Crate>(*scene.m_scene, reference, 100.f, "Crates", vision.m_store, paint_crate);
-	range_entity_painter<TileBlock>(*scene.m_scene, reference, 200.f, "Tileblocks", vision.m_store, paint_block);
-	range_entity_painter<Bullet>(*scene.m_scene, reference, 100.f, "Bullets", vision.m_store, paint_bullet);
+	range_entity_painter<Lamp>(scene, reference, 100.f, "Lamps", vision.m_store, paint_lamp);
+	range_entity_painter<Human>(scene, reference, 100.f, "Humans", vision.m_store, paint_human);
+	range_entity_painter<Crate>(scene, reference, 100.f, "Crates", vision.m_store, paint_crate);
+	range_entity_painter<TileBlock>(scene, reference, 200.f, "Tileblocks", vision.m_store, paint_block);
+	range_entity_painter<Bullet>(scene, reference, 100.f, "Bullets", vision.m_store, paint_bullet);
 
-	//physic_painter(*scene.m_scene);
+	//physic_painter(scene);
 }
 
 vec3 find_fitting_player_location(WfcBlock& tileblock)
@@ -631,9 +618,9 @@ Style& menu_style()
 
 Style& button_style()
 {
-	static Style style("GameButton", styles().button, [](Layout& l) {},
+	static Style style = { "GameButton", styles().button, [](Layout& l) {},
 													  [](InkStyle& s) { s.m_empty = false; s.m_text_colour = Colour::AlphaWhite; s.m_text_size = 24.f; },
-													  [](Style& s) { s.decline_skin(HOVERED).m_text_colour = Colour::White; });
+													  [](Style& s) { s.decline_skin(HOVERED).m_text_colour = Colour::White; } };
 	return style;
 }
 
@@ -652,23 +639,6 @@ Style& left_panel_style(UiWindow& ui_window)
 	return style;
 }
 
-struct KeyMove
-{
-	KeyCode key;
-	vec3 force;
-};
-
-void human_control_key(Widget& widget, vec3& force, vec3& torque, const KeyMove& move)
-{
-	const float speed = widget.root_sheet().m_keyboard.m_shift ? 4.f : 15.f;
-	const float rotation = 4.f;
-
-	if(widget.key_event(move.key, EventType::Pressed))
-		force += move.force * speed;
-	if(widget.key_event(move.key, EventType::Released))
-		force -= move.force * speed;
-}
-
 void human_controller(HumanController& controller, Human& human, OrbitController& orbit, bool relative = true)
 {
 	vec3 velocity = human.m_solid->linear_velocity();
@@ -681,18 +651,8 @@ void human_controller(HumanController& controller, Human& human, OrbitController
 
 static void human_velocity_controller(Viewer& viewer, HumanController& controller, Human& human, OrbitController& orbit, bool relative = true)
 {
-	bool shift = viewer.root_sheet().m_keyboard.m_shift;
-
-	const KeyMove moves[8] =
-	{
-		{ KC_UP,    -Z3 },{ KC_W, -Z3 },
-		{ KC_DOWN,   Z3 },{ KC_S,  Z3 },
-		{ KC_LEFT,	-X3 },{ KC_A, -X3 },
-		{ KC_RIGHT,  X3 },{ KC_D,  X3 },
-	};
-
-	for(const KeyMove& key_move : moves)
-		human_control_key(viewer, controller.m_force, controller.m_torque, key_move);
+	const float speed = viewer.root_sheet().m_keyboard.m_shift ? 4.f : 15.f;
+	ui::velocity_controller(viewer, controller.m_force, controller.m_torque, speed);
 
 	if(viewer.key_event(KC_SPACE, EventType::Stroked))
 		human.m_solid->impulse(Y3 * 16.f, Zero3);
@@ -709,7 +669,7 @@ static void human_velocity_controller(Viewer& viewer, HumanController& controlle
 	human_controller(controller, human, orbit, relative);
 }
 
-void ex_platform_game_hud(Viewer& viewer, GameScene& game, Human& human)
+void ex_platform_game_hud(Viewer& viewer, GameScene& scene, Human& human)
 {
 	static Style& style_screen = screen_style();
 	static Style& style_left_panel = left_panel_style(viewer.ui_window());
@@ -717,50 +677,8 @@ void ex_platform_game_hud(Viewer& viewer, GameScene& game, Human& human)
 	//Widget& screen = ui::screen(viewer);
 	Widget& screen = ui::widget(viewer, style_screen);
 
-	enum Mode { ThirdPerson, Isometric, PseudoIsometric };
-	Mode mode = ThirdPerson;
-
-	OrbitController& orbit = mode == Isometric ? ui::isometric_controller(viewer)
-											   : ui::orbit_controller(viewer);
-
-	orbit.set_target(human.m_entity.m_position + Y3 * 2.f);
-
-	if(MouseEvent mouse_event = viewer.mouse_event(DeviceType::Mouse, EventType::Moved))
-	{
-		const float rotation_speed = 1.f;
-		vec2 angle = -mouse_event.m_delta / 250.f * rotation_speed;
-
-		if(mode != ThirdPerson)
-		{
-			Ray ray = viewer.m_viewport.ray(mouse_event.m_relative);
-			vec3 target = plane_segment_intersection(Plane(Y3, human.m_entity.m_position.y), to_segment(ray));
-			if(mode == Isometric)
-			{
-				human.m_entity.set_rotation(look_at(human.m_entity.m_position, target));
-			}
-			else if(mode == PseudoIsometric)
-			{
-				human.m_entity.set_rotation(quat(vec3(0.f, orbit.m_yaw, 0.f)));
-				orbit.m_yaw += angle.x;
-			}
-		}
-		else
-		{
-			human.m_aiming = true;
-			human.m_entity.rotate(Y3, angle.x);
-			human.m_vangle += angle.y;
-			human.m_vangle = min(c_pi / 2.f - 0.01f, max(-c_pi / 2.f + 0.01f, human.m_vangle));
-		}
-	}
-
-	if(mode == ThirdPerson)
-		orbit.set_eye(human.sight());
-
-	if(mode == PseudoIsometric)
-	{
-		orbit.m_pitch = -c_pi / 4.f;
-		orbit.update_eye();
-	}
+	ui::OrbitMode mode = ui::OrbitMode::ThirdPerson;
+	OrbitController& orbit = ui::hybrid_controller(viewer, mode, human.m_entity, human.m_aiming, human.m_vangle);
 
 	Widget& board = ui::board(screen);
 	Widget& row = ui::row(screen);
@@ -777,14 +695,14 @@ void ex_platform_game_hud(Viewer& viewer, GameScene& game, Human& human)
 
 	if(human.m_life > 0.f)
 	{
-		human_velocity_controller(viewer, controller, human, orbit, mode != Isometric);
+		human_velocity_controller(viewer, controller, human, orbit, mode != ui::OrbitMode::Isometric);
 
-		if(mode == Isometric && controller.m_force != Zero3)
+		if(mode == ui::OrbitMode::Isometric && controller.m_force != Zero3)
 			human.m_entity.set_rotation(look_at(Zero3, rotate(quat(vec3(0.f, orbit.m_yaw, 0.f)), controller.m_force)));
 
 		if(viewer.mouse_event(DeviceType::MouseLeft, EventType::Stroked))
 		{
-			viewer.take_modal();
+			viewer.take_focus();
 			human.shoot();
 		}
 
@@ -810,19 +728,22 @@ void ex_platform_game_hud(Viewer& viewer, GameScene& game, Human& human)
 	}
 }
 
-void ex_platform_game_ui(Widget& parent, GameScene& game)
+void ex_platform_game_ui(Widget& parent, Game& game, GameScene& scene)
 {
-	Widget& self = ui::widget(parent, styles().board, &game);//ui::board(parent);
+	Widget& self = ui::widget(parent, styles().board, &scene);//ui::board(parent);
 
-	Viewer& viewer = ui::viewer(self, game.m_scene->m_scene);
-	game.m_viewer = &viewer;
-	//viewer.take_modal();
+	Viewer& viewer = ui::viewer(self, scene.m_scene);
+
+	if(game.m_mode == GameMode::Play && !viewer.modal())
+		viewer.take_modal();
+	else if(game.m_mode == GameMode::PlayEditor && viewer.modal())
+		viewer.yield_modal();
 
 	paint_viewer(viewer);
 	
 	Player& player = val<Player>(game.m_player);
 	if(player.m_human)
-		ex_platform_game_hud(viewer, game, *player.m_human);
+		ex_platform_game_hud(viewer, scene, *player.m_human);
 }
 
 Viewer& ex_platform_menu_viewport(Widget& parent, GameShell& app)
@@ -831,7 +752,7 @@ Viewer& ex_platform_menu_viewport(Widget& parent, GameShell& app)
 	Gnode& scene = viewer.m_scene->begin();
 
 #ifdef TOY_SOUND
-	scene.m_sound_manager = app.m_visu_system->m_sound_system.get();
+	scene.m_sound_manager = app.m_sound_system.get();
 #endif
 
 	paint_viewer(viewer);
@@ -876,7 +797,6 @@ void ex_platform_pump_game(GameShell& app, Game& game, Widget& parent)
 	TileWorld& world = as<TileWorld>(game.m_world->m_complex);
 	TileBlock& block = *world.m_center_block;
 
-	game.m_world->next_frame();
 	world.next_frame();
 
 	Widget& self = ui::widget(parent, styles().board, &game);
@@ -898,32 +818,32 @@ void ex_platform_pump_game(GameShell& app, Game& game, Widget& parent)
 	else
 	{
 		static GameScene& scene = app.add_scene();
-		scene.m_scene->next_frame();
+		scene.next_frame();
 
-		ex_platform_game_ui(self, scene);
+		ex_platform_game_ui(self, game, scene);
 
 		vec3 position = player.m_human->m_entity.m_position;
-		world.open_blocks(*app.m_visu_system->m_gfx_system, position, { 0, 1 });
+		world.open_blocks(*app.m_gfx_system, position, { 0, 1 });
 	}
 }
 
 void ex_platform_init(GameShell& app, Game& game)
 {
 	UNUSED(game);
-	app.m_visu_system->m_gfx_system->add_resource_path("examples/ex_platform/");
-	app.m_visu_system->m_gfx_system->add_resource_path("examples/05_character/");
-	app.m_visu_system->m_gfx_system->add_resource_path("examples/17_wfc/");
+	app.m_gfx_system->add_resource_path("examples/ex_platform/");
+	app.m_gfx_system->add_resource_path("examples/05_character/");
+	app.m_gfx_system->add_resource_path("examples/17_wfc/");
 }
 
 void ex_platform_start(GameShell& app, Game& game)
 {
-	GlobalPool::me().create_pool<TileBlock>();
-	GlobalPool::me().create_pool<TileWorld>();
-	GlobalPool::me().create_pool<Human>();
-	GlobalPool::me().create_pool<Crate>();
-	GlobalPool::me().create_pool<OCamera>();
+	global_pool<TileBlock>();
+	global_pool<TileWorld>();
+	global_pool<Human>();
+	global_pool<Crate>();
+	global_pool<OCamera>();
 
-	TileWorld& tileworld = GlobalPool::me().pool<TileWorld>().construct("Arcadia");
+	TileWorld& tileworld = global_pool<TileWorld>().construct("Arcadia");
 	game.m_world = &tileworld.m_world;
 
 	//app.m_context->lock_mouse(true);
@@ -931,7 +851,7 @@ void ex_platform_start(GameShell& app, Game& game)
 	static Player player = { tileworld };
 	game.m_player = Ref(&player);
 
-	tileworld.generate_block(*app.m_visu_system->m_gfx_system, ivec2(0));
+	tileworld.generate_block(*app.m_gfx_system, ivec2(0));
 }
 
 void ex_platform_pump(GameShell& app, Game& game, Widget& parent, Dockbar* dockbar = nullptr)
@@ -965,6 +885,7 @@ int main(int argc, char *argv[])
 	GameShell app(carray<cstring, 4>{ TOY_RESOURCE_PATH, example_path, human_path, wfc_path }, argc, argv);
 	
 	GameModule module = { _platform::m(), &ex_platform_init, &ex_platform_start, &ex_platform_pump, &ex_platform_scene };
-	app.run_game(module);
+	//app.run_game(module);
+	app.run_editor(module);
 }
 #endif

@@ -34,7 +34,6 @@
 #include <ui/Structs/Container.h>
 #include <ui/Structs/Dock.h>
 
-#include <visu/VisuSystem.h>
 #include <visu/VisuScene.h>
 
 using namespace mud; namespace toy

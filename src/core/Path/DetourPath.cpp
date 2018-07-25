@@ -14,10 +14,7 @@ using namespace mud; namespace toy
 	OWaypoint::OWaypoint(Id id, Entity& parent, const vec3& position)
 		: Complex(id, type<OWaypoint>())
 		, m_entity(id, *this, parent, position, ZeroQuat)
-	{
-		// @5603 : adding to nested only when object is finish -> in prototype
-		m_entity.m_parent->m_contents.add(m_entity);
-	}
+	{}
 
 	DetourPath::DetourPath(Entity& entity, Pathfinder& pathfinder, const vec3& origin, const vec3& destination)
 		: m_entity(entity)

@@ -72,7 +72,6 @@ struct Aim
 {
 	quat rotation;
 	vec3 start;
-	vec3 direction;
 	vec3 end;
 	Entity* hit;
 };
@@ -94,6 +93,7 @@ public:
 	comp_ attr_ Emitter m_emitter;
 	comp_ attr_ Receptor m_receptor;
 	comp_ attr_ Active m_active;
+	comp_ attr_ EntityScript m_script; // @todo ---->> ECS
 
 	Solid m_solid;
 

@@ -28,6 +28,9 @@ using namespace mud; namespace toy
 		, m_hooked(true)
 	{
 		world.add_task(this, short(Task::Entity)); // @todo in the long term this should be moved out of the entity's responsibility
+
+		if(parent)
+			parent->m_contents.add(this);
 	}
 
 	Entity::Entity(Id id, Complex& complex, Entity& parent, const vec3& position, const quat& rotation)

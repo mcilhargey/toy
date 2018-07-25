@@ -40,7 +40,7 @@ using namespace mud; namespace toy
 	class refl_ TOY_EDIT_EXPORT Editor : public EditContext
     {
     public:
-		Editor(VisuSystem& visu_system);
+		Editor(GfxSystem& gfx_system);
         
 		Toolbelt m_toolbelt;
 

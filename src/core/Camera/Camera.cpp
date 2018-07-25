@@ -92,9 +92,6 @@ using namespace mud; namespace toy
 		, m_camera(m_entity, lensDistance, nearClipDistance, farClipDistance)
 	{
 		m_receptor.addSphere(WorldMedium::me(), 0.1f, CM_RECEPTOR);
-
-		// @5603 : adding to nested only when object is finish -> in prototype
-		m_entity.m_parent->m_contents.add(m_entity);
 	}
 
 	void jump_camera_to(Camera& camera, const vec3& target, float distance, float rotation)

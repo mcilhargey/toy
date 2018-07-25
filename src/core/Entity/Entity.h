@@ -106,7 +106,7 @@ using namespace mud; namespace toy
 		inline T* try_part() { return m_complex.isa<T>() ? &m_complex.part<T>() : nullptr; }
 
 		template <class T, class... Types>
-		inline T& construct(Types&&... args) { return GlobalPool::me().template pool<T>().construct(0, *this, std::forward<Types>(args)...); }
+		inline T& construct(Types&&... args) { return global_pool<T>().construct(0, *this, std::forward<Types>(args)...); }
 
     private:
 		MotionState* m_motion_state;

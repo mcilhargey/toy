@@ -80,10 +80,7 @@ using namespace mud; namespace toy
 		, m_chunks(BLOCK_SUBDIV)
 		, m_subblocks(2)
 		, m_scope(m_emitter.addScope(WorldMedium::me(), Cube(m_size), CM_SOURCE))
-	{
-		// @5603 : adding to nested only when object is finish -> in prototype
-		m_entity.m_parent->m_contents.add(m_entity);
-	}
+	{}
 
 	size_t Block::depth()
 	{

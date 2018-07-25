@@ -105,7 +105,7 @@ void paint_scan_star(Gnode& parent, Star& star, Player& player)
 	bool selected = player.m_selected_item == Ref(&star);
 
 	Colour colour = star.m_commander ? star.m_commander->m_colour * 3.f : Colour{ 0.3f, 0.3f, 0.3f, 0.1f };
-	if(player.m_mode == GameMode::Empire && star.m_commander != player.m_commander)
+	if(player.m_mode == GameStage::Empire && star.m_commander != player.m_commander)
 		colour = saturation(colour, 0.7f);
 	if(hovered)
 		colour = colour * 1.5f;
@@ -142,7 +142,6 @@ void paint_scan_star(Gnode& parent, Star& star)
 }
 
 static float spaceship_sizes[8] = { 0.01f, 0.02f, 0.03f, 0.04f, 0.05f, 0.06f, 0.08f, 0.1f };
-float ship_size(size_t size) { return spaceship_sizes[size - 1]; }
 
 void fill_fleet(VisuFleet& visu, const std::map<ShipSchema*, size_t>& ships)
 {
@@ -156,9 +155,9 @@ void fill_fleet(VisuFleet& visu, const std::map<ShipSchema*, size_t>& ships)
 		ShipSchema& schema = *kv.first;
 		for(size_t i = 0; i < kv.second; ++i)
 		{
-			visu.m_ships[schema.m_size].push_back({ ship_size(schema.m_size) });
-			visu.m_ships[schema.m_size].back().m_weapon = schema.m_main_weapon;
-			visu.m_ships[schema.m_size].back().m_destroyed = false;
+			visu.m_ships[schema.m_class].push_back({ spaceship_sizes[schema.m_class] });
+			visu.m_ships[schema.m_class].back().m_weapon = schema.m_main_weapon;
+			visu.m_ships[schema.m_class].back().m_destroyed = false;
 		}
 	}
 
@@ -264,7 +263,7 @@ void paint_scan_fleet(Gnode& parent, Fleet& fleet, Player& player)
 	bool selected = player.m_selected_item == Ref(&fleet);
 
 	Colour colour = fleet.m_commander->m_colour * 2.5f;
-	if(player.m_mode == GameMode::Empire && fleet.m_commander != player.m_commander)
+	if(player.m_mode == GameStage::Empire && fleet.m_commander != player.m_commander)
 		colour = saturation(colour, 0.7f);
 	if(hovered)
 		colour = colour * 1.5f;
@@ -281,7 +280,7 @@ void paint_scan_fleet(Gnode& parent, Fleet& fleet, Player& player)
 	if(fleet.m_commander == player.m_commander)
 		paint_fleet_orders(parent.subx(Orders), fleet, colour);
 
-	if(player.m_mode == GameMode::Empire && fleet.m_commander == player.m_commander)
+	if(player.m_mode == GameStage::Empire && fleet.m_commander == player.m_commander)
 	{
 		paint_range(parent.subx(ScanRange), colour, fleet.m_scan);
 	}
@@ -447,14 +446,12 @@ void paint_combat(Gnode& parent, SpatialCombat& combat)
 {
 	toy::sound(parent, "hornwar", false, 0.3f);
 
-	vec3 offset = Z3 * 0.5f;
-
 	if(combat.m_state == SpatialCombat::APPROACH)
 	{
-		for(CombatFleet& combat_fleet : combat.m_attack)
-			combat_fleet.m_fleet->m_entity.m_position = combat_fleet.m_fleet->base_position() - offset;
-		for(CombatFleet& combat_fleet : combat.m_defense)
-			combat_fleet.m_fleet->m_entity.m_position = combat_fleet.m_fleet->base_position() + offset;
+		//for(CombatFleet& combat_fleet : combat.m_attack)
+		//	combat_fleet.m_fleet->m_entity.m_position = combat_fleet.m_fleet->base_position() - offset;
+		//for(CombatFleet& combat_fleet : combat.m_defense)
+		//	combat_fleet.m_fleet->m_entity.m_position = combat_fleet.m_fleet->base_position() + offset;
 
 		combat.m_state = SpatialCombat::ENGAGE;
 	}
@@ -486,15 +483,17 @@ void paint_combat(Gnode& parent, SpatialCombat& combat)
 		}
 	};
 
-	for(CombatFleet& combat_fleet : combat.m_attack)
-		destroy_ships(*combat_fleet.m_fleet, combat_fleet.m_hull_losses.data());
-	for(CombatFleet& combat_fleet : combat.m_defense)
-		destroy_ships(*combat_fleet.m_fleet, combat_fleet.m_hull_losses.data());
+	vec3 center = to_xz(vec2(combat.m_coord)) + 0.5f + Y3;;
 
-	for(CombatFleet& combat_fleet : combat.m_attack)
-		combat_fleet.m_fleet->m_entity.m_position = combat_fleet.m_fleet->base_position() - offset + offset * combat.m_t_position;
-	for(CombatFleet& combat_fleet : combat.m_defense)
-		combat_fleet.m_fleet->m_entity.m_position = combat_fleet.m_fleet->base_position() + offset - offset * combat.m_t_position;
+	for(CombatFleet& fleet : combat.m_attack)
+		destroy_ships(*fleet.m_fleet, fleet.m_hull_losses.data());
+	for(CombatFleet& fleet : combat.m_defense)
+		destroy_ships(*fleet.m_fleet, fleet.m_hull_losses.data());
+
+	for(CombatFleet& fleet : combat.m_attack)
+		fleet.m_fleet->m_entity.m_position = lerp(fleet.m_fleet->m_slot, center, combat.m_t_position);
+	for(CombatFleet& fleet : combat.m_defense)
+		fleet.m_fleet->m_entity.m_position = lerp(fleet.m_fleet->m_slot, center, combat.m_t_position);
 
 	paint_combat_fleet(parent, combat.m_attack, combat.m_defense, delta, combat.m_dt_intensity);
 	paint_combat_fleet(parent, combat.m_defense, combat.m_attack, delta, combat.m_dt_intensity);
@@ -520,10 +519,6 @@ void paint_galaxy(Gnode& parent, Galaxy& galaxy)
 
 void paint_scene(Gnode& parent)
 {
-#ifdef TOY_SOUND
-	parent.m_sound_manager->threadUpdate();
-#endif
-
 	Light& light = gfx::directional_light_node(parent);
 	light.m_shadows = false;
 

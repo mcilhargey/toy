@@ -40,6 +40,7 @@ void star_power(Star& star, Combat::Force& force)
 		for(size_t i = 0; i < 8; ++i)
 			force.m_damage[i] += building.m_spatial[i] * modifier * float(number);
 
+		force.m_power[0] += float(building.m_spatial) * modifier * float(number);
 		force.m_metal[0] += float(number);
 	}
 }
@@ -64,10 +65,13 @@ void fleet_power_planetary(const std::vector<CombatFleet>& flotilla, Combat::For
 			ShipSchema& ship = *kv.first;
 			int number = kv.second;
 
-			for(size_t i = 0; i < 8; ++i)
-				force.m_metal[i] += g_hull_weight[ship.m_size] * float(number);
-
 			force.m_damage[0] += ship.m_planetary * modifier * float(number);
+
+			for(size_t i = 0; i < 8; ++i)
+			{
+				force.m_power[i] += ship.m_planetary * modifier * float(number);
+				force.m_metal[i] += g_hull_weight[ship.m_class] * float(number);
+			}
 		}
 	}
 }
@@ -94,10 +98,10 @@ void fleet_power_spatial(const std::vector<CombatFleet>& flotilla, Combat::Force
 			int number = kv.second;
 
 			for(size_t i = 0; i < 8; ++i)
-			{
 				force.m_damage[i] += ship.m_spatial[i] * modifier * float(number);
-				force.m_metal[i] += g_hull_weight[ship.m_size] * float(number);
-			}
+
+			force.m_power[ship.m_class] += float(ship.m_spatial) * modifier * float(number);
+			force.m_metal[ship.m_class] += g_hull_weight[ship.m_class] * float(number);
 		}
 	}
 }
@@ -129,7 +133,7 @@ void fleet_losses(std::vector<CombatFleet>& flotilla, float ratio)
 			uint32_t losses = uint32_t(combat_fleet.m_fleet->m_ships[&ship] * damage);
 
 			combat_fleet.m_losses[&ship] = losses;
-			combat_fleet.m_hull_losses[ship.m_size] += losses;
+			combat_fleet.m_hull_losses[ship.m_class] += losses;
 		}
 	}
 }
@@ -163,8 +167,8 @@ void resolve_combat(SpatialCombat& combat)
 
 	for(size_t i = 0; i < 8; ++i)
 	{
-		allies += combat.m_force_attack.m_damage[i] / combat.m_force_attack.m_metal[i];
-		enemies += combat.m_force_defense.m_damage[i] / combat.m_force_defense.m_metal[i];
+		allies += combat.m_force_attack.m_damage[i] * combat.m_force_defense.m_metal[i];
+		enemies += combat.m_force_defense.m_damage[i] * combat.m_force_attack.m_metal[i];
 	}
 
 	float total = allies + enemies;
@@ -454,7 +458,7 @@ void turn_fleets(Turn& turn)
 		for(Fleet* fleet : commander->m_fleets)
 		{
 			sustain_fleet(turn, *commander, *fleet);
-			commander->m_power += fleet->m_spatial_power;
+			commander->m_power += float(fleet->m_spatial_power);
 			commander->m_power += fleet->m_planetary_power;
 		}
 	}
@@ -563,9 +567,6 @@ Galaxy::Galaxy(Id id, Entity& parent, const vec3& position, const uvec2& size)
 	, m_entity(id, *this, parent, position, ZeroQuat)
 	, m_size(size)
 {
-	// @5603 : adding to nested only when object is finish -> in prototype
-	m_entity.m_parent->m_contents.add(m_entity);
-
 	as<Universe>(m_entity.m_world.m_complex).m_galaxies.push_back(this);
 }
 
@@ -582,9 +583,6 @@ Quadrant::Quadrant(Id id, Entity& parent, const vec3& position, const uvec2& coo
 	, m_coord(coord)
 	, m_size(size)
 {
-	// @5603 : adding to nested only when object is finish -> in prototype
-	m_entity.m_parent->m_contents.add(m_entity);
-
 	as<Galaxy>(m_entity.m_parent->m_complex).m_quadrants.push_back(this);
 }
 
@@ -599,9 +597,6 @@ Star::Star(Id id, Entity& parent, const vec3& position, const uvec2& coord, cons
 	, m_resources{}
 {
 	m_entity.m_world.add_task(this, short(Task::GameObject));
-
-	// @5603 : adding to nested only when object is finish -> in prototype
-	m_entity.m_parent->m_contents.add(m_entity);
 
 	this->galaxy().m_stars.push_back(this);
 	this->galaxy().m_grid.m_stars[coord] = this;
@@ -669,9 +664,6 @@ Fleet::Fleet(Id id, Entity& parent, const vec3& position, Commander& commander, 
 {
 	m_entity.m_world.add_task(this, 3); // TASK_GAMEOBJECT
 
-	// @5603 : adding to nested only when object is finish -> in prototype
-	m_entity.m_parent->m_contents.add(m_entity);
-
 	m_commander->m_fleets.push_back(this);
 
 	this->galaxy().m_fleets.push_back(this);
@@ -686,11 +678,6 @@ Fleet::~Fleet()
 }
 
 Galaxy& Fleet::galaxy() { return m_entity.m_parent->part<Galaxy>(); } // as<Galaxy>(*m_entity.m_parent->m_construct)
-
-vec3 Fleet::base_position()
-{
-	return vec3{ m_coord.x, 0.f, m_coord.y } + 0.5f + Y3;
-}
 
 void update_visu_fleet(VisuFleet& visu, size_t tick, size_t delta)
 {
@@ -717,7 +704,7 @@ void Fleet::set_ships(ShipSchema& schema, size_t number)
 
 void Fleet::add_ships(ShipSchema& schema, int number)
 {
-	if(number < 0 && abs(number) > m_ships[&schema])
+	if(number < 0 && size_t(abs(number)) > m_ships[&schema])
 	{
 		printf("WARNING: removing more ships than the fleet contains");
 		number = -m_ships[&schema];
@@ -739,7 +726,7 @@ void Fleet::update_ships()
 {
 	m_ships_updated = m_entity.m_last_tick + 1;
 
-	m_spatial = {};
+	m_spatial_power = {};
 	m_planetary_power = 0.f;
 	m_speed = UINT8_MAX;
 	m_scan = 0U;
@@ -750,18 +737,12 @@ void Fleet::update_ships()
 		ShipSchema& ship = *ship_number.first;
 		size_t number = ship_number.second;
 
-		//m_spatial_power += ship.m_spatial;
-		m_spatial += ship.m_spatial * float(number);
+		m_spatial_power += ship.m_spatial * float(number);
 		m_planetary_power += ship.m_planetary * float(number);
 		m_speed = min(m_speed, ship.m_speed);
 		m_scan = max(m_scan, ship.m_scan);
 		m_upkeep += ship.m_cost * ship.m_upkeep_factor * 0.1f;
 	}
-
-	for(size_t i = 0; i < 8; ++i)
-		m_spatial_power += m_spatial[i];
-
-	m_spatial_power /= 8.f;
 }
 
 static inline Jump::State jump_none(Fleet& fleet, float elapsed) { UNUSED(fleet); UNUSED(elapsed); return Jump::None; }
@@ -800,7 +781,7 @@ void Fleet::order_split(cstring code, FleetStance stance, std::map<ShipSchema*, 
 	m_split = { *this, divided, code, stance, ships, m_entity.m_last_tick };
 
 	// precalculate speed so that we can give jump orders during the same turn
-	divided.m_speed = SIZE_MAX;
+	divided.m_speed = UINT8_MAX;
 	for(auto& ship_number : ships)
 		divided.m_speed = min(divided.m_speed, ship_number.first->m_speed);
 }
@@ -927,7 +908,10 @@ Turn::Turn(Galaxy& galaxy)
 
 Player::Player(Galaxy* galaxy, Commander* commander)
 	: m_galaxy(galaxy), m_commander(commander), m_last_turn(*galaxy), m_turn_replay(*galaxy)
-{}
+{
+	m_camera = &galaxy->m_entity.m_world.origin().construct<OCamera>(vec3(10.f, 0.f, 10.f), 25.f, 0.1f, 300.f).m_camera;
+	m_camera->set_lens_angle(c_pi / 4.f);
+}
 
 void ex_space_lua_check(GameShell& shell, Galaxy& galaxy)
 {
@@ -959,24 +943,24 @@ void ex_space_lua_check(GameShell& shell, Galaxy& galaxy)
 void ex_space_scene(GameShell& app, GameScene& scene, Player& player)
 {
 	UNUSED(app);
-	scene.m_scene->painter("Galaxy", [&](size_t, VisuScene&, Gnode& parent) {
+	scene.painter("Galaxy", [&](size_t, VisuScene&, Gnode& parent) {
 		paint_galaxy(parent, *player.m_galaxy);
 		paint_scene(parent);
 	});
-	scene.m_scene->object_painter<Star>("Stars", player.m_galaxy->m_stars, paint_star);
-	scene.m_scene->object_painter<Star>("Stars", player.m_commander->m_stars, paint_scan_star);
-	scene.m_scene->object_painter<Star>("Stars", player.m_commander->m_scans.m_stars, paint_scan_star);
-	scene.m_scene->object_painter<Fleet>("Fleets", player.m_commander->m_fleets, paint_scan_fleet);
-	scene.m_scene->object_painter<Fleet>("Fleets", player.m_commander->m_scans.m_fleets, paint_scan_fleet);
+	scene.object_painter<Star>("Stars", player.m_galaxy->m_stars, paint_star);
+	scene.object_painter<Star>("Stars", player.m_commander->m_stars, paint_scan_star);
+	scene.object_painter<Star>("Stars", player.m_commander->m_scans.m_stars, paint_scan_star);
+	scene.object_painter<Fleet>("Fleets", player.m_commander->m_fleets, paint_scan_fleet);
+	scene.object_painter<Fleet>("Fleets", player.m_commander->m_scans.m_fleets, paint_scan_fleet);
 	
-	scene.m_scene->painter("Combat", [&](size_t, VisuScene&, Gnode& parent) {
+	scene.painter("Combat", [&](size_t, VisuScene&, Gnode& parent) {
 		if(player.m_turn_replay.spatial_combat())
 			paint_combat(parent, *player.m_turn_replay.spatial_combat());
 		//if(player.m_turn_replay.planetary_combat())
 		//	paint_combat(parent, *player.m_turn_replay.planetary_combat());
 	});
 
-	scene.m_camera.m_entity.m_position = player.m_commander->m_capital->m_entity.m_position;
+	player.m_camera->m_entity.m_position = player.m_commander->m_capital->m_entity.m_position;
 }
 
 void ex_space_scene(GameShell& app, GameScene& scene)
@@ -987,20 +971,20 @@ void ex_space_scene(GameShell& app, GameScene& scene)
 
 void ex_space_init(GameShell& app, Game& game)
 {
-	app.m_visu_system->m_gfx_system->add_resource_path("examples/ex_space/");
+	app.m_gfx_system->add_resource_path("examples/ex_space/");
 	game.m_editor.m_custom_brushes.emplace_back(make_unique<CommanderBrush>(game.m_editor.m_tool_context));
 }
 
 void ex_space_start(GameShell& app, Game& game)
 {
-	GlobalPool::me().create_pool<Universe>();
-	GlobalPool::me().create_pool<Galaxy>();
-	GlobalPool::me().create_pool<Star>();
-	GlobalPool::me().create_pool<Commander>();
-	GlobalPool::me().create_pool<Fleet>();
-	GlobalPool::me().create_pool<OCamera>();
+	global_pool<Universe>();
+	global_pool<Galaxy>();
+	global_pool<Star>();
+	global_pool<Commander>();
+	global_pool<Fleet>();
+	global_pool<OCamera>();
 
-	Universe& universe = GlobalPool::me().pool<Universe>().construct("Arcadia");
+	Universe& universe = global_pool<Universe>().construct("Arcadia");
 	game.m_world = &universe.m_world;
 
 	VisualScript& generator = space_generator(app);
@@ -1038,7 +1022,7 @@ Viewer& ex_space_menu_viewport(Widget& parent, GameShell& app)
 	Gnode& scene = viewer.m_scene->begin();
 
 #ifdef TOY_SOUND
-	scene.m_sound_manager = app.m_visu_system->m_sound_system.get();
+	scene.m_sound_manager = app.m_sound_system.get();
 #endif
 
 	paint_viewer(viewer);
@@ -1049,10 +1033,7 @@ Viewer& ex_space_menu_viewport(Widget& parent, GameShell& app)
 	if(fleet.m_updated == 0)
 	{
 		auto set_ships = [&](const std::string& code, size_t number) { ships[&ShipDatabase::me().schema(code)] = number; };
-		set_ships("SONDE", 5);
-		set_ships("CHA", 40);
-		set_ships("CHABOM", 20);
-		set_ships("BOM", 20);
+		set_ships("CHA", 80);
 		set_ships("COR", 10);
 
 		fill_fleet(fleet, ships);
@@ -1060,7 +1041,7 @@ Viewer& ex_space_menu_viewport(Widget& parent, GameShell& app)
 	}
 
 	static Clock clock;
-
+	
 	size_t tick = clock.readTick();
 	size_t delta = clock.stepTick();
 
@@ -1068,7 +1049,7 @@ Viewer& ex_space_menu_viewport(Widget& parent, GameShell& app)
 
 	float angle = fmod(float(clock.read()) / 20.f, 2.f * c_pi);
 	Gnode& node = gfx::node(scene, {}, Zero3 + X3 * 0.4f, angle_axis(angle, Y3), Unit3);
-	paint_fleet_ships(node, fleet, 0.8f, 0.1f);
+	paint_fleet_ships(node, fleet, 1.f, 0.1f);
 	
 	//toy::sound(node, "complexambient", true);
 
@@ -1108,9 +1089,7 @@ void ex_space_pump(GameShell& app, Game& game, Widget& parent, Dockbar* dockbar 
 	else
 	{
 		static GameScene& scene = app.add_scene();
-
-		game.m_world->next_frame();
-		scene.m_scene->next_frame();
+		scene.next_frame();
 
 		ex_space_ui(parent, scene);
 	}

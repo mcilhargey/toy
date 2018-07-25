@@ -283,7 +283,7 @@ using namespace mud; namespace toy
 
 		// compute poolSector from input arguments for chunked allocation
 		// size_t poolSector 
-		return m_injector->inject(GlobalPool::me().pool(m_prototype->m_type));
+		return m_injector->inject(*g_pools[m_prototype->m_type.m_id]);
 	}
 
 

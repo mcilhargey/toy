@@ -47,7 +47,7 @@ void platform_generator(GameShell& shell, VisualScript& script)
 
 	Valve* coords = script.function(grid, { &gridSize });
 
-	LocatedFile location = shell.m_visu_system->m_gfx_system->locate_file("models/platform/platform.tls");
+	LocatedFile location = shell.m_gfx_system->locate_file("models/platform/platform.tls");
 	std::string filepath = std::string(location.m_location) + "models/platform/platform.tls";
 	Valve* tileset = script.function(parse_json_wave_tileset, { &script.value(filepath), &script.value(std::string("")) });
 

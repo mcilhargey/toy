@@ -27,10 +27,7 @@ using namespace mud; namespace toy
 		, m_size(size)
 		, m_block(nullptr)
 		, m_heaps()
-	{
-		// @5603 : adding to nested only when object is finish -> in prototype
-		m_entity.m_parent->m_contents.add(m_entity);
-	}
+	{}
 
 	struct BlockGrid
 	{
@@ -87,9 +84,6 @@ using namespace mud; namespace toy
 		, m_wfc_block(position, size, period, tileset)
 	{
 		m_entity.m_world.add_task(this, short(Task::Background));
-		
-		// @5603 : adding to nested only when object is finish -> in prototype
-		m_entity.m_parent->m_contents.add(m_entity);
 	}
 
 	TileBlock::~TileBlock()
@@ -110,7 +104,7 @@ using namespace mud; namespace toy
 	TileBlock& generate_block(GfxSystem& gfx_system, WaveTileset& tileset, Entity& origin, const ivec2& coord, const uvec3& block_subdiv, const vec3& tile_scale, bool from_file)
 	{
 		vec3 position = vec3(to_xz(coord)) * vec3(block_subdiv) * tile_scale;
-		TileBlock& block = GlobalPool::me().pool<TileBlock>().construct(0U, origin, position, block_subdiv, tile_scale, tileset);
+		TileBlock& block = global_pool<TileBlock>().construct(0U, origin, position, block_subdiv, tile_scale, tileset);
 
 		if(block.m_wfc_block.m_tile_models.empty())
 			block.m_wfc_block.load_models(gfx_system, from_file);

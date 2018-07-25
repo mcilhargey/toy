@@ -1,19 +1,19 @@
 #include <infra/Cpp20.h>
 
 #ifdef MUD_MODULES
-module ._platform;
+module ._minimal;
 #else
-#include <meta/platform/Module.h>
+#include <meta/minimal/Module.h>
 #endif
 
 #ifndef MUD_MODULES
-#include <meta/platform/Convert.h>
+#include <meta/minimal/Convert.h>
 #endif
-#define _PLATFORM_REFLECTION_IMPL
-#include <meta/platform/Meta.h>
+#define _MINIMAL_REFLECTION_IMPL
+#include <meta/minimal/Meta.h>
 
-	_platform::_platform()
-		: Module("_platform")
+	_minimal::_minimal()
+		: Module("_minimal")
 	{
         // ensure dependencies are instantiated
         mud_infra::m();
@@ -49,13 +49,13 @@ module ._platform;
         toy_shell::m();
 
         // setup reflection meta data
-		_platform_meta(*this);
+		_minimal_meta(*this);
 	}
 
-#ifdef _PLATFORM_MODULE
+#ifdef _MINIMAL_MODULE
 extern "C"
 Module& getModule()
 {
-	return _platform::m();
+	return _minimal::m();
 }
 #endif

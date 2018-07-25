@@ -2,11 +2,9 @@
 //  This software is provided 'as-is' under the zlib License, see the LICENSE.txt file.
 //  This notice and the license may not be removed or altered from any source distribution.
 
+#include <visu/Types.h>
 #include <visu/VisuScene.h>
 #include <visu/VisuPage.h>
-
-#include <visu/VisuSystem.h>
-#include <visu/VisuModule.h>
 
 #include <refl/Member.h>
 #include <geom/Shapes.h>
@@ -141,20 +139,16 @@ using namespace mud; namespace toy
 		bullet_world.m_bullet_world->debugDrawWorld();
 	}
 
-	VisuScene::VisuScene(VisuSystem& visu_system)
-		: m_visu_system(visu_system)
-		, m_gfx_system(*visu_system.m_gfx_system)
-		, m_scene(*visu_system.m_gfx_system)
+	VisuScene::VisuScene(GfxSystem& gfx_system, SoundManager* sound_system)
+		: m_gfx_system(gfx_system)
+		, m_scene(gfx_system)
 #ifdef TOY_SOUND
-		, m_snd_manager(*visu_system.m_sound_system)
+		, m_snd_manager(*sound_system)
 #endif
     {
 #ifdef TOY_SOUND
 		m_scene.m_graph.m_sound_manager = &m_snd_manager;
 #endif
-
-		for(VisuModule* module : visu_system.m_modules)
-			module->startScene(*this);
 	}
 
 	VisuScene::~VisuScene()
@@ -165,9 +159,7 @@ using namespace mud; namespace toy
 		if(m_entities.size() <= entity.m_id)
 			m_entities.resize(entity.m_id * 2);
 		if(m_entities[entity.m_id] == nullptr)
-			//m_entities[entity.m_id] = &gfx::node(parent, Ref(&entity.m_complex), entity.absolute_position(), entity.absolute_rotation());
 			m_entities[entity.m_id] = &gfx::node(parent.subx(entity.m_id), Ref(&entity.m_complex), entity.absolute_position(), entity.absolute_rotation());
-		//return m_entities[entity.m_id]->subi((void*) painter);
 		return m_entities[entity.m_id]->subx(uint16_t(painter));
 	}
 
@@ -181,7 +173,7 @@ using namespace mud; namespace toy
 				vector_remove(m_scene.m_orphan_sounds, sound);
 			}
 
-		//m_snd_manager.threadUpdate();
+		m_snd_manager.threadUpdate();
 #endif
 
 		for(size_t i = 0; i < m_entities.size(); ++i)

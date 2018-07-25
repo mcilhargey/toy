@@ -110,8 +110,7 @@ namespace mud
             },
             // members
             {
-                { type<toy::VisuScene>(), Address(), type<toy::VisuSystem>(), "visu_system", Ref(type<toy::VisuSystem>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::VisuScene>(object).m_visu_system); } },
-                { type<toy::VisuScene>(), Address(), type<mud::GfxSystem>(), "gfx_system", Ref(type<mud::GfxSystem>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::VisuScene>(object).m_gfx_system); } },
+				{ type<toy::VisuScene>(), Address(), type<mud::GfxSystem>(), "gfx_system", Ref(type<mud::GfxSystem>()), Member::Flags(Member::NonMutable|Member::Link), [](Ref object) { return Ref(&val<toy::VisuScene>(object).m_gfx_system); } },
                 { type<toy::VisuScene>(), member_address(&toy::VisuScene::m_scene), type<mud::Scene>(), "scene", Ref(type<mud::Scene>()), Member::None, nullptr }
             },
             // methods
@@ -130,76 +129,12 @@ namespace mud
     
     
         
-    // toy::VisuSystem
-    {
-        static Meta meta = { type<toy::VisuSystem>(), &namspc({ "toy" }), "VisuSystem", sizeof(toy::VisuSystem), TypeClass::Object };
-        static Class cls = { type<toy::VisuSystem>(),
-            // bases
-            {  },
-            {  },
-            // constructors
-            {
-            },
-            // copy constructor
-            {
-            },
-            // members
-            {
-            },
-            // methods
-            {
-            },
-            // static members
-            {
-            }
-        };
-        
-        
-        
-        
-        meta_class<toy::VisuSystem>();
-    }
-    
-    
-        
-    // toy::VisuModule
-    {
-        static Meta meta = { type<toy::VisuModule>(), &namspc({ "toy" }), "VisuModule", sizeof(toy::VisuModule), TypeClass::Object };
-        static Class cls = { type<toy::VisuModule>(),
-            // bases
-            { &type<mud::Module>() },
-            { base_offset<toy::VisuModule, mud::Module>() },
-            // constructors
-            {
-            },
-            // copy constructor
-            {
-            },
-            // members
-            {
-            },
-            // methods
-            {
-            },
-            // static members
-            {
-            }
-        };
-        
-        
-        
-        
-        meta_class<toy::VisuModule>();
-    }
-    
     
 
     
         m.m_types.push_back(&type<toy::PhysicDebugDraw>());
         m.m_types.push_back(&type<toy::SoundSource>());
         m.m_types.push_back(&type<toy::VisuScene>());
-        m.m_types.push_back(&type<toy::VisuSystem>());
-        m.m_types.push_back(&type<toy::VisuModule>());
     
     }
 }

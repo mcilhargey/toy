@@ -81,11 +81,9 @@ namespace toy {
 
     
     
-    class VisuModule;
     struct VisuPainter;
     class PhysicDebugDraw;
     class VisuScene;
-    class VisuSystem;
     class OgreViewport;
     class SoundSource;
 }

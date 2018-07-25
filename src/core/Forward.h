@@ -8,6 +8,7 @@
 #include <proto/Forward.h>
 #include <math/Forward.h>
 #include <geom/Forward.h>
+#include <lang/Forward.h>
 #include <util/Forward.h>
 
 #ifndef TOY_CORE_EXPORT

@@ -9,7 +9,6 @@
 #include <edit/Editor/Editor.h>
 #include <lang/Lua.h>
 
-#include <visu/VisuModule.h>
 #include <visu/VisuScene.h>
 
 #include <uio/Edit/Script.h>
@@ -25,18 +24,20 @@ using namespace mud; namespace toy
 	
 	using Selection = std::vector<Ref>;
 
-	struct TOY_SHELL_EXPORT GameScene
+	struct TOY_SHELL_EXPORT GameScene : public VisuScene
 	{
-		object_ptr<VisuScene> m_scene;
 		Selection& m_selection;
-		Camera& m_camera;
 		Game& m_game;
-		Ref m_player;
-		mud::Camera m_gfx_camera;
-		Viewer* m_viewer = nullptr;
 
-		GameScene(User& user, VisuSystem& visuSystem, Game& game, Ref player = {});
+		GameScene(User& user, GfxSystem& gfx_system, SoundManager* sound_system, Game& game, Ref player = {});
 		~GameScene();
+	};
+
+	enum class refl_ GameMode
+	{
+		Play,
+		PlayEditor,
+		Pause,
 	};
 
 	struct TOY_SHELL_EXPORT Game : public NonCopy
@@ -46,23 +47,20 @@ using namespace mud; namespace toy
 
 		GameScene& add_scene();
 
-		GameShell* m_shell = nullptr;
 		User* m_user = nullptr;
+		GameMode m_mode = GameMode::Play;
+		GameShell* m_shell = nullptr;
 		Ref m_player = {};
 		World* m_world = nullptr;
-		VisualScript* m_generator = nullptr;
 		Widget* m_screen = nullptr;
+
 		EditContext m_editor;
 
 		std::vector<unique_ptr<GameScene>> m_scenes;
-
-		std::vector<Entity*> m_units;
 	};
 
 	using GameCallback = void(*)(GameShell& shell, Game& game);
 	using SceneCallback = void(*)(GameShell& shell, GameScene& scene);
-
-	using EditorPump = std::function<void(GameShell& shell, Game& game)>;
 
 	class TOY_SHELL_EXPORT GameModule
 	{
@@ -78,7 +76,7 @@ using namespace mud; namespace toy
 		SceneCallback m_on_scene = nullptr;
 	};
 
-	TOY_SHELL_EXPORT Viewer& game_viewport(Widget& parent, GameScene& game);
+	TOY_SHELL_EXPORT Viewer& game_viewport(Widget& parent, GameScene& scene, Camera& camera);
 
 	class refl_ TOY_SHELL_EXPORT GameShell : public NonCopy
 	{
@@ -87,7 +85,6 @@ using namespace mud; namespace toy
 		~GameShell();
 
 		void init();
-		void launch(const string& module_path);
 		void load(GameModule& module);
 		void load(const string& module_path);
 		void run(size_t iterations = 0U);
@@ -95,22 +92,20 @@ using namespace mud; namespace toy
 		void run_editor(GameModule& module, size_t iterations = 0U);
 		void run_game(const string& module_path, size_t iterations = 0U);
 		void run_editor(const string& module_path, size_t iterations = 0U);
+		void launch();
 		void save();
 		void reload();
 		bool pump();
 		void cleanup();
 
+		void start_game();
+		void pump_game();
 		void pump_editor();
 
 		GameScene& add_scene();
 
-#ifdef TOY_DB
-		void connect_db(const string& path);
-		void reconnect_db(const string& path);
-#endif
-
-		World& loadWorld(Id id);
-		void destroyWorld();
+		World& load_world(Id id);
+		void destroy_world();
 
 	public:
 		string m_exec_path;
@@ -120,7 +115,11 @@ using namespace mud; namespace toy
 
 		object_ptr<Core> m_core;
 		object_ptr<LuaInterpreter> m_interpreter;
-		object_ptr<VisuSystem> m_visu_system;
+		object_ptr<GfxSystem> m_gfx_system;
+#ifdef TOY_SOUND
+		object_ptr<SoundManager> m_sound_system;
+#endif
+
 		Editor m_editor;
 
 		unique_ptr<Context> m_context;
@@ -128,15 +127,11 @@ using namespace mud; namespace toy
 		unique_ptr<UiWindow> m_ui_window;
 		Widget* m_ui = nullptr;
 
-#ifdef TOY_DB
-		object_ptr<SqliteDatabase> m_database;
-#endif
-
 		unique_ptr<GameModule> m_game_module_alloc;
 
 		GameModule* m_game_module = nullptr;
 		Game m_game;
 
-		EditorPump m_pump;
+		std::function<void()> m_pump;
 	};
 }

@@ -48,6 +48,7 @@
 #include <core/Physic/Solid.h>
 #include <core/Player/Player.h>
 #include <core/Reactive/Reactive.h>
+#include <core/Script/Script.h>
 #include <core/Selector/Selection.h>
 #include <core/Selector/Selector.h>
 #include <core/Store/Array.h>

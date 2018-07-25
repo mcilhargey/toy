@@ -99,7 +99,7 @@ Commander* generate_commander(Entity& galaxy, Star& star)
 	commerce = int(traits.y * 90.f);
 	diplomacy = int(traits.z * 90.f);
 
-	Commander& commander = GlobalPool::me().pool<Commander>().construct(0, generate_name(), race, command, commerce, diplomacy);
+	Commander& commander = global_pool<Commander>().construct(0, generate_name(), race, command, commerce, diplomacy);
 	commander.take_star(star);
 	commander.m_capital = &star;
 	commander.m_centaures = 10'000.f;

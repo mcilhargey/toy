@@ -55,11 +55,11 @@ namespace mud
     export_ template <> _SPACE_EXPORT Type& type<Experience>();
     export_ template <> _SPACE_EXPORT Type& type<FleetSize>();
     export_ template <> _SPACE_EXPORT Type& type<FleetStance>();
-    export_ template <> _SPACE_EXPORT Type& type<GameMode>();
+    export_ template <> _SPACE_EXPORT Type& type<GameStage>();
+    export_ template <> _SPACE_EXPORT Type& type<Politic>();
     export_ template <> _SPACE_EXPORT Type& type<Race>();
     export_ template <> _SPACE_EXPORT Type& type<Regime>();
     export_ template <> _SPACE_EXPORT Type& type<Resource>();
-	export_ template <> _SPACE_EXPORT Type& type<Politic>();
     export_ template <> _SPACE_EXPORT Type& type<Taxation>();
     export_ template <> _SPACE_EXPORT Type& type<Technology>();
     export_ template <> _SPACE_EXPORT Type& type<TurnStage>();
@@ -67,17 +67,17 @@ namespace mud
     
     export_ template <> _SPACE_EXPORT Type& type<Combat>();
     export_ template <> _SPACE_EXPORT Type& type<CombatFleet>();
+    export_ template <> _SPACE_EXPORT Type& type<CombatStar>();
     export_ template <> _SPACE_EXPORT Type& type<Commander>();
     export_ template <> _SPACE_EXPORT Type& type<Construction>();
     export_ template <> _SPACE_EXPORT Type& type<Jump>();
-    export_ template <> _SPACE_EXPORT Type& type<Split>();
-    export_ template <> _SPACE_EXPORT Type& type<PlanetaryCombat>();
     export_ template <> _SPACE_EXPORT Type& type<Player>();
     export_ template <> _SPACE_EXPORT Type& type<Scans>();
     export_ template <> _SPACE_EXPORT Type& type<Schema>();
-    export_ template <> _SPACE_EXPORT Type& type<SpatialCombat>();
     export_ template <> _SPACE_EXPORT Type& type<SpatialPower>();
+    export_ template <> _SPACE_EXPORT Type& type<Split>();
     export_ template <> _SPACE_EXPORT Type& type<TechDomain>();
+    export_ template <> _SPACE_EXPORT Type& type<Turn>();
     export_ template <> _SPACE_EXPORT Type& type<Fleet>();
     export_ template <> _SPACE_EXPORT Type& type<Galaxy>();
     export_ template <> _SPACE_EXPORT Type& type<Quadrant>();
@@ -89,20 +89,22 @@ namespace mud
     export_ template <> _SPACE_EXPORT Type& type<ShipEngine>();
     export_ template <> _SPACE_EXPORT Type& type<ShipHull>();
     export_ template <> _SPACE_EXPORT Type& type<ShipSchema>();
+    export_ template <> _SPACE_EXPORT Type& type<PlanetaryCombat>();
+    export_ template <> _SPACE_EXPORT Type& type<SpatialCombat>();
     
 	export_ template struct _SPACE_EXPORT Typed<std::vector<Combat*>>;
 	export_ template struct _SPACE_EXPORT Typed<std::vector<CombatFleet*>>;
+	export_ template struct _SPACE_EXPORT Typed<std::vector<CombatStar*>>;
 	export_ template struct _SPACE_EXPORT Typed<std::vector<Commander*>>;
 	export_ template struct _SPACE_EXPORT Typed<std::vector<Construction*>>;
 	export_ template struct _SPACE_EXPORT Typed<std::vector<Jump*>>;
-	export_ template struct _SPACE_EXPORT Typed<std::vector<Split*>>;
-	export_ template struct _SPACE_EXPORT Typed<std::vector<PlanetaryCombat*>>;
 	export_ template struct _SPACE_EXPORT Typed<std::vector<Player*>>;
 	export_ template struct _SPACE_EXPORT Typed<std::vector<Scans*>>;
 	export_ template struct _SPACE_EXPORT Typed<std::vector<Schema*>>;
-	export_ template struct _SPACE_EXPORT Typed<std::vector<SpatialCombat*>>;
 	export_ template struct _SPACE_EXPORT Typed<std::vector<SpatialPower*>>;
+	export_ template struct _SPACE_EXPORT Typed<std::vector<Split*>>;
 	export_ template struct _SPACE_EXPORT Typed<std::vector<TechDomain*>>;
+	export_ template struct _SPACE_EXPORT Typed<std::vector<Turn*>>;
 	export_ template struct _SPACE_EXPORT Typed<std::vector<Fleet*>>;
 	export_ template struct _SPACE_EXPORT Typed<std::vector<Galaxy*>>;
 	export_ template struct _SPACE_EXPORT Typed<std::vector<Quadrant*>>;
@@ -114,4 +116,6 @@ namespace mud
 	export_ template struct _SPACE_EXPORT Typed<std::vector<ShipEngine*>>;
 	export_ template struct _SPACE_EXPORT Typed<std::vector<ShipHull*>>;
 	export_ template struct _SPACE_EXPORT Typed<std::vector<ShipSchema*>>;
+	export_ template struct _SPACE_EXPORT Typed<std::vector<PlanetaryCombat*>>;
+	export_ template struct _SPACE_EXPORT Typed<std::vector<SpatialCombat*>>;
 }

@@ -11,8 +11,6 @@
 #include <core/View/Vision.h>
 #include <core/Player/Player.h>
 
-#include <visu/VisuSystem.h>
-
 #include <lang/VisualScript.h>
 
 using namespace mud; namespace toy
@@ -28,8 +26,8 @@ using namespace mud; namespace toy
 		m_state = m_editor.m_run_game ? ToolState::Active : ToolState::Inactive;
 	}
 
-	Editor::Editor(VisuSystem& visu_system)
-		: EditContext(*visu_system.m_gfx_system)
+	Editor::Editor(GfxSystem& gfx_system)
+		: EditContext(gfx_system)
 	{
 		m_toolbelt.toolbox("Action").m_tools.push_back(make_object<UndoTool>(m_tool_context));
 		m_toolbelt.toolbox("Action").m_tools.push_back(make_object<RedoTool>(m_tool_context));
@@ -53,7 +51,7 @@ using namespace mud; namespace toy
 	{
 #if 0
 		Signature signature({ Param("position", var(Zero3)) });
-		VisualScript& script = GlobalPool::me().pool<VisualScript>().construct("Brush VisualScript", signature);
+		VisualScript& script = global_pool<VisualScript>().construct("Brush VisualScript", signature);
 
 		//m_toolbelt.toolbox("Brushes").m_tools.add(make_object<ScriptedBrush>(*this, m_editedWorld->origin(), script));
 #endif

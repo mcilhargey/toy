@@ -18,7 +18,7 @@ extern "C"
 {
 _SPACE_EXPORT void ex_space_init(GameShell& app, Game& game);
 _SPACE_EXPORT void ex_space_start(GameShell& app, Game& game);
-_SPACE_EXPORT void ex_space_scene(GameShell& app, GameScene& game);
+_SPACE_EXPORT void ex_space_scene(GameShell& app, GameScene& scene);
 _SPACE_EXPORT void ex_space_pump(GameShell& app, Game& game);
 }
 
@@ -45,7 +45,7 @@ inline bool intersects(const uvec2& coord, const uvec2& lo, const uvec2& hi)
 		&& coord.y >= lo.y && coord.y <= hi.y;
 }
 
-enum class refl_ GameMode : size_t
+enum class refl_ GameStage : size_t
 {
 	Empire = 0,
 	Tactics = 1,
@@ -454,7 +454,9 @@ public:
 	Galaxy* m_galaxy;
 	Commander* m_commander;
 
-	GameMode m_mode = GameMode::Empire;
+	toy::Camera* m_camera;
+
+	GameStage m_mode = GameStage::Empire;
 	
 	Ref m_selected_item = {};
 	Ref m_hovered_item = {};
@@ -466,16 +468,26 @@ public:
 struct refl_ _SPACE_EXPORT SpatialPower
 {
 	SpatialPower() : m_values{ 0.f } {}
-	SpatialPower(std::array<float, 8> values) : m_values(values) {}
+	SpatialPower(std::array<float, 8> values) : m_values(values) { this->update(); }
 	
 	std::array<float, 8> m_values;
+	float m_average = 0.f;
+
+	void update()
+	{
+		for(size_t i = 0; i < 8; ++i)
+			m_average += m_values[i];
+		m_average /= 8.f;
+	}
+
+	explicit operator float() const { return m_average; }
 
 	float& operator[](size_t at) { return m_values[at]; }
 	const float& operator[](size_t at) const { return m_values[at]; }
 
-	SpatialPower& operator+=(const SpatialPower& rhs) { for(size_t i = 0; i < 8; ++i) m_values[i] += rhs.m_values[i]; return *this; }
-	SpatialPower& operator*=(float factor) { for(size_t i = 0; i < 8; ++i) m_values[i] *= factor; return *this; }
-	SpatialPower operator*(float factor) { SpatialPower result = *this; for(size_t i = 0; i < 8; ++i) result.m_values[i] *= factor; return result; }
+	SpatialPower& operator+=(const SpatialPower& rhs) { for(size_t i = 0; i < 8; ++i) m_values[i] += rhs.m_values[i]; this->update(); return *this; }
+	SpatialPower& operator*=(float factor) { for(size_t i = 0; i < 8; ++i) m_values[i] *= factor; this->update(); return *this; }
+	SpatialPower operator*(float factor) { SpatialPower result = *this; for(size_t i = 0; i < 8; ++i) result.m_values[i] *= factor; result.update(); return result; }
 };
 
 struct refl_ _SPACE_EXPORT Construction
@@ -619,8 +631,7 @@ public:
 	attr_ std::string m_name;
 
 	attr_ float m_experience = 0.f;
-	attr_ SpatialPower m_spatial;
-	attr_ float m_spatial_power = 0.f;
+	attr_ SpatialPower m_spatial_power = {};
 	attr_ float m_planetary_power = 0.f;
 	attr_ uint8_t m_speed = 0;
 	attr_ uint8_t m_scan = 0;
@@ -633,7 +644,7 @@ public:
 
 	attr_ bool m_fought = false;
 	
-	FleetSize estimated_size() { return fleet_size(m_spatial_power + m_planetary_power); }
+	FleetSize estimated_size() { return fleet_size(float(m_spatial_power) + m_planetary_power); }
 	Experience estimated_experience() { return fleet_experience(m_experience); }
 
 	attr_ size_t m_ships_updated = 0;
@@ -643,8 +654,6 @@ public:
 	VisuFleet m_visu;
 
 	Galaxy& galaxy();
-
-	vec3 base_position();
 
 	void add_ships(ShipSchema& schema, int number);
 	void set_ships(ShipSchema& schema, size_t number);
@@ -714,7 +723,7 @@ struct refl_ _SPACE_EXPORT ShipSchema : public Schema
 	ShipSchema(size_t size, std::string code, std::string name, std::string conceptor, uint8_t level, float cost, float minerals,
 		float andrium, float resistance, uint8_t speed, uint8_t scan, float planetary, std::array<float, 8> spatial, std::array<uint, 6> weapon_count = {})
 		: Schema(code, name, conceptor, level, cost, minerals, andrium, resistance, speed, scan, planetary, spatial)
-		, m_size(size), m_weapon_count(weapon_count)
+		, m_size(size), m_class(size - 1), m_weapon_count(weapon_count)
 	{
 		uint max_weapon = 0;
 		for(size_t i = 0; i < 4; ++i)
@@ -726,6 +735,7 @@ struct refl_ _SPACE_EXPORT ShipSchema : public Schema
 	}
 
 	attr_ size_t m_size;
+	attr_ size_t m_class;
 
 	std::array<uint, 6> m_weapon_count;
 
@@ -892,6 +902,7 @@ struct refl_ _SPACE_EXPORT Combat
 	struct Force
 	{
 		float m_damage[8] = {};
+		float m_power[8] = {};
 		float m_metal[8] = {};
 	};
 
@@ -981,6 +992,8 @@ public:
 	comp_ attr_ BulletWorld m_bullet_world;
 
 	std::vector<Galaxy*> m_galaxies;
+
+	static const TPool<Universe> s_pool;
 };
 
 class refl_ _SPACE_EXPORT CommanderBrush : public Brush

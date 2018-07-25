@@ -56,10 +56,9 @@ using namespace mud; namespace toy
 	class refl_ TOY_VISU_EXPORT VisuScene : public NonCopy
     {
     public:
-        VisuScene(VisuSystem& visu_system);
+        VisuScene(GfxSystem& gfx_system, SoundManager* sound_system = nullptr);
         ~VisuScene();
 
-		attr_ VisuSystem& m_visu_system;
 		attr_ GfxSystem& m_gfx_system;
 		attr_ Scene m_scene;
 

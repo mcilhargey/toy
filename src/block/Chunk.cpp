@@ -21,9 +21,7 @@ using namespace mud; namespace toy
 		, m_block(*sector().m_block)
 		, m_element(element)
 		, m_size(size)
-	{
-		m_entity.m_parent->m_contents.add(m_entity); // @5603 : adding to nested only when object is finish -> in prototype
-	}
+	{}
 
 	Sector& Chunk::sector()
 	{

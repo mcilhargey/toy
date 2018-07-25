@@ -40,13 +40,11 @@
 #define _SPACE_EXPORT MUD_IMPORT
 #endif
 
-#include <cstdint>
-#include <cstddef>
 
-    enum class GameMode : size_t;
+    enum class GameStage : size_t;
     enum class Race : unsigned int;
     enum class Regime : unsigned int;
-	enum class Politic : unsigned int;
+    enum class Politic : unsigned int;
     enum class Taxation : unsigned int;
     enum class Resource : unsigned int;
     enum class FleetSize : unsigned int;
@@ -87,8 +85,9 @@
     class Quadrant;
     struct GalaxyGrid;
     struct Combat;
-    struct PlanetaryCombat;
     struct CombatFleet;
+    struct CombatStar;
+    struct PlanetaryCombat;
     struct SpatialCombat;
     class Galaxy;
     class Universe;
@@ -114,12 +113,10 @@ namespace glm {
     
 }
 
-namespace mud {
-namespace gfx {
+namespace bx {
 
     
     
-}
 }
 
 namespace json11 {
@@ -142,10 +139,12 @@ namespace detail {
 }
 }
 
-namespace bgfx {
+namespace mud {
+namespace gfx {
 
     
     
+}
 }
 
 namespace bimg {
@@ -160,7 +159,7 @@ namespace toy {
     
 }
 
-namespace bx {
+namespace bgfx {
 
     
     

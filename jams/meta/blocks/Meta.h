@@ -41,7 +41,7 @@ namespace mud
             // members
             {
                 { type<Faction>(), member_address(&Faction::m_id), type<uint32_t>(), "id", var(uint32_t()), Member::Value, nullptr },
-                { type<Faction>(), member_address(&Faction::m_colour), type<mud::Colour>(), "colour", var(mud::Colour()), Member::Value, nullptr },
+                { type<Faction>(), member_address(&Faction::m_colour), type<mud::Colour>(), "colour", var(mud::Colour()), Member::Value, nullptr }
             },
             // methods
             {
@@ -231,7 +231,7 @@ namespace mud
             {
                 { type<Slug>(), member_address(&Slug::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr },
                 { type<Slug>(), member_address(&Slug::m_source), type<mud::vec3>(), "source", var(mud::vec3()), Member::Value, nullptr },
-                { type<Slug>(), member_address(&Slug::m_velocity), type<mud::vec3>(), "velocity", var(mud::vec3()), Member::Value, nullptr },
+                { type<Slug>(), member_address(&Slug::m_velocity), type<mud::vec3>(), "velocity", var(mud::vec3()), Member::Value, nullptr }
             },
             // methods
             {

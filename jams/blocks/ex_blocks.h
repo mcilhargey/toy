@@ -18,8 +18,6 @@ extern "C"
 	_BLOCKS_EXPORT void ex_blocks_scene(GameShell& app, GameScene& scene);
 }
 
-_BLOCKS_EXPORT void ex_blocks_pump_impl(GameShell& app, Game& game, Widget& parent, Dockbar* dockbar = nullptr);
-
 enum CustomCollisionGroup : short int
 {
 	CM_ENERGY = 1 << 10,

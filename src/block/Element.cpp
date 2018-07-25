@@ -31,8 +31,5 @@ using namespace mud; namespace toy
 		, m_entity(id, *this, parent, position, ZeroQuat)
 		, m_element(element)
 		, m_radius(radius)
-	{
-		// @5603 : adding to nested only when object is finish -> in prototype
-		m_entity.m_parent->m_contents.add(m_entity);
-	}
+	{}
 }

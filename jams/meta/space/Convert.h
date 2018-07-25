@@ -23,8 +23,11 @@ namespace mud
     export_ template <> inline void from_string(const string& str, FleetStance& val) { val = static_cast<FleetStance>(enu<FleetStance>().value(str.c_str())); };
     export_ template <> inline void to_string(const FleetStance& val, string& str) { str = enu<FleetStance>().m_map[size_t(val)]; };
     
-    export_ template <> inline void from_string(const string& str, GameMode& val) { val = static_cast<GameMode>(enu<GameMode>().value(str.c_str())); };
-    export_ template <> inline void to_string(const GameMode& val, string& str) { str = enu<GameMode>().m_map[size_t(val)]; };
+    export_ template <> inline void from_string(const string& str, GameStage& val) { val = static_cast<GameStage>(enu<GameStage>().value(str.c_str())); };
+    export_ template <> inline void to_string(const GameStage& val, string& str) { str = enu<GameStage>().m_map[size_t(val)]; };
+    
+    export_ template <> inline void from_string(const string& str, Politic& val) { val = static_cast<Politic>(enu<Politic>().value(str.c_str())); };
+    export_ template <> inline void to_string(const Politic& val, string& str) { str = enu<Politic>().m_map[size_t(val)]; };
     
     export_ template <> inline void from_string(const string& str, Race& val) { val = static_cast<Race>(enu<Race>().value(str.c_str())); };
     export_ template <> inline void to_string(const Race& val, string& str) { str = enu<Race>().m_map[size_t(val)]; };
@@ -34,10 +37,7 @@ namespace mud
     
     export_ template <> inline void from_string(const string& str, Resource& val) { val = static_cast<Resource>(enu<Resource>().value(str.c_str())); };
     export_ template <> inline void to_string(const Resource& val, string& str) { str = enu<Resource>().m_map[size_t(val)]; };
-
-	export_ template <> inline void from_string(const string& str, Politic& val) { val = static_cast<Politic>(enu<Politic>().value(str.c_str())); };
-	export_ template <> inline void to_string(const Politic& val, string& str) { str = enu<Politic>().m_map[size_t(val)]; };
-
+    
     export_ template <> inline void from_string(const string& str, Taxation& val) { val = static_cast<Taxation>(enu<Taxation>().value(str.c_str())); };
     export_ template <> inline void to_string(const Taxation& val, string& str) { str = enu<Taxation>().m_map[size_t(val)]; };
     

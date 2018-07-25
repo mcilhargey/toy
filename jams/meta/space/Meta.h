@@ -44,9 +44,9 @@ namespace mud
         static Meta meta = { type<FleetSize>(), &namspc({}), "FleetSize", sizeof(FleetSize), TypeClass::Enum };
         static Enum enu = { type<FleetSize>(),
             true,
-            { "Ridicule", "Minuscule", "Tiny", "Small", "Medium", "Respectable", "Grand", "HighGrand", "Colossal", "Titanesque", "Cyclopean", "Divine" },
-            { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 },
-            { var(FleetSize::Ridicule), var(FleetSize::Minuscule), var(FleetSize::Tiny), var(FleetSize::Small), var(FleetSize::Medium), var(FleetSize::Respectable), var(FleetSize::Grand), var(FleetSize::HighGrand), var(FleetSize::Colossal), var(FleetSize::Titanesque), var(FleetSize::Cyclopean), var(FleetSize::Divine) }
+            { "Ridicule", "Minuscule", "Tiny", "Small", "Medium", "Respectable", "Grand", "HighGrand", "Colossal", "Titanesque", "Cyclopean", "Divine", "Count" },
+            { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 },
+            { var(FleetSize::Ridicule), var(FleetSize::Minuscule), var(FleetSize::Tiny), var(FleetSize::Small), var(FleetSize::Medium), var(FleetSize::Respectable), var(FleetSize::Grand), var(FleetSize::HighGrand), var(FleetSize::Colossal), var(FleetSize::Titanesque), var(FleetSize::Cyclopean), var(FleetSize::Divine), var(FleetSize::Count) }
         };
         meta_enum<FleetSize>();
     }
@@ -63,14 +63,25 @@ namespace mud
     }
     
     {
-        static Meta meta = { type<GameMode>(), &namspc({}), "GameMode", sizeof(GameMode), TypeClass::Enum };
-        static Enum enu = { type<GameMode>(),
+        static Meta meta = { type<GameStage>(), &namspc({}), "GameStage", sizeof(GameStage), TypeClass::Enum };
+        static Enum enu = { type<GameStage>(),
             true,
             { "Empire", "Tactics", "TurnReport" },
             { 0, 1, 2 },
-            { var(GameMode::Empire), var(GameMode::Tactics), var(GameMode::TurnReport) }
+            { var(GameStage::Empire), var(GameStage::Tactics), var(GameStage::TurnReport) }
         };
-        meta_enum<GameMode>();
+        meta_enum<GameStage>();
+    }
+    
+    {
+        static Meta meta = { type<Politic>(), &namspc({}), "Politic", sizeof(Politic), TypeClass::Enum };
+        static Enum enu = { type<Politic>(),
+            true,
+            { "Taxes", "Commerce", "Construction", "Defense", "Pacification" },
+            { 0, 1, 2, 3, 4 },
+            { var(Politic::Taxes), var(Politic::Commerce), var(Politic::Construction), var(Politic::Defense), var(Politic::Pacification) }
+        };
+        meta_enum<Politic>();
     }
     
     {
@@ -105,18 +116,7 @@ namespace mud
         };
         meta_enum<Resource>();
     }
-
-	{
-		static Meta meta = { type<Politic>(), &namspc({}), "Politic", sizeof(Politic), TypeClass::Enum };
-		static Enum enu = { type<Politic>(),
-			true,
-			{ "Taxes", "Commerce", "Construction", "Defense", "Pacification" },
-			{ 0, 1, 2, 3, 4 },
-			{ var(Politic::Taxes), var(Politic::Commerce), var(Politic::Construction), var(Politic::Defense), var(Politic::Pacification) }
-		};
-		meta_enum<Politic>();
-	}
-
+    
     {
         static Meta meta = { type<Taxation>(), &namspc({}), "Taxation", sizeof(Taxation), TypeClass::Enum };
         static Enum enu = { type<Taxation>(),
@@ -258,6 +258,39 @@ namespace mud
     
     
         
+    // CombatStar
+    {
+        static Meta meta = { type<CombatStar>(), &namspc({}), "CombatStar", sizeof(CombatStar), TypeClass::Struct };
+        static Class cls = { type<CombatStar>(),
+            // bases
+            {  },
+            {  },
+            // constructors
+            {
+            },
+            // copy constructor
+            {
+                { type<CombatStar>(), [](Ref ref, Ref other) { new(&val<CombatStar>(ref)) CombatStar(val<CombatStar>(other)); } }
+            },
+            // members
+            {
+            },
+            // methods
+            {
+            },
+            // static members
+            {
+            }
+        };
+        
+        
+        
+        
+        meta_class<CombatStar>();
+    }
+    
+    
+        
     // Commander
     {
         static Meta meta = { type<Commander>(), &namspc({}), "Commander", sizeof(Commander), TypeClass::Object };
@@ -280,6 +313,8 @@ namespace mud
                 { type<Commander>(), member_address(&Commander::m_command), type<int>(), "command", var(int()), Member::Value, nullptr },
                 { type<Commander>(), member_address(&Commander::m_commerce), type<int>(), "commerce", var(int()), Member::Value, nullptr },
                 { type<Commander>(), member_address(&Commander::m_diplomacy), type<int>(), "diplomacy", var(int()), Member::Value, nullptr },
+                { type<Commander>(), member_address(&Commander::m_reputation), type<int>(), "reputation", var(int()), Member::Value, nullptr },
+                { type<Commander>(), member_address(&Commander::m_victory), type<int>(), "victory", var(int()), Member::Value, nullptr },
                 { type<Commander>(), member_address(&Commander::m_stars), type<std::vector<Star*>>(), "stars", var(std::vector<Star*>()), Member::Value, nullptr },
                 { type<Commander>(), member_address(&Commander::m_fleets), type<std::vector<Fleet*>>(), "fleets", var(std::vector<Fleet*>()), Member::Value, nullptr },
                 { type<Commander>(), member_address(&Commander::m_capital), type<Star>(), "capital", Ref(type<Star>()), Member::Flags(Member::Pointer|Member::Link), nullptr },
@@ -336,6 +371,9 @@ namespace mud
     }
     
     
+    
+    
+    
         
     // Jump
     {
@@ -353,9 +391,11 @@ namespace mud
             },
             // members
             {
+                { type<Jump>(), member_address(&Jump::m_fleet), type<Fleet>(), "fleet", Ref(type<Fleet>()), Member::Flags(Member::Pointer|Member::Link), nullptr },
                 { type<Jump>(), member_address(&Jump::m_start), type<mud::uvec2>(), "start", var(mud::uvec2()), Member::Value, nullptr },
-				{ type<Jump>(), member_address(&Jump::m_dest), type<mud::uvec2>(), "dest", var(mud::uvec2()), Member::Value, nullptr },
-                { type<Jump>(), member_address(&Jump::m_stance), type<FleetStance>(), "stance", var(FleetStance()), Member::Value, nullptr }
+                { type<Jump>(), member_address(&Jump::m_dest), type<mud::uvec2>(), "dest", var(mud::uvec2()), Member::Value, nullptr },
+                { type<Jump>(), member_address(&Jump::m_stance), type<FleetStance>(), "stance", var(FleetStance()), Member::Value, nullptr },
+                { type<Jump>(), member_address(&Jump::m_track), type<Fleet>(), "track", Ref(type<Fleet>()), Member::Flags(Member::Pointer|Member::Link), nullptr }
             },
             // methods
             {
@@ -369,76 +409,6 @@ namespace mud
         
         
         meta_class<Jump>();
-    }
-    
-    
-        
-    // Split
-    {
-        static Meta meta = { type<Split>(), &namspc({}), "Split", sizeof(Split), TypeClass::Struct };
-        static Class cls = { type<Split>(),
-            // bases
-            {  },
-            {  },
-            // constructors
-            {
-            },
-            // copy constructor
-            {
-                { type<Split>(), [](Ref ref, Ref other) { new(&val<Split>(ref)) Split(val<Split>(other)); } }
-            },
-            // members
-            {
-                { type<Split>(), member_address(&Split::m_code), type<std::string>(), "code", var(std::string()), Member::Value, nullptr },
-                { type<Split>(), member_address(&Split::m_stance), type<FleetStance>(), "stance", var(FleetStance()), Member::Value, nullptr }
-            },
-            // methods
-            {
-            },
-            // static members
-            {
-            }
-        };
-        
-        
-        
-        
-        meta_class<Split>();
-    }
-    
-    
-    
-    
-        
-    // PlanetaryCombat
-    {
-        static Meta meta = { type<PlanetaryCombat>(), &namspc({}), "PlanetaryCombat", sizeof(PlanetaryCombat), TypeClass::Struct };
-        static Class cls = { type<PlanetaryCombat>(),
-            // bases
-            {  },
-            {  },
-            // constructors
-            {
-            },
-            // copy constructor
-            {
-                { type<PlanetaryCombat>(), [](Ref ref, Ref other) { new(&val<PlanetaryCombat>(ref)) PlanetaryCombat(val<PlanetaryCombat>(other)); } }
-            },
-            // members
-            {
-            },
-            // methods
-            {
-            },
-            // static members
-            {
-            }
-        };
-        
-        
-        
-        
-        meta_class<PlanetaryCombat>();
     }
     
     
@@ -528,15 +498,15 @@ namespace mud
                 { type<Schema>(), member_address(&Schema::m_code), type<std::string>(), "code", var(std::string()), Member::Value, nullptr },
                 { type<Schema>(), member_address(&Schema::m_name), type<std::string>(), "name", var(std::string()), Member::Value, nullptr },
                 { type<Schema>(), member_address(&Schema::m_conceptor), type<std::string>(), "conceptor", var(std::string()), Member::Value, nullptr },
-                { type<Schema>(), member_address(&Schema::m_level), type<size_t>(), "level", var(size_t()), Member::Value, nullptr },
+                { type<Schema>(), member_address(&Schema::m_level), type<uint8_t>(), "level", var(uint8_t()), Member::Value, nullptr },
                 { type<Schema>(), member_address(&Schema::m_cost), type<float>(), "cost", var(float(0.f)), Member::Value, nullptr },
                 { type<Schema>(), member_address(&Schema::m_minerals), type<float>(), "minerals", var(float(0.f)), Member::Value, nullptr },
                 { type<Schema>(), member_address(&Schema::m_andrium), type<float>(), "andrium", var(float(0.f)), Member::Value, nullptr },
+                { type<Schema>(), member_address(&Schema::m_resistance), type<float>(), "resistance", var(float(0.f)), Member::Value, nullptr },
+                { type<Schema>(), member_address(&Schema::m_speed), type<uint8_t>(), "speed", var(uint8_t()), Member::Value, nullptr },
+                { type<Schema>(), member_address(&Schema::m_scan), type<uint8_t>(), "scan", var(uint8_t()), Member::Value, nullptr },
                 { type<Schema>(), member_address(&Schema::m_planetary), type<float>(), "planetary", var(float(0.f)), Member::Value, nullptr },
                 { type<Schema>(), member_address(&Schema::m_spatial), type<SpatialPower>(), "spatial", var(SpatialPower()), Member::Value, nullptr },
-                { type<Schema>(), member_address(&Schema::m_resistance), type<float>(), "resistance", var(float(0.f)), Member::Value, nullptr },
-                { type<Schema>(), member_address(&Schema::m_speed), type<size_t>(), "speed", var(size_t()), Member::Value, nullptr },
-                { type<Schema>(), member_address(&Schema::m_scan), type<size_t>(), "scan", var(size_t()), Member::Value, nullptr },
                 { type<Schema>(), member_address(&Schema::m_upkeep_factor), type<float>(), "upkeep_factor", var(float(1.f)), Member::Value, nullptr }
             },
             // methods
@@ -553,42 +523,6 @@ namespace mud
         meta_class<Schema>();
     }
     
-    
-    
-        
-    // SpatialCombat
-    {
-        static Meta meta = { type<SpatialCombat>(), &namspc({}), "SpatialCombat", sizeof(SpatialCombat), TypeClass::Struct };
-        static Class cls = { type<SpatialCombat>(),
-            // bases
-            {  },
-            {  },
-            // constructors
-            {
-            },
-            // copy constructor
-            {
-                { type<SpatialCombat>(), [](Ref ref, Ref other) { new(&val<SpatialCombat>(ref)) SpatialCombat(val<SpatialCombat>(other)); } }
-            },
-            // members
-            {
-                { type<SpatialCombat>(), member_address(&SpatialCombat::m_coord), type<mud::uvec2>(), "coord", var(mud::uvec2()), Member::Value, nullptr },
-                { type<SpatialCombat>(), member_address(&SpatialCombat::m_attack), type<std::vector<CombatFleet>>(), "attack", var(std::vector<CombatFleet>()), Member::Value, nullptr },
-                { type<SpatialCombat>(), member_address(&SpatialCombat::m_defense), type<std::vector<CombatFleet>>(), "defense", var(std::vector<CombatFleet>()), Member::Value, nullptr }
-            },
-            // methods
-            {
-            },
-            // static members
-            {
-            }
-        };
-        
-        
-        
-        
-        meta_class<SpatialCombat>();
-    }
     
     
         
@@ -625,6 +559,43 @@ namespace mud
     
     
         
+    // Split
+    {
+        static Meta meta = { type<Split>(), &namspc({}), "Split", sizeof(Split), TypeClass::Struct };
+        static Class cls = { type<Split>(),
+            // bases
+            {  },
+            {  },
+            // constructors
+            {
+            },
+            // copy constructor
+            {
+                { type<Split>(), [](Ref ref, Ref other) { new(&val<Split>(ref)) Split(val<Split>(other)); } }
+            },
+            // members
+            {
+                { type<Split>(), member_address(&Split::m_source), type<Fleet>(), "source", Ref(type<Fleet>()), Member::Flags(Member::Pointer|Member::Link), nullptr },
+                { type<Split>(), member_address(&Split::m_dest), type<Fleet>(), "dest", Ref(type<Fleet>()), Member::Flags(Member::Pointer|Member::Link), nullptr },
+                { type<Split>(), member_address(&Split::m_code), type<std::string>(), "code", var(std::string()), Member::Value, nullptr },
+                { type<Split>(), member_address(&Split::m_stance), type<FleetStance>(), "stance", var(FleetStance()), Member::Value, nullptr }
+            },
+            // methods
+            {
+            },
+            // static members
+            {
+            }
+        };
+        
+        
+        
+        
+        meta_class<Split>();
+    }
+    
+    
+        
     // TechDomain
     {
         static Meta meta = { type<TechDomain>(), &namspc({}), "TechDomain", sizeof(TechDomain), TypeClass::Struct };
@@ -656,6 +627,38 @@ namespace mud
         meta_class<TechDomain>();
     }
     
+    
+        
+    // Turn
+    {
+        static Meta meta = { type<Turn>(), &namspc({}), "Turn", sizeof(Turn), TypeClass::Struct };
+        static Class cls = { type<Turn>(),
+            // bases
+            {  },
+            {  },
+            // constructors
+            {
+            },
+            // copy constructor
+            {
+                { type<Turn>(), [](Ref ref, Ref other) { new(&val<Turn>(ref)) Turn(val<Turn>(other)); } }
+            },
+            // members
+            {
+            },
+            // methods
+            {
+            },
+            // static members
+            {
+            }
+        };
+        
+        
+        
+        
+        meta_class<Turn>();
+    }
     
     
     
@@ -709,13 +712,13 @@ namespace mud
                 { type<Fleet>(), member_address(&Fleet::m_active), type<toy::Active>(), "active", Ref(type<toy::Active>()), Member::Component, nullptr },
                 { type<Fleet>(), member_address(&Fleet::m_commander), type<Commander>(), "commander", Ref(type<Commander>()), Member::Flags(Member::Pointer|Member::Link), nullptr },
                 { type<Fleet>(), member_address(&Fleet::m_coord), type<mud::uvec2>(), "coord", var(mud::uvec2()), Member::Value, nullptr },
+                { type<Fleet>(), member_address(&Fleet::m_slot), type<mud::vec3>(), "slot", var(mud::vec3()), Member::Value, nullptr },
                 { type<Fleet>(), member_address(&Fleet::m_name), type<std::string>(), "name", var(std::string()), Member::Value, nullptr },
                 { type<Fleet>(), member_address(&Fleet::m_experience), type<float>(), "experience", var(float(0.f)), Member::Value, nullptr },
-                { type<Fleet>(), member_address(&Fleet::m_spatial), type<SpatialPower>(), "spatial", var(SpatialPower()), Member::Value, nullptr },
-                { type<Fleet>(), member_address(&Fleet::m_spatial_power), type<float>(), "spatial_power", var(float(0.f)), Member::Value, nullptr },
+                { type<Fleet>(), member_address(&Fleet::m_spatial_power), type<SpatialPower>(), "spatial_power", var(SpatialPower()), Member::Value, nullptr },
                 { type<Fleet>(), member_address(&Fleet::m_planetary_power), type<float>(), "planetary_power", var(float(0.f)), Member::Value, nullptr },
-                { type<Fleet>(), member_address(&Fleet::m_speed), type<size_t>(), "speed", var(size_t()), Member::Value, nullptr },
-                { type<Fleet>(), member_address(&Fleet::m_scan), type<size_t>(), "scan", var(size_t()), Member::Value, nullptr },
+                { type<Fleet>(), member_address(&Fleet::m_speed), type<uint8_t>(), "speed", var(uint8_t()), Member::Value, nullptr },
+                { type<Fleet>(), member_address(&Fleet::m_scan), type<uint8_t>(), "scan", var(uint8_t()), Member::Value, nullptr },
                 { type<Fleet>(), member_address(&Fleet::m_upkeep), type<float>(), "upkeep", var(float(0.f)), Member::Value, nullptr },
                 { type<Fleet>(), member_address(&Fleet::m_stance), type<FleetStance>(), "stance", var(FleetStance()), Member::Value, nullptr },
                 { type<Fleet>(), member_address(&Fleet::m_jump), type<Jump>(), "jump", var(Jump()), Member::Value, nullptr },
@@ -844,6 +847,10 @@ namespace mud
                 { type<Star>(), member_address(&Star::m_base_population), type<int>(), "base_population", var(int(0)), Member::Value, nullptr },
                 { type<Star>(), member_address(&Star::m_max_population), type<int>(), "max_population", var(int(0)), Member::Value, nullptr },
                 { type<Star>(), member_address(&Star::m_population), type<int>(), "population", var(int(0)), Member::Value, nullptr },
+                { type<Star>(), member_address(&Star::m_militia), type<float>(), "militia", var(float(0.1f)), Member::Value, nullptr },
+                { type<Star>(), member_address(&Star::m_defense), type<float>(), "defense", var(float(0.f)), Member::Value, nullptr },
+                { type<Star>(), member_address(&Star::m_revenue), type<float>(), "revenue", var(float(0.f)), Member::Value, nullptr },
+                { type<Star>(), member_address(&Star::m_politic), type<Politic>(), "politic", var(Politic()), Member::Value, nullptr },
                 { type<Star>(), member_address(&Star::m_taxation), type<Taxation>(), "taxation", var(Taxation()), Member::Value, nullptr },
                 { type<Star>(), member_address(&Star::m_commander), type<Commander>(), "commander", Ref(type<Commander>()), Member::Flags(Member::Pointer|Member::Link), nullptr },
                 { type<Star>(), member_address(&Star::m_scan), type<int>(), "scan", var(int(0)), Member::Value, nullptr }
@@ -1098,31 +1105,104 @@ namespace mud
         meta_class<ShipSchema>();
     }
     
+    
+        
+    // PlanetaryCombat
+    {
+        static Meta meta = { type<PlanetaryCombat>(), &namspc({}), "PlanetaryCombat", sizeof(PlanetaryCombat), TypeClass::Struct };
+        static Class cls = { type<PlanetaryCombat>(),
+            // bases
+            { &type<Combat>() },
+            { base_offset<PlanetaryCombat, Combat>() },
+            // constructors
+            {
+            },
+            // copy constructor
+            {
+                { type<PlanetaryCombat>(), [](Ref ref, Ref other) { new(&val<PlanetaryCombat>(ref)) PlanetaryCombat(val<PlanetaryCombat>(other)); } }
+            },
+            // members
+            {
+                { type<PlanetaryCombat>(), member_address(&PlanetaryCombat::m_coord), type<mud::uvec2>(), "coord", var(mud::uvec2()), Member::Value, nullptr },
+                { type<PlanetaryCombat>(), member_address(&PlanetaryCombat::m_attack), type<std::vector<CombatFleet>>(), "attack", var(std::vector<CombatFleet>()), Member::Value, nullptr },
+                { type<PlanetaryCombat>(), member_address(&PlanetaryCombat::m_defense), type<CombatStar>(), "defense", var(CombatStar()), Member::Value, nullptr }
+            },
+            // methods
+            {
+            },
+            // static members
+            {
+            }
+        };
+        
+        
+        
+        
+        meta_class<PlanetaryCombat>();
+    }
+    
+    
+        
+    // SpatialCombat
+    {
+        static Meta meta = { type<SpatialCombat>(), &namspc({}), "SpatialCombat", sizeof(SpatialCombat), TypeClass::Struct };
+        static Class cls = { type<SpatialCombat>(),
+            // bases
+            { &type<Combat>() },
+            { base_offset<SpatialCombat, Combat>() },
+            // constructors
+            {
+            },
+            // copy constructor
+            {
+                { type<SpatialCombat>(), [](Ref ref, Ref other) { new(&val<SpatialCombat>(ref)) SpatialCombat(val<SpatialCombat>(other)); } }
+            },
+            // members
+            {
+                { type<SpatialCombat>(), member_address(&SpatialCombat::m_coord), type<mud::uvec2>(), "coord", var(mud::uvec2()), Member::Value, nullptr },
+                { type<SpatialCombat>(), member_address(&SpatialCombat::m_attack), type<std::vector<CombatFleet>>(), "attack", var(std::vector<CombatFleet>()), Member::Value, nullptr },
+                { type<SpatialCombat>(), member_address(&SpatialCombat::m_defense), type<std::vector<CombatFleet>>(), "defense", var(std::vector<CombatFleet>()), Member::Value, nullptr }
+            },
+            // methods
+            {
+            },
+            // static members
+            {
+            }
+        };
+        
+        
+        
+        
+        meta_class<SpatialCombat>();
+    }
+    
 
     
         m.m_types.push_back(&type<Combat>());
         m.m_types.push_back(&type<CombatFleet>());
+        m.m_types.push_back(&type<CombatStar>());
         m.m_types.push_back(&type<CombatType>());
         m.m_types.push_back(&type<Commander>());
         m.m_types.push_back(&type<Construction>());
         m.m_types.push_back(&type<Experience>());
-        m.m_types.push_back(&type<Jump>());
         m.m_types.push_back(&type<FleetSize>());
-        m.m_types.push_back(&type<Split>());
         m.m_types.push_back(&type<FleetStance>());
-        m.m_types.push_back(&type<GameMode>());
-        m.m_types.push_back(&type<PlanetaryCombat>());
+        m.m_types.push_back(&type<GameStage>());
+        m.m_types.push_back(&type<Jump>());
         m.m_types.push_back(&type<Player>());
+        m.m_types.push_back(&type<Politic>());
         m.m_types.push_back(&type<Race>());
         m.m_types.push_back(&type<Regime>());
         m.m_types.push_back(&type<Resource>());
         m.m_types.push_back(&type<Scans>());
         m.m_types.push_back(&type<Schema>());
-        m.m_types.push_back(&type<SpatialCombat>());
         m.m_types.push_back(&type<SpatialPower>());
+        m.m_types.push_back(&type<Split>());
         m.m_types.push_back(&type<Taxation>());
         m.m_types.push_back(&type<TechDomain>());
         m.m_types.push_back(&type<Technology>());
+        m.m_types.push_back(&type<Turn>());
         m.m_types.push_back(&type<WeaponType>());
         m.m_types.push_back(&type<std::vector<CombatFleet>>());
         m.m_types.push_back(&type<std::vector<Commander*>>());
@@ -1140,6 +1220,8 @@ namespace mud
         m.m_types.push_back(&type<ShipEngine>());
         m.m_types.push_back(&type<ShipHull>());
         m.m_types.push_back(&type<ShipSchema>());
+        m.m_types.push_back(&type<PlanetaryCombat>());
+        m.m_types.push_back(&type<SpatialCombat>());
     
         {
             auto func = [](array<Var> args, Var& result) {  result = Ref(::generate_system(val<toy::Entity>(args[0]), val<mud::uvec3>(args[1]), val<mud::vec3>(args[2]))); };

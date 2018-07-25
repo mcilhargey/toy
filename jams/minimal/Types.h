@@ -51,18 +51,13 @@
 namespace mud
 {
     // Exported types
-    export_ template <> _MINIMAL_EXPORT Type& type<Faction>();
     
     export_ template <> _MINIMAL_EXPORT Type& type<Player>();
-    export_ template <> _MINIMAL_EXPORT Type& type<Lamp>();
-    export_ template <> _MINIMAL_EXPORT Type& type<TileWorld>();
     export_ template <> _MINIMAL_EXPORT Type& type<Bullet>();
     export_ template <> _MINIMAL_EXPORT Type& type<Crate>();
     export_ template <> _MINIMAL_EXPORT Type& type<Human>();
     
 	export_ template struct _MINIMAL_EXPORT Typed<std::vector<Player*>>;
-	export_ template struct _MINIMAL_EXPORT Typed<std::vector<Lamp*>>;
-	export_ template struct _MINIMAL_EXPORT Typed<std::vector<TileWorld*>>;
 	export_ template struct _MINIMAL_EXPORT Typed<std::vector<Bullet*>>;
 	export_ template struct _MINIMAL_EXPORT Typed<std::vector<Crate*>>;
 	export_ template struct _MINIMAL_EXPORT Typed<std::vector<Human*>>;

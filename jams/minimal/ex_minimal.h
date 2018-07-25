@@ -41,11 +41,8 @@ public:
 
 struct Aim
 {
+	vec3 source;
 	quat rotation;
-	vec3 start;
-	vec3 direction;
-	vec3 end;
-	Entity* hit;
 };
 
 struct HumanController
@@ -68,9 +65,7 @@ public:
 
 	float m_vangle = 0.f;
 	bool m_aiming = false;
-	Aim m_visor;
 
-	bool m_headlight = true;
 	bool m_walk = true;
 
 	std::vector<unique_ptr<Bullet>> m_bullets;
@@ -104,8 +99,6 @@ class refl_ _MINIMAL_EXPORT Player
 {
 public:
 	Player(World& world);
-	
-	void spawn(const vec3& start_position);
 	
 	World* m_world;
 	Human* m_human = nullptr;

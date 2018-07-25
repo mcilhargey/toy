@@ -3,7 +3,7 @@
 #pragma once
 
 #ifndef MUD_MODULES
-#include <meta/platform/Module.h>
+#include <meta/minimal/Module.h>
 
 #include <obj/Any.h>
 #include <obj/Vector.h>
@@ -13,22 +13,11 @@
 
 namespace mud
 {
-    void _platform_meta(Module& m)
+    void _minimal_meta(Module& m)
     {   
     // Base Types
     
     // Enums
-    {
-        static Meta meta = { type<Faction>(), &namspc({}), "Faction", sizeof(Faction), TypeClass::Enum };
-        static Enum enu = { type<Faction>(),
-            true,
-            { "Ally", "Ennemy" },
-            { 0, 1 },
-            { var(Faction::Ally), var(Faction::Ennemy) }
-        };
-        meta_enum<Faction>();
-    }
-    
     
     // Sequences
     
@@ -67,83 +56,6 @@ namespace mud
         meta_class<Player>();
     }
     
-    
-    
-    
-    
-    
-    
-    
-    
-        
-    // Lamp
-    {
-        static Meta meta = { type<Lamp>(), &namspc({}), "Lamp", sizeof(Lamp), TypeClass::Complex };
-        static Class cls = { type<Lamp>(),
-            // bases
-            { &type<mud::Complex>() },
-            { base_offset<Lamp, mud::Complex>() },
-            // constructors
-            {
-                { type<Lamp>(), [](Ref ref, array<Var> args) { new(&val<Lamp>(ref)) Lamp( val<mud::Id>(args[0]), val<toy::Entity>(args[1]), val<mud::vec3>(args[2]) ); }, { { "id", var(mud::Id()) }, { "parent", Ref(type<toy::Entity>()) }, { "position", var(mud::vec3()) } } }
-            },
-            // copy constructor
-            {
-            },
-            // members
-            {
-                { type<Lamp>(), member_address(&Lamp::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr },
-                { type<Lamp>(), member_address(&Lamp::m_movable), type<toy::Movable>(), "movable", Ref(type<toy::Movable>()), Member::Component, nullptr }
-            },
-            // methods
-            {
-            },
-            // static members
-            {
-            }
-        };
-        
-        
-        init_pool<Lamp>(); 
-        
-        meta_class<Lamp>();
-    }
-    
-    
-        
-    // TileWorld
-    {
-        static Meta meta = { type<TileWorld>(), &namspc({}), "TileWorld", sizeof(TileWorld), TypeClass::Complex };
-        static Class cls = { type<TileWorld>(),
-            // bases
-            { &type<mud::Complex>() },
-            { base_offset<TileWorld, mud::Complex>() },
-            // constructors
-            {
-                { type<TileWorld>(), [](Ref ref, array<Var> args) { new(&val<TileWorld>(ref)) TileWorld( val<std::string>(args[0]) ); }, { { "name", var(std::string()) } } }
-            },
-            // copy constructor
-            {
-            },
-            // members
-            {
-                { type<TileWorld>(), member_address(&TileWorld::m_world), type<toy::World>(), "world", Ref(type<toy::World>()), Member::Component, nullptr },
-                { type<TileWorld>(), member_address(&TileWorld::m_bullet_world), type<toy::BulletWorld>(), "bullet_world", Ref(type<toy::BulletWorld>()), Member::Component, nullptr },
-                { type<TileWorld>(), member_address(&TileWorld::m_navmesh), type<toy::Navmesh>(), "navmesh", Ref(type<toy::Navmesh>()), Member::Component, nullptr }
-            },
-            // methods
-            {
-            },
-            // static members
-            {
-            }
-        };
-        
-        
-        init_pool<TileWorld>(); 
-        
-        meta_class<TileWorld>();
-    }
     
     
         
@@ -227,7 +139,7 @@ namespace mud
             { base_offset<Human, mud::Complex>(), base_offset<Human, toy::ColliderObject>() },
             // constructors
             {
-                { type<Human>(), [](Ref ref, array<Var> args) { new(&val<Human>(ref)) Human( val<mud::Id>(args[0]), val<toy::Entity>(args[1]), val<mud::vec3>(args[2]), val<Faction>(args[3]) ); }, { { "id", var(mud::Id()) }, { "parent", Ref(type<toy::Entity>()) }, { "position", var(mud::vec3()) }, { "faction", var(Faction()) } } }
+                { type<Human>(), [](Ref ref, array<Var> args) { new(&val<Human>(ref)) Human( val<mud::Id>(args[0]), val<toy::Entity>(args[1]), val<mud::vec3>(args[2]) ); }, { { "id", var(mud::Id()) }, { "parent", Ref(type<toy::Entity>()) }, { "position", var(mud::vec3()) } } }
             },
             // copy constructor
             {
@@ -236,8 +148,6 @@ namespace mud
             {
                 { type<Human>(), member_address(&Human::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr },
                 { type<Human>(), member_address(&Human::m_movable), type<toy::Movable>(), "movable", Ref(type<toy::Movable>()), Member::Component, nullptr },
-                { type<Human>(), member_address(&Human::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component, nullptr },
-                { type<Human>(), member_address(&Human::m_receptor), type<toy::Receptor>(), "receptor", Ref(type<toy::Receptor>()), Member::Component, nullptr },
                 { type<Human>(), member_address(&Human::m_active), type<toy::Active>(), "active", Ref(type<toy::Active>()), Member::Component, nullptr }
             },
             // methods
@@ -256,10 +166,7 @@ namespace mud
     
 
     
-        m.m_types.push_back(&type<Faction>());
         m.m_types.push_back(&type<Player>());
-        m.m_types.push_back(&type<Lamp>());
-        m.m_types.push_back(&type<TileWorld>());
         m.m_types.push_back(&type<Bullet>());
         m.m_types.push_back(&type<Crate>());
         m.m_types.push_back(&type<Human>());
