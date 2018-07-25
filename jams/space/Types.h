@@ -59,17 +59,18 @@ namespace mud
     export_ template <> _SPACE_EXPORT Type& type<Race>();
     export_ template <> _SPACE_EXPORT Type& type<Regime>();
     export_ template <> _SPACE_EXPORT Type& type<Resource>();
-    export_ template <> _SPACE_EXPORT Type& type<Stage>();
+	export_ template <> _SPACE_EXPORT Type& type<Politic>();
     export_ template <> _SPACE_EXPORT Type& type<Taxation>();
     export_ template <> _SPACE_EXPORT Type& type<Technology>();
+    export_ template <> _SPACE_EXPORT Type& type<TurnStage>();
     export_ template <> _SPACE_EXPORT Type& type<WeaponType>();
     
     export_ template <> _SPACE_EXPORT Type& type<Combat>();
     export_ template <> _SPACE_EXPORT Type& type<CombatFleet>();
     export_ template <> _SPACE_EXPORT Type& type<Commander>();
     export_ template <> _SPACE_EXPORT Type& type<Construction>();
-    export_ template <> _SPACE_EXPORT Type& type<FleetJump>();
-    export_ template <> _SPACE_EXPORT Type& type<FleetSplit>();
+    export_ template <> _SPACE_EXPORT Type& type<Jump>();
+    export_ template <> _SPACE_EXPORT Type& type<Split>();
     export_ template <> _SPACE_EXPORT Type& type<PlanetaryCombat>();
     export_ template <> _SPACE_EXPORT Type& type<Player>();
     export_ template <> _SPACE_EXPORT Type& type<Scans>();
@@ -93,8 +94,8 @@ namespace mud
 	export_ template struct _SPACE_EXPORT Typed<std::vector<CombatFleet*>>;
 	export_ template struct _SPACE_EXPORT Typed<std::vector<Commander*>>;
 	export_ template struct _SPACE_EXPORT Typed<std::vector<Construction*>>;
-	export_ template struct _SPACE_EXPORT Typed<std::vector<FleetJump*>>;
-	export_ template struct _SPACE_EXPORT Typed<std::vector<FleetSplit*>>;
+	export_ template struct _SPACE_EXPORT Typed<std::vector<Jump*>>;
+	export_ template struct _SPACE_EXPORT Typed<std::vector<Split*>>;
 	export_ template struct _SPACE_EXPORT Typed<std::vector<PlanetaryCombat*>>;
 	export_ template struct _SPACE_EXPORT Typed<std::vector<Player*>>;
 	export_ template struct _SPACE_EXPORT Typed<std::vector<Scans*>>;

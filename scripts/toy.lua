@@ -34,6 +34,7 @@ end
 function uses_toy_core()
 	includedirs {
         TOY_SRC_DIR,
+        path.join(TOY_3RDPARTY_DIR, "bullet", "src"),
 	}
 
     links {
@@ -52,55 +53,61 @@ function toy_visu()
     end
 end
 
+function uses_toy_visu()
+    if _OPTIONS["sound"] then
+        defines { "TOY_SOUND" }
+    end
+end
+
 toy = {}
 
 --                           base   name        root path    sub path   decl        self decl       decl transitive     dependencies
 toy.util        = mud_module("toy", "util",     TOY_SRC_DIR, "util",    nil,        nil,            nil,                { mud.obj, mud.math })
 toy.core        = mud_module("toy", "core",     TOY_SRC_DIR, "core",    nil,        toy_core,       uses_toy_core,      { mud.obj, mud.proto, mud.math, mud.geom, toy.util })
 if _OPTIONS["sound"] then
-    toy.visu    = mud_module("toy", "visu",     TOY_SRC_DIR, "visu",    nil,        toy_visu,       nil,                { mud.obj, mud.snd, mud.gfx, toy.util, toy.core })
+    toy.visu    = mud_module("toy", "visu",     TOY_SRC_DIR, "visu",    nil,        toy_visu,       uses_toy_visu,      { mud.obj, mud.snd, mud.gfx, toy.util, toy.core })
 else
-    toy.visu    = mud_module("toy", "visu",     TOY_SRC_DIR, "visu",    nil,        toy_visu,       nil,                { mud.obj, mud.gfx, toy.util, toy.core })
+    toy.visu    = mud_module("toy", "visu",     TOY_SRC_DIR, "visu",    nil,        toy_visu,       uses_toy_visu,      { mud.obj, mud.gfx, toy.util, toy.core })
 end
-toy.editor      = mud_module("toy", "editor",   TOY_SRC_DIR, "editor",  nil,        nil,            nil,                { mud.obj, toy.util, toy.core, toy.visu }) -- table.merge(mud.all, 
-toy.block       = mud_module("toy", "block",    TOY_SRC_DIR, "block",   nil,        nil,            nil,                { mud.obj, toy.core, toy.visu, toy.edit })
-
-toy.modules = { toy.util, toy.core, toy.visu, toy.editor, toy.block }
-table.extend(toy.modules, mud_refls({ toy.util, toy.core, toy.visu, toy.editor, toy.block }, FORCE_REFL_PROJECTS))
+toy.edit        = mud_module("toy", "edit",     TOY_SRC_DIR, "edit",    nil,        nil,            nil,                { mud.obj, mud.ui, mud.tool, toy.util, toy.core, toy.visu }) -- table.merge(mud.all, 
+toy.block       = mud_module("toy", "block",    TOY_SRC_DIR, "block",   nil,        nil,            nil,                { mud.obj, mud.math, mud.procgen.gfx, toy.core, toy.visu, toy.edit })
+toy.shell       = mud_module("toy", "shell",    TOY_SRC_DIR, "shell",   nil,        nil,            nil,                table.merge(mud.mud, { toy.core, toy.visu, toy.edit, toy.block }))
 
 toy.core.aliases = { ['toy::string'] = 'std::string' }
 
-toy.shell       = mud_module("toy", "shell",    TOY_SRC_DIR, "shell",   nil,        nil,            nil,                table.merge(mud.all, { toy.core, toy.visu, toy.edit, toy.block }))
-table.insert(toy.modules, toy.shell)
-table.insert(toy.modules, mud_refl(toy.shell, false))
+toy.toy = { toy.util, toy.core, toy.visu, toy.edit, toy.block, toy.shell }
+
 
 group "lib"
 if _OPTIONS["as-libs"] then
     group "lib/toy"
-        for _, m  in ipairs(toy.modules) do
-            m.decl(m, true)
-        end
+        mud_libs(toy.toy, "StaticLib")
     group "lib"
 else
-    project "toy"
-        if MUD_STATIC then
-            kind "StaticLib"
-        else
-            kind "SharedLib"
-        end
-        
-        for _, m  in ipairs(toy.modules) do
-            m.decl(m, false)
-        end
+    toy.lib = mud_lib("toy", toy.toy, "SharedLib")
         
         files {
             path.join(TOY_SRC_DIR, "toy",    "**.h"),
         }
 end
 
-toy.all = {}
-table.extend(toy.all, mud.all)
-table.extend(toy.all, toy.modules)
-
 group "bin"
 --dofile(path.join(TOY_DIR, "scripts/shell.lua"))
+
+function toy_binary(name, modules, deps)
+    mud_lib(name, modules, "ConsoleApp", deps)
+    defines { "_" .. name:upper() .. "_EXE" }
+    toy_binary_config()
+end
+
+function toy_shell(name, modules, deps)
+    toy_binary(name, modules, deps)
+    
+    files {
+        path.join(MUD_DIR, "src", "mud", "Shell.cpp"),
+    }
+end
+
+function toy_dll(name, modules, deps)
+    mud_lib(name, modules, "SharedLib", deps)
+end

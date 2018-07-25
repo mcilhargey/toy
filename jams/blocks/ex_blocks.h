@@ -22,9 +22,7 @@ _BLOCKS_EXPORT void ex_blocks_pump_impl(GameShell& app, Game& game, Widget& pare
 
 enum CustomCollisionGroup : short int
 {
-	CM_ENERGY_0 = 1 << 10,
-	CM_ENERGY_1 = 1 << 11,
-	CM_ENERGY_2 = 1 << 12
+	CM_ENERGY = 1 << 10,
 };
 
 class refl_ _BLOCKS_EXPORT Well : public Complex, public Updatable, public ColliderObject
@@ -42,12 +40,13 @@ public:
 class refl_ _BLOCKS_EXPORT Faction
 {
 public:
-	constr_ Faction(uint32_t id, const Colour& colour, short int energy);
+	constr_ Faction(uint32_t id, const Colour& colour);
 	~Faction();
 
 	attr_ uint32_t m_id;
 	attr_ Colour m_colour;
-	attr_ short int m_energy;
+
+	Tank* m_leader = nullptr;
 
 	Material* m_highlight2;
 	Material* m_highlight11;
@@ -88,14 +87,13 @@ public:
 class refl_ _BLOCKS_EXPORT Slug : public Complex, public ColliderObject
 {
 public:
-	Slug(Entity& parent, const vec3& source, const quat& rotation, const vec3& velocity, short int energy);
+	Slug(Entity& parent, const vec3& source, const quat& rotation, const vec3& velocity);
 	~Slug();
 
 	comp_ attr_ Entity m_entity;
 
 	attr_ vec3 m_source;
 	attr_ vec3 m_velocity;
-	attr_ short int m_energy;
 
 	bool m_impacted = false;
 	bool m_destroy = false;
@@ -131,13 +129,15 @@ public:
 	float m_cooldown = 0.f;
 	float m_hitpoints = 100.f;
 	float m_energy = 100.f;
-	float m_range = 20.f;
+	float m_range = 50.f;
 
 	bool m_stealth = false;
 	bool m_control = true;
 
 	Tank* m_target = nullptr;
 	vec3 m_dest = Zero3;
+
+	bool m_ia = true;
 
 	std::vector<object_ptr<Slug>> m_slugs;
 

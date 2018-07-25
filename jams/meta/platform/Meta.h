@@ -35,7 +35,6 @@ namespace mud
     
     
     
-    
         
     // Player
     {
@@ -145,6 +144,41 @@ namespace mud
     
     
         
+    // Bullet
+    {
+        static Meta meta = { type<Bullet>(), &namspc({}), "Bullet", sizeof(Bullet), TypeClass::Complex };
+        static Class cls = { type<Bullet>(),
+            // bases
+            { &type<mud::Complex>(), &type<toy::ColliderObject>() },
+            { base_offset<Bullet, mud::Complex>(), base_offset<Bullet, toy::ColliderObject>() },
+            // constructors
+            {
+            },
+            // copy constructor
+            {
+            },
+            // members
+            {
+                { type<Bullet>(), member_address(&Bullet::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr },
+                { type<Bullet>(), member_address(&Bullet::m_source), type<mud::vec3>(), "source", var(mud::vec3()), Member::Value, nullptr },
+                { type<Bullet>(), member_address(&Bullet::m_velocity), type<mud::vec3>(), "velocity", var(mud::vec3()), Member::Value, nullptr }
+            },
+            // methods
+            {
+            },
+            // static members
+            {
+            }
+        };
+        
+        
+        
+        
+        meta_class<Bullet>();
+    }
+    
+    
+        
     // Crate
     {
         static Meta meta = { type<Crate>(), &namspc({}), "Crate", sizeof(Crate), TypeClass::Complex };
@@ -223,6 +257,7 @@ namespace mud
         m.m_types.push_back(&type<Player>());
         m.m_types.push_back(&type<Lamp>());
         m.m_types.push_back(&type<TileWorld>());
+        m.m_types.push_back(&type<Bullet>());
         m.m_types.push_back(&type<Crate>());
         m.m_types.push_back(&type<Human>());
     

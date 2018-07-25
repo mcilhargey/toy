@@ -139,134 +139,6 @@ namespace mud
     
     
         
-    // toy::LinkedLoader
-    {
-        static Meta meta = { type<toy::LinkedLoader>(), &namspc({ "toy" }), "LinkedLoader", sizeof(toy::LinkedLoader), TypeClass::Object };
-        static Class cls = { type<toy::LinkedLoader>(),
-            // bases
-            { &type<toy::MemberLoader>() },
-            { base_offset<toy::LinkedLoader, toy::MemberLoader>() },
-            // constructors
-            {
-            },
-            // copy constructor
-            {
-            },
-            // members
-            {
-            },
-            // methods
-            {
-            },
-            // static members
-            {
-            }
-        };
-        
-        
-        
-        
-        meta_class<toy::LinkedLoader>();
-    }
-    
-    
-        
-    // toy::SequenceLoader
-    {
-        static Meta meta = { type<toy::SequenceLoader>(), &namspc({ "toy" }), "SequenceLoader", sizeof(toy::SequenceLoader), TypeClass::Object };
-        static Class cls = { type<toy::SequenceLoader>(),
-            // bases
-            { &type<toy::MemberLoader>() },
-            { base_offset<toy::SequenceLoader, toy::MemberLoader>() },
-            // constructors
-            {
-            },
-            // copy constructor
-            {
-            },
-            // members
-            {
-            },
-            // methods
-            {
-            },
-            // static members
-            {
-            }
-        };
-        
-        
-        
-        
-        meta_class<toy::SequenceLoader>();
-    }
-    
-    
-        
-    // toy::StructureLoader
-    {
-        static Meta meta = { type<toy::StructureLoader>(), &namspc({ "toy" }), "StructureLoader", sizeof(toy::StructureLoader), TypeClass::Object };
-        static Class cls = { type<toy::StructureLoader>(),
-            // bases
-            { &type<toy::MemberLoader>() },
-            { base_offset<toy::StructureLoader, toy::MemberLoader>() },
-            // constructors
-            {
-            },
-            // copy constructor
-            {
-            },
-            // members
-            {
-            },
-            // methods
-            {
-            },
-            // static members
-            {
-            }
-        };
-        
-        
-        
-        
-        meta_class<toy::StructureLoader>();
-    }
-    
-    
-        
-    // toy::TypeLoader
-    {
-        static Meta meta = { type<toy::TypeLoader>(), &namspc({ "toy" }), "TypeLoader", sizeof(toy::TypeLoader), TypeClass::Object };
-        static Class cls = { type<toy::TypeLoader>(),
-            // bases
-            { &type<toy::MemberLoader>() },
-            { base_offset<toy::TypeLoader, toy::MemberLoader>() },
-            // constructors
-            {
-            },
-            // copy constructor
-            {
-            },
-            // members
-            {
-            },
-            // methods
-            {
-            },
-            // static members
-            {
-            }
-        };
-        
-        
-        
-        
-        meta_class<toy::TypeLoader>();
-    }
-    
-    
-        
     // toy::MemberLoader
     {
         static Meta meta = { type<toy::MemberLoader>(), &namspc({ "toy" }), "MemberLoader", sizeof(toy::MemberLoader), TypeClass::Object };
@@ -393,19 +265,147 @@ namespace mud
         meta_class<toy::PartLoader>();
     }
     
+    
+        
+    // toy::LinkedLoader
+    {
+        static Meta meta = { type<toy::LinkedLoader>(), &namspc({ "toy" }), "LinkedLoader", sizeof(toy::LinkedLoader), TypeClass::Object };
+        static Class cls = { type<toy::LinkedLoader>(),
+            // bases
+            { &type<toy::MemberLoader>() },
+            { base_offset<toy::LinkedLoader, toy::MemberLoader>() },
+            // constructors
+            {
+            },
+            // copy constructor
+            {
+            },
+            // members
+            {
+            },
+            // methods
+            {
+            },
+            // static members
+            {
+            }
+        };
+        
+        
+        
+        
+        meta_class<toy::LinkedLoader>();
+    }
+    
+    
+        
+    // toy::SequenceLoader
+    {
+        static Meta meta = { type<toy::SequenceLoader>(), &namspc({ "toy" }), "SequenceLoader", sizeof(toy::SequenceLoader), TypeClass::Object };
+        static Class cls = { type<toy::SequenceLoader>(),
+            // bases
+            { &type<toy::MemberLoader>() },
+            { base_offset<toy::SequenceLoader, toy::MemberLoader>() },
+            // constructors
+            {
+            },
+            // copy constructor
+            {
+            },
+            // members
+            {
+            },
+            // methods
+            {
+            },
+            // static members
+            {
+            }
+        };
+        
+        
+        
+        
+        meta_class<toy::SequenceLoader>();
+    }
+    
+    
+        
+    // toy::StructureLoader
+    {
+        static Meta meta = { type<toy::StructureLoader>(), &namspc({ "toy" }), "StructureLoader", sizeof(toy::StructureLoader), TypeClass::Object };
+        static Class cls = { type<toy::StructureLoader>(),
+            // bases
+            { &type<toy::MemberLoader>() },
+            { base_offset<toy::StructureLoader, toy::MemberLoader>() },
+            // constructors
+            {
+            },
+            // copy constructor
+            {
+            },
+            // members
+            {
+            },
+            // methods
+            {
+            },
+            // static members
+            {
+            }
+        };
+        
+        
+        
+        
+        meta_class<toy::StructureLoader>();
+    }
+    
+    
+        
+    // toy::TypeLoader
+    {
+        static Meta meta = { type<toy::TypeLoader>(), &namspc({ "toy" }), "TypeLoader", sizeof(toy::TypeLoader), TypeClass::Object };
+        static Class cls = { type<toy::TypeLoader>(),
+            // bases
+            { &type<toy::MemberLoader>() },
+            { base_offset<toy::TypeLoader, toy::MemberLoader>() },
+            // constructors
+            {
+            },
+            // copy constructor
+            {
+            },
+            // members
+            {
+            },
+            // methods
+            {
+            },
+            // static members
+            {
+            }
+        };
+        
+        
+        
+        
+        meta_class<toy::TypeLoader>();
+    }
+    
 
     
         m.m_types.push_back(&type<toy::Loader>());
         m.m_types.push_back(&type<toy::Procedure>());
         m.m_types.push_back(&type<toy::ProcedureType>());
-        m.m_types.push_back(&type<toy::LinkedLoader>());
-        m.m_types.push_back(&type<toy::SequenceLoader>());
-        m.m_types.push_back(&type<toy::StructureLoader>());
-        m.m_types.push_back(&type<toy::TypeLoader>());
         m.m_types.push_back(&type<toy::MemberLoader>());
         m.m_types.push_back(&type<toy::ObjectLoader>());
         m.m_types.push_back(&type<toy::OwnedLoader>());
         m.m_types.push_back(&type<toy::PartLoader>());
+        m.m_types.push_back(&type<toy::LinkedLoader>());
+        m.m_types.push_back(&type<toy::SequenceLoader>());
+        m.m_types.push_back(&type<toy::StructureLoader>());
+        m.m_types.push_back(&type<toy::TypeLoader>());
     
     }
 }

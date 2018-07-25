@@ -64,13 +64,17 @@ namespace mud
     template <> TOY_CORE_EXPORT Type& type<toy::WorldClock>() { static Type ty("WorldClock"); return ty; }
     template <> TOY_CORE_EXPORT Type& type<toy::WorldMedium>() { static Type ty("WorldMedium"); return ty; }
     template <> TOY_CORE_EXPORT Type& type<toy::Entity>() { static Type ty("Entity", type<mud::Transform>()); return ty; }
-    template <> TOY_CORE_EXPORT Type& type<toy::NavmeshShape>() { static Type ty("NavmeshShape", type<mud::Shape>()); return ty; }
     template <> TOY_CORE_EXPORT Type& type<toy::DefaultWorld>() { static Type ty("DefaultWorld", type<mud::Complex>()); return ty; }
     template <> TOY_CORE_EXPORT Type& type<toy::OCamera>() { static Type ty("OCamera", type<mud::Complex>()); return ty; }
     template <> TOY_CORE_EXPORT Type& type<toy::OLight>() { static Type ty("OLight", type<mud::Complex>()); return ty; }
     template <> TOY_CORE_EXPORT Type& type<toy::OWaypoint>() { static Type ty("OWaypoint", type<mud::Complex>()); return ty; }
     template <> TOY_CORE_EXPORT Type& type<toy::Origin>() { static Type ty("Origin", type<mud::Complex>()); return ty; }
+    template <> TOY_CORE_EXPORT Type& type<toy::NavmeshShape>() { static Type ty("NavmeshShape", type<mud::Shape>()); return ty; }
     template <> TOY_CORE_EXPORT Type& type<toy::Action>() { static Type ty("Action", type<toy::Procedure>()); return ty; }
+    template <> TOY_CORE_EXPORT Type& type<toy::BulletWorld>() { static Type ty("BulletWorld", type<toy::PhysicWorld>()); return ty; }
+    template <> TOY_CORE_EXPORT Type& type<toy::MonoSection>() { static Type ty("MonoSection", type<toy::TaskSection>()); return ty; }
+    template <> TOY_CORE_EXPORT Type& type<toy::ParallelSection>() { static Type ty("ParallelSection", type<toy::TaskSection>()); return ty; }
+    template <> TOY_CORE_EXPORT Type& type<toy::QueueSection>() { static Type ty("QueueSection", type<toy::TaskSection>()); return ty; }
     template <> TOY_CORE_EXPORT Type& type<toy::BulletCollider>() { static Type ty("BulletCollider", type<toy::ColliderImpl>()); return ty; }
     template <> TOY_CORE_EXPORT Type& type<toy::Area>() { static Type ty("Area", type<toy::ColliderObject>()); return ty; }
     template <> TOY_CORE_EXPORT Type& type<toy::WorldPage>() { static Type ty("WorldPage", type<toy::ColliderObject>()); return ty; }
@@ -84,10 +88,6 @@ namespace mud
     template <> TOY_CORE_EXPORT Type& type<toy::ReceptorSphere>() { static Type ty("ReceptorSphere", type<toy::ReceptorScope>()); return ty; }
     template <> TOY_CORE_EXPORT Type& type<toy::EventEmitter>() { static Type ty("EventEmitter", type<toy::Emitter>()); return ty; }
     template <> TOY_CORE_EXPORT Type& type<toy::EventReceptor>() { static Type ty("EventReceptor", type<toy::Receptor>()); return ty; }
-    template <> TOY_CORE_EXPORT Type& type<toy::MonoSection>() { static Type ty("MonoSection", type<toy::TaskSection>()); return ty; }
-    template <> TOY_CORE_EXPORT Type& type<toy::ParallelSection>() { static Type ty("ParallelSection", type<toy::TaskSection>()); return ty; }
-    template <> TOY_CORE_EXPORT Type& type<toy::QueueSection>() { static Type ty("QueueSection", type<toy::TaskSection>()); return ty; }
-    template <> TOY_CORE_EXPORT Type& type<toy::BulletWorld>() { static Type ty("BulletWorld", type<toy::PhysicWorld>()); return ty; }
     template <> TOY_CORE_EXPORT Type& type<toy::ReceptorView>() { static Type ty("ReceptorView", type<toy::View>()); return ty; }
     template <> TOY_CORE_EXPORT Type& type<toy::StoreView>() { static Type ty("StoreView", type<toy::View>()); return ty; }
     template <> TOY_CORE_EXPORT Type& type<toy::OmniVision>() { static Type ty("OmniVision", type<toy::Vision>()); return ty; }

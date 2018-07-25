@@ -1,15 +1,8 @@
 -- toy engine
 -- toy editor application
 
-project "editor"
-	kind "ConsoleApp"
+editor = toy_binary("editor", {}, toy.toy)
 
 	files {
-        path.join(TOY_EDITOR_DIR, "main.cpp"),
+        path.join(TOY_SRC_DIR, "editor.cpp"),
 	}
-    
-    uses_toy()
-    toy_binary("editor")
-    
-
-    

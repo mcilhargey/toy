@@ -35,8 +35,8 @@ namespace mud
     export_ template <> TOY_EDIT_EXPORT Type& type<toy::Paste>();
     export_ template <> TOY_EDIT_EXPORT Type& type<toy::Toolbelt>();
     export_ template <> TOY_EDIT_EXPORT Type& type<toy::Toolbox>();
-    export_ template <> TOY_EDIT_EXPORT Type& type<toy::DynamicToolbox>();
     export_ template <> TOY_EDIT_EXPORT Type& type<toy::PlayTool>();
+    export_ template <> TOY_EDIT_EXPORT Type& type<toy::DynamicToolbox>();
     export_ template <> TOY_EDIT_EXPORT Type& type<toy::Editor>();
     
 	export_ template struct TOY_EDIT_EXPORT Typed<std::vector<toy::ActionGroup*>>;
@@ -47,7 +47,7 @@ namespace mud
 	export_ template struct TOY_EDIT_EXPORT Typed<std::vector<toy::Paste*>>;
 	export_ template struct TOY_EDIT_EXPORT Typed<std::vector<toy::Toolbelt*>>;
 	export_ template struct TOY_EDIT_EXPORT Typed<std::vector<toy::Toolbox*>>;
-	export_ template struct TOY_EDIT_EXPORT Typed<std::vector<toy::DynamicToolbox*>>;
 	export_ template struct TOY_EDIT_EXPORT Typed<std::vector<toy::PlayTool*>>;
+	export_ template struct TOY_EDIT_EXPORT Typed<std::vector<toy::DynamicToolbox*>>;
 	export_ template struct TOY_EDIT_EXPORT Typed<std::vector<toy::Editor*>>;
 }

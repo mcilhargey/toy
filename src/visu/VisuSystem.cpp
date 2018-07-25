@@ -35,7 +35,10 @@ using namespace mud; namespace toy
 	void VisuSystem::init()
 	{
 #ifdef TOY_SOUND
-		m_sound_system->init();
+		if(!m_sound_system->init())
+		{
+			printf("ERROR: Sound - failed to init\n");
+		}
 #endif
 	}
 

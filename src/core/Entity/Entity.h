@@ -102,6 +102,9 @@ using namespace mud; namespace toy
 		template <class T>
 		inline T& part() { return m_complex.part<T>(); }
 
+		template <class T>
+		inline T* try_part() { return m_complex.isa<T>() ? &m_complex.part<T>() : nullptr; }
+
 		template <class T, class... Types>
 		inline T& construct(Types&&... args) { return GlobalPool::me().template pool<T>().construct(0, *this, std::forward<Types>(args)...); }
 

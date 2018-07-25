@@ -219,7 +219,7 @@ using namespace mud; namespace toy
 	void GameShell::run_editor(GameModule& module, size_t iterations)
 	{
 		this->load(module);
-		m_pump = [&](GameShell& app, Game& game) { this->pump_editor(); };
+		m_pump = [&](GameShell& app, Game& game) { UNUSED(app); UNUSED(game); this->pump_editor(); };
 		this->run(iterations);
 	}
 
@@ -233,7 +233,7 @@ using namespace mud; namespace toy
 	void GameShell::run_editor(const string& module_path, size_t iterations)
 	{
 		this->load(module_path);
-		m_pump = [&](GameShell& app, Game& game) { this->pump_editor(); };
+		m_pump = [&](GameShell& app, Game& game) { UNUSED(app); UNUSED(game); this->pump_editor(); };
 		this->run(iterations);
 	}
 

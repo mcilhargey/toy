@@ -58,5 +58,7 @@
 		static _platform& m() { static _platform instance; return instance; }
 	};
 
-	extern "C"
-	_PLATFORM_REFL_EXPORT Module& getModule();
+#ifdef _PLATFORM_MODULE
+extern "C"
+_PLATFORM_REFL_EXPORT Module& getModule();
+#endif

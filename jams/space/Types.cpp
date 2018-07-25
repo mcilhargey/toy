@@ -22,20 +22,21 @@ namespace mud
     template <> _SPACE_EXPORT Type& type<Race>() { static Type ty("Race"); return ty; }
     template <> _SPACE_EXPORT Type& type<Regime>() { static Type ty("Regime"); return ty; }
     template <> _SPACE_EXPORT Type& type<Resource>() { static Type ty("Resource"); return ty; }
-    template <> _SPACE_EXPORT Type& type<Stage>() { static Type ty("Stage"); return ty; }
-    template <> _SPACE_EXPORT Type& type<FleetJump::State>() { static Type ty("FleetJump::State"); return ty; }
-    template <> _SPACE_EXPORT Type& type<FleetSplit::State>() { static Type ty("FleetSplit::State"); return ty; }
+    template <> _SPACE_EXPORT Type& type<Jump::State>() { static Type ty("Jump::State"); return ty; }
+    template <> _SPACE_EXPORT Type& type<Split::State>() { static Type ty("Split::State"); return ty; }
     template <> _SPACE_EXPORT Type& type<SpatialCombat::State>() { static Type ty("SpatialCombat::State"); return ty; }
+	template <> _SPACE_EXPORT Type& type<Politic>() { static Type ty("Politic"); return ty; }
     template <> _SPACE_EXPORT Type& type<Taxation>() { static Type ty("Taxation"); return ty; }
     template <> _SPACE_EXPORT Type& type<Technology>() { static Type ty("Technology"); return ty; }
+    template <> _SPACE_EXPORT Type& type<TurnStage>() { static Type ty("TurnStage"); return ty; }
     template <> _SPACE_EXPORT Type& type<WeaponType>() { static Type ty("WeaponType"); return ty; }
     
     template <> _SPACE_EXPORT Type& type<Combat>() { static Type ty("Combat"); return ty; }
     template <> _SPACE_EXPORT Type& type<CombatFleet>() { static Type ty("CombatFleet"); return ty; }
     template <> _SPACE_EXPORT Type& type<Commander>() { static Type ty("Commander"); return ty; }
     template <> _SPACE_EXPORT Type& type<Construction>() { static Type ty("Construction"); return ty; }
-    template <> _SPACE_EXPORT Type& type<FleetJump>() { static Type ty("FleetJump"); return ty; }
-    template <> _SPACE_EXPORT Type& type<FleetSplit>() { static Type ty("FleetSplit"); return ty; }
+    template <> _SPACE_EXPORT Type& type<Jump>() { static Type ty("Jump"); return ty; }
+    template <> _SPACE_EXPORT Type& type<Split>() { static Type ty("Split"); return ty; }
     template <> _SPACE_EXPORT Type& type<PlanetaryCombat>() { static Type ty("PlanetaryCombat"); return ty; }
     template <> _SPACE_EXPORT Type& type<Player>() { static Type ty("Player"); return ty; }
     template <> _SPACE_EXPORT Type& type<Scans>() { static Type ty("Scans"); return ty; }

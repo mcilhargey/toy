@@ -6,10 +6,10 @@ MUD_DIR        = path.join(TOY_DIR, "mud")
 TOY_SRC_DIR         = path.join(TOY_DIR, "src")
 TOY_3RDPARTY_DIR    = path.join(TOY_DIR, "3rdparty")
 
-dofile(path.join(MUD_DIR, "scripts/toolchain_mud.lua"))
+dofile(path.join(MUD_DIR, "scripts/toolchain.lua"))
 
-function toy_binary(name)
-    mud_binary(name)
+function toy_binary_config()
+    mud_binary_config()
     
     configuration { "not linux", "not asmjs" }
         defines {

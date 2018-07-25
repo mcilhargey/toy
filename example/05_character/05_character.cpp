@@ -198,7 +198,7 @@ void ex_05_character_pump(GameShell& shell, Game& game, Widget& parent, Dockbar&
 	paint_human(groot, character);
 
 	human_controller_3rdperson(viewer, character);
-	//orbit.set_position(character.m_entity.m_position);
+	//orbit.set_target(character.m_entity.m_position);
 }
 
 #ifdef _05_CHARACTER_EXE

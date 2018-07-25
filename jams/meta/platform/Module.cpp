@@ -31,7 +31,7 @@ module ._platform;
         mud_ui::m();
         mud_uio::m();
         mud_snd::m();
-        mud_ctx_glfw::m();
+        //mud_ctx_glfw::m();
         mud_ui_vg::m();
         mud_bgfx::m();
         mud_gfx::m();
@@ -52,8 +52,10 @@ module ._platform;
 		_platform_meta(*this);
 	}
 
-	extern "C"
-	Module& getModule()
-	{
-		return _platform::m();
-	}
+#ifdef _PLATFORM_MODULE
+extern "C"
+Module& getModule()
+{
+	return _platform::m();
+}
+#endif

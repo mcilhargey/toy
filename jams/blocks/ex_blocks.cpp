@@ -22,10 +22,9 @@ Material& highlight_material(const std::string& name, const Colour& colour, int 
 	return material;
 }
 
-Faction::Faction(uint32_t id, const Colour& colour, short int energy)
+Faction::Faction(uint32_t id, const Colour& colour)
 	: m_id(index(type<Faction>(), id, Ref(this)))
 	, m_colour(colour)
-	, m_energy(energy)
 {
 	auto highlight_material = [=](int factor) -> Material&
 	{
@@ -80,7 +79,7 @@ Shield::Shield(Id id, Entity& parent, const vec3& position, Faction& faction, fl
 	, m_radius(radius)
 	, m_charge(1.f)
 	, m_discharge(0.f)
-	, m_solid(m_entity, *this, Sphere(radius), SolidMedium::me(), CollisionGroup(faction.m_energy), false, 0.f)
+	, m_solid(m_entity, *this, Sphere(radius), SolidMedium::me(), CollisionGroup(CM_ENERGY), false, 0.f)
 {
 	m_entity.m_world.add_task(this, short(Task::State)); // TASK_GAMEOBJECT
 
@@ -105,14 +104,13 @@ void Shield::next_frame(size_t tick, size_t delta)
 	m_charge = min(1.f, m_charge + 0.01f);
 }
 
-Slug::Slug(Entity& parent, const vec3& source, const quat& rotation, const vec3& velocity, short int energy)
-	: Complex(0, type<Slug>())
+Slug::Slug(Entity& parent, const vec3& source, const quat& rotation, const vec3& velocity)
+	: Complex(0, type<Slug>(), *this)
 	, m_entity(0, *this, parent, source, rotation)
 	, m_source(source)
 	, m_velocity(velocity)
-	, m_energy(energy)
-	//, m_solid(m_entity, *this, Sphere(0.1f), SolidMedium::me(), CollisionGroup(energy), false, 1.f)
-	, m_collider(m_entity, *this, Sphere(0.1f), SolidMedium::me(), CollisionGroup(energy))
+	//, m_solid(m_entity, *this, Sphere(0.1f), SolidMedium::me(), CollisionGroup(CM_ENERGY), false, 1.f)
+	, m_collider(m_entity, *this, Sphere(0.1f), SolidMedium::me(), CollisionGroup(CM_ENERGY))
 {
 	// @5603 : adding to nested only when object is finish -> in prototype
 	m_entity.m_parent->m_contents.add(m_entity);
@@ -126,8 +124,7 @@ void Slug::update()
 	if(m_impacted)
 		return;
 
-	short int mask = CM_SOLID | CM_GROUND | CM_ENERGY_0 | CM_ENERGY_1 | CM_ENERGY_2;
-	mask &= ~m_energy; // don't collide with our own energy
+	short int mask = CM_SOLID | CM_GROUND | CM_ENERGY;
 
 	//Collision collision = m_solid.m_impl->raycast(m_entity.m_position + m_velocity, mask);
 	Collision collision = m_collider.m_impl->raycast(m_entity.m_position + m_velocity, mask);
@@ -212,8 +209,7 @@ void Tank::next_frame(size_t tick, size_t delta)
 			vector_remove_pt(m_slugs, *slug);
 	}
 
-	bool ia = m_faction.m_id != 1;
-	if(!ia)
+	if(!m_ia)
 		return;
 
 	if(m_control && m_hitpoints > 0.f)
@@ -222,10 +218,11 @@ void Tank::next_frame(size_t tick, size_t delta)
 
 		ReceptorScope* vision = m_receptor.scope(VisualMedium::me());
 		for(Entity* entity : vision->m_scope.store())
-			if(entity->isa<Tank>() && &entity->part<Tank>().m_faction != &m_faction)
-			{
-				m_target = &entity->part<Tank>();
-			}
+			if(Tank* tank = entity->try_part<Tank>())
+				if(&tank->m_faction != &m_faction && !tank->m_stealth)
+				{
+					m_target = tank;
+				}
 
 		m_cooldown = max(0.f, m_cooldown - float(delta) * 0.01f);
 		if(m_target)
@@ -244,6 +241,10 @@ void Tank::next_frame(size_t tick, size_t delta)
 				m_cooldown = 1.f;
 			}
 		}
+
+		Tank* leader = m_faction.m_leader;
+		if(leader && !m_target && distance(leader->m_entity.m_position, m_entity.m_position) > 50.f)
+			m_dest = leader->m_entity.m_position;
 
 		if(m_dest != Zero3)
 		{
@@ -270,7 +271,7 @@ void Tank::shoot()
 	vec3 velocity = this->turret_direction() * 5.f;
 	quat rotation = this->turret_rotation();
 
-	m_slugs.emplace_back(make_object<Slug>(m_entity, m_entity.m_position + rotate(rotation, tank_muzzle), rotation, velocity, m_faction.m_energy));
+	m_slugs.emplace_back(make_object<Slug>(m_entity, m_entity.m_position + rotate(rotation, tank_muzzle), rotation, velocity));
 }
 
 BlockWorld::BlockWorld(const std::string& name)
@@ -285,9 +286,9 @@ BlockWorld::BlockWorld(const std::string& name)
 	, m_world_size(m_block_size)
 {
 	TPool<Faction>& pool = GlobalPool::me().pool<Faction>();
-	m_factions.push_back(&pool.construct(0, Colour::Red, CM_ENERGY_0));
-	m_factions.push_back(&pool.construct(0, Colour::Pink, CM_ENERGY_1));
-	m_factions.push_back(&pool.construct(0, Colour::Cyan, CM_ENERGY_2));
+	m_factions.push_back(&pool.construct(0, Colour::Red));
+	m_factions.push_back(&pool.construct(0, Colour::Pink));
+	m_factions.push_back(&pool.construct(0, Colour::Cyan));
 }
 
 BlockWorld::~BlockWorld()
@@ -313,7 +314,10 @@ void BlockWorld::generate_block(GfxSystem& gfx_system, const ivec2& coord)
 Player::Player(BlockWorld& world)
 	: m_world(&world)
 	, m_tank(0, world.m_world.origin(), Y3 * 20.f, *world.m_factions[0])
-{}
+{
+	m_tank.m_faction.m_leader = &m_tank;
+	m_tank.m_ia = false;
+}
 
 void paint_well(Gnode& parent, Well& well)
 {
@@ -335,7 +339,7 @@ void paint_shield(Gnode& parent, Shield& shield)
 
 	static std::vector<Material*> power = std::vector<Material*>(4);
 
-	auto fresnel_material = [&](Material& material, Colour colour)
+	auto fresnel_material = [&](Material& material, const Colour& colour)
 	{
 		material.m_fresnel_block.m_enabled = true;
 		material.m_fresnel_block.m_value.m_value = colour;
@@ -349,14 +353,11 @@ void paint_shield(Gnode& parent, Shield& shield)
 		power[shield.m_faction.m_id] = material;
 	}
 
-	if(shield.m_discharge > 0.f)
-		toy::sound(parent, "bzwomb");
-
 	static Clock clock;
 
 	float period = remap_trig(sin(clock.read() * 2.f), 0.f, 0.05f);
 
-	auto paint = [&](Material& material, float bias, Colour& colour)
+	auto paint = [&](Material& material, float bias, const Colour& colour)
 	{
 		fresnel_material(material, colour);
 		material.m_fresnel_block.m_fresnel_bias = bias;
@@ -371,31 +372,36 @@ void paint_shield(Gnode& parent, Shield& shield)
 	{
 		paint(*power[shield.m_faction.m_id], period, shield.m_faction.m_colour * 4.f * shield.m_charge);
 	}
+
+	if(shield.m_discharge > 0.f)
+		toy::sound(parent, "bzwomb", false, 0.5f);
 }
 
 void paint_shell(Gnode& parent, Slug& shell)
 {
 	static ParticleGenerator* flash = parent.m_scene->m_gfx_system.particles().file("flash");
-	static ParticleGenerator* trail = parent.m_scene->m_gfx_system.particles().file("impact");
+	static ParticleGenerator* trail = parent.m_scene->m_gfx_system.particles().file("trail");
 	static ParticleGenerator* impact = parent.m_scene->m_gfx_system.particles().file("impact");
 
 	Gnode& source = gfx::node(parent, Ref(&shell), shell.m_source, shell.m_entity.m_rotation);
 	gfx::particles(source, *flash);
 
-	bool active = toy::sound(source, "bang");
+	bool active = toy::sound(source, "bang", false, 0.5f);
 
+	enum States { Fly = 1, Impact = 2 };
 	if(!shell.m_impacted)
 	{
-		Gnode& projectile = gfx::node(parent, Ref(&shell), shell.m_entity.m_position, shell.m_entity.m_rotation);
+		Gnode& projectile = gfx::node(parent.subx(Fly), Ref(&shell), shell.m_entity.m_position, shell.m_entity.m_rotation);
 		gfx::shape(projectile, Cube(vec3(0.4f, 0.4f, 1.f)), Symbol(Colour::None, Colour(1.f, 2.f, 1.5f)));
 		gfx::particles(projectile, *trail);
 	}
 
 	if(shell.m_impacted)
 	{
-		Gnode& hit = gfx::node(parent, Ref(&shell), shell.m_impact, shell.m_entity.m_rotation);
+		Gnode& hit = gfx::node(parent.subx(Impact), Ref(&shell), shell.m_impact, shell.m_entity.m_rotation);
 		active |= !gfx::particles(hit, *impact).m_ended;
-		active |= toy::sound(hit, "explode");
+		active |= toy::sound(hit, "impact", false, 0.2f);
+		//active |= toy::sound(hit, "explode", false, 0.2f);
 	}
 
 	shell.m_destroy |= !active;
@@ -431,7 +437,7 @@ void paint_tank(Gnode& parent, Tank& tank)
 	static Material* stealth = &parent.m_scene->m_gfx_system.fetch_material("tank_stealth", "fresnel");
 	{
 		stealth->m_fresnel_block.m_enabled = true;
-		stealth->m_fresnel_block.m_value.m_value = { 0.f, 0.3f, 2.f };
+		stealth->m_fresnel_block.m_value.m_value = { 0.8f, 0.9f, 5.f };
 		//stealth->m_fresnel_block.m_value.m_texture = parent.m_scene->m_gfx_system.textures().file("beehive.png");
 	}
 
@@ -470,7 +476,7 @@ void paint_tank(Gnode& parent, Tank& tank)
 		gfx::item(turret, tank_turret_dead);
 	}
 
-	enum States { Alive = 2, Dead = 3, Slugs = 4 };
+	enum States { Alive = 2, Dead = 3 };
 
 	if(tank.m_hitpoints > 0.f)
 	{
@@ -497,14 +503,9 @@ void paint_tank(Gnode& parent, Tank& tank)
 		static ParticleGenerator* explode = parent.m_scene->m_gfx_system.particles().file("explode");
 
 		gfx::particles(dead, *explode);
-		toy::sound(dead, "explosion");
+		//toy::sound(dead, "explosion", false, 0.2f);
+		toy::sound(dead, "explode", false, 0.2f);
 	}
-
-	Gnode& slugs = parent.subx(Slugs);
-	//for(auto& slug : tank.m_slugs)
-	//	paint_shell(slugs.subi(slug.get()), *slug);
-	for(size_t i = 0; i < tank.m_slugs.size(); ++i)
-		paint_shell(slugs.subx(i), *tank.m_slugs[i]);
 }
 
 void paint_block_wire(Gnode& parent, Block& block)
@@ -525,9 +526,11 @@ void paint_scene(Gnode& parent, bool radiance)
 	parent.m_sound_manager->threadUpdate();
 #endif
 
-#ifndef MUD_PLATFORM_EMSCRIPTEN
 	Light& light = gfx::directional_light_node(parent);
 	light.m_shadow_range = 500.f;
+	light.m_shadow_num_splits = 4;
+#ifdef MUD_PLATFORM_EMSCRIPTEN
+	//light.m_shadows = false;
 #endif
 
 	gfx::radiance(parent, "radiance/tiber_1_1k.hdr", radiance ? BackgroundMode::Radiance
@@ -547,9 +550,9 @@ void paint_viewer(Viewer& viewer)
 {
 	viewer.m_camera.m_far = 500.f;
 
-#ifndef MUD_PLATFORM_EMSCRIPTEN
 	viewer.m_filters.m_glow.m_enabled = true;
 	viewer.m_filters.m_glow.m_levels_1_4 = { 1.f, 1.f, 0.f, 0.f };
+#ifndef MUD_PLATFORM_EMSCRIPTEN
 	viewer.m_filters.m_glow.m_bicubic_filter = true;
 #endif
 }
@@ -601,7 +604,7 @@ Style& right_panel_style(UiWindow& ui_window)
 {
 	static ImageSkin skin = { *ui_window.find_image("graphic/red_on"), 46, 28, 38, 30 };
 	
-	static Style style = { "GameMenu", styles().wedge, [](Layout& l) { l.m_space = UNIT; l.m_align = { RIGHT, CENTER }; l.m_padding = vec4(30.f); l.m_spacing = vec2(30.f); },
+	static Style style = { "GamePanel", styles().wedge, [](Layout& l) { l.m_space = UNIT; l.m_align = { RIGHT, CENTER }; l.m_padding = vec4(30.f); l.m_spacing = vec2(30.f); },
 													   [](InkStyle& s) { s.m_empty = false; s.m_image_skin = skin; } };
 	return style;
 }
@@ -610,7 +613,7 @@ Style& center_panel_style(UiWindow& ui_window)
 {
 	static ImageSkin skin = { *ui_window.find_image("graphic/red_on"), 46, 28, 38, 30 };
 	
-	static Style style = { "GameMenu", styles().wedge, [](Layout& l) { l.m_space = UNIT; l.m_align = { CENTER, CENTER }; l.m_padding = vec4(30.f); l.m_spacing = vec2(30.f); },
+	static Style style = { "GamePanel", styles().wedge, [](Layout& l) { l.m_space = UNIT; l.m_align = { CENTER, CENTER }; l.m_padding = vec4(30.f); l.m_spacing = vec2(30.f); },
 													   [](InkStyle& s) { s.m_empty = false; s.m_image_skin = skin; } };
 	return style;
 }
@@ -619,7 +622,7 @@ Style& left_panel_style(UiWindow& ui_window)
 {
 	static ImageSkin skin = { *ui_window.find_image("graphic/red_on"), 46, 28, 38, 30 };
 	
-	static Style style = { "GameMenu", styles().wedge, [](Layout& l) { l.m_space = UNIT; l.m_align = { LEFT, CENTER }; l.m_padding = vec4(30.f); l.m_spacing = vec2(30.f); },
+	static Style style = { "GamePanel", styles().wedge, [](Layout& l) { l.m_space = UNIT; l.m_align = { LEFT, CENTER }; l.m_padding = vec4(30.f); l.m_spacing = vec2(30.f); },
 													   [](InkStyle& s) { s.m_empty = false; s.m_image_skin = skin; } };
 	return style;
 }
@@ -658,7 +661,7 @@ void ex_blocks_game_ui(Widget& parent, GameScene& game)
 	game.m_viewer = &viewer;
 
 	OrbitController& orbit = ui::orbit_controller(viewer, 0.f, -c_pi / 4.f, 200.f);
-	orbit.set_position(player.m_tank.m_entity.m_position);
+	orbit.set_target(player.m_tank.m_entity.m_position);
 
 #ifdef TOY_SOUND
 	game.m_scene->m_snd_manager.m_listener.setTransform(viewer.m_camera.m_node.m_position, viewer.m_camera.m_node.m_rotation);
@@ -793,10 +796,8 @@ void ex_blocks_start(GameShell& app, Game& game)
 	GlobalPool::me().create_pool<Sector>();
 	GlobalPool::me().create_pool<Block>();
 	GlobalPool::me().create_pool<OCamera>();
-
-	SolidMedium::me().m_masks[CollisionGroup(CM_ENERGY_0)] = CM_SOLID | CM_GROUND | CM_ENERGY_1 | CM_ENERGY_2;
-	SolidMedium::me().m_masks[CollisionGroup(CM_ENERGY_1)] = CM_SOLID | CM_GROUND | CM_ENERGY_0 | CM_ENERGY_2;
-	SolidMedium::me().m_masks[CollisionGroup(CM_ENERGY_2)] = CM_SOLID | CM_GROUND | CM_ENERGY_0 | CM_ENERGY_1;
+	
+	SolidMedium::me().m_masks[CollisionGroup(CM_ENERGY)] = CM_SOLID | CM_GROUND | CM_ENERGY;
 
 	BlockWorld& world = GlobalPool::me().pool<BlockWorld>().construct("Arcadia");
 	game.m_world = &world.m_world;
@@ -822,6 +823,7 @@ void ex_blocks_scene(GameShell& app, GameScene& scene)
 	scene.m_scene->entity_painter<Shield>("Shields", vision.m_store, paint_shield);
 	scene.m_scene->entity_painter<Well>("Well", vision.m_store, paint_well);
 	scene.m_scene->entity_painter<Tank>("Tanks", vision.m_store, paint_tank);
+	scene.m_scene->entity_painter<Slug>("Slugs", vision.m_store, paint_shell);
 
 	scene.m_scene->entity_painter<TileBlock>("Tileblocks", vision.m_store, paint_block);
 

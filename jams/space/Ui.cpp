@@ -24,28 +24,55 @@ void label_entry(Widget& parent, cstring name, cstring value)
 template <class T>
 void number_entry(Widget& parent, cstring name, T value)
 {
-	Widget& row = ui::table_row(parent); ui::label(row, name); ui::label(row, to_string(value).c_str());
+	Widget& row = ui::table_row(parent); ui::label(row, name); ui::label(row, truncate_number(to_string(value)).c_str());
 }
 
-void commander_emblem(Widget& parent, Commander& commander)
+void commander_emblem(Widget& parent, Commander& commander, cstring title = nullptr)
 {
 	Widget& row = ui::row(parent);
 	ui::image256(row, commander.m_name.c_str(), commander.m_avatar, vec2(50.f));
-	ui::title(row, commander.m_name.c_str());
+	Widget& stack = ui::stack(row);
+	if(title)
+		ui::title(stack, title);
+	ui::title(stack, ("Commander " + commander.m_name).c_str());
 }
 
-Style& sheet_style()
+static Colour light_grey = Colour::DarkGrey;
+static Colour dark_grey = Colour(0.07f, 0.07f, 0.07f, 0.5f);
+
+Style& panel_style()
 {
-	static Colour light_grey = Colour::DarkGrey;
-	static Colour dark_grey = Colour(0.07f, 0.07f, 0.07f, 0.5f);
-	static Style style("SpaceSheet", styles().wedge, [](Layout& l) { l.m_space = { PARAGRAPH, SHRINK, WRAP }; l.m_align = { CENTER, CENTER }; l.m_padding = vec4(15.f); l.m_spacing = vec2(10.f); },
+	static Style style("SpacePanel", styles().wedge, [](Layout& l) { l.m_space = { PARAGRAPH, SHRINK, WRAP }; l.m_align = { CENTER, CENTER }; l.m_padding = vec4(15.f); l.m_spacing = vec2(10.f); },
 													 [](InkStyle& s) { s.m_empty = false; s.m_background_colour = dark_grey; s.m_border_colour = light_grey; s.m_border_width = vec4(1.f); });
 	return style;
 }
 
-Style& order_style()
+Style& sheet_style()
 {
-	static Style style("OrderLabel", styles().label, {}, [](InkStyle& s) { s.m_empty = false; s.m_text_colour = Colour::Red; });
+	static Style style("SpaceSheet", styles().wedge, [](Layout& l) { l.m_space = { PARAGRAPH, WRAP, WRAP }; l.m_align = { CENTER, CENTER }; l.m_spacing = vec2(40.f); });
+	return style;
+}
+
+Style& orders_panel_style()
+{
+	static Style style("OrdersPanel", styles().wedge, [](Layout& l) { l.m_space = { PARAGRAPH, SHRINK, WRAP }; l.m_align = { CENTER, RIGHT }; l.m_padding = vec4(15.f); l.m_spacing = vec2(10.f); },
+													  [](InkStyle& s) { s.m_empty = false; s.m_background_colour = dark_grey; s.m_border_colour = light_grey; s.m_border_width = vec4(1.f); });
+	return style;
+}
+
+Style& order_label_style()
+{
+	static Style style("OrderLabel", styles().label, [](Layout& l) { l.m_align = { CENTER, CENTER }; }, [](InkStyle& s) { s.m_empty = false; s.m_text_colour = Colour::Red; s.m_text_size = 18.f; });
+	return style;
+}
+
+static Colour active_blue = { 0.145f, 0.5f, 1.f, 1.f };
+
+Style& order_button_style()
+{
+	static Style style("OrderButton", styles().button, [](Layout& l) { l.m_space = BLOCK; l.m_align = { CENTER, CENTER }; }, 
+													   [](InkStyle& s) { s.m_empty = false; s.m_text_colour = Colour::White; s.m_text_size = 18.f; s.m_padding = vec4(8.f); s.m_border_width = vec4(1.f); s.m_border_colour = light_grey; },
+													   [](Style& s) { s.decline_skin(HOVERED).m_background_colour = active_blue; });
 	return style;
 }
 
@@ -55,21 +82,31 @@ Style& event_style()
 	return style;
 }
 
-bool select_parsec(Widget& parent, Viewer& viewer, Fleet& fleet, vec2& value)
+bool select_parsec(Widget& parent, Viewer& viewer, Galaxy& galaxy, uvec2& hover, uvec2& value, const uvec2& center, uint range)
 {
-	UNUSED(parent);
-	Widget& screen = ui::overlay(viewer);
+	//UNUSED(parent);
+	//Widget& screen = ui::overlay(viewer);
+	Widget& screen = ui::overlay(parent);
+
+	uvec2 lo = center - min(uvec2(range), center);
+	uvec2 hi = center + range;
+	auto check_parsec = [&](const uvec2& coord) { return intersects(coord, lo, hi); };
 
 	if(MouseEvent mouse_event = screen.mouse_event(DeviceType::Mouse, EventType::Moved))
 	{
-		fleet.galaxy().m_highlight = fleet.galaxy().intersect_coord(viewer.mouse_ray());
+		uvec2 coord = galaxy.intersect_coord(viewer.mouse_ray());
+		if(check_parsec(coord))
+			hover = coord;
 	}
 
 	if(MouseEvent mouse_event = screen.mouse_event(DeviceType::MouseLeft, EventType::Stroked))
 	{
-		fleet.galaxy().m_highlight = uvec2{ UINT32_MAX };
-		value = fleet.galaxy().intersect_coord(viewer.mouse_ray());
-		return true;
+		uvec2 coord = galaxy.intersect_coord(viewer.mouse_ray());
+		if(check_parsec(coord))
+		{
+			value = galaxy.intersect_coord(viewer.mouse_ray());
+			return true;
+		}
 	}
 
 	return false;
@@ -84,7 +121,8 @@ struct JumpQuery : public NodeState
 {
 	JumpQuery() {}
 	size_t m_step = 0;
-	vec2 m_coord = vec2(0.f);
+	uvec2 m_hover = uvec2(0);
+	uvec2 m_coord = uvec2(0);
 	FleetStance m_stance = FleetStance::Movement;
 };
 
@@ -104,38 +142,51 @@ struct BuildQuery : public NodeState
 	Fleet* m_destination = nullptr;
 };
 
-enum FleetOrderSwitch
+void draw_jump_hover(Gnode& parent, const vec3& start, const uvec2& dest, const Colour& colour)
 {
-	FLEET_ORDER_JUMP = 1 << 0,
-	FLEET_ORDER_SPLIT = 1 << 1,
-};
-
-void jump_query(Widget& parent, Viewer& viewer, Fleet& fleet)
-{
-	Widget& self = ui::screen(parent);
-	JumpQuery& query = self.state<JumpQuery>();
-	if(query.m_step == 0 && select_parsec(self, viewer, fleet, query.m_coord))
-		query.m_step++;
-	if(query.m_step == 1 && select_value<FleetStance>(self, 0, query.m_stance, false))
-	{
-		fleet.order_jump(query.m_coord, query.m_stance);
-		parent.m_switch &= ~FLEET_ORDER_JUMP;
-	}
+	vec3 end = to_xz(vec2(dest)) + 0.5f + Y3;
+	vec3 middle = (end + start) / 2.f + Y3 * 0.2f * length(end - start);
+	gfx::shape(parent, ArcLine(start, middle, end), Symbol(colour));
+	gfx::shape(parent, Quad(to_xz(vec2(dest)) + 0.5f, vec2(1.f), X3, Z3), Symbol(colour));
 }
 
-void split_query(Widget& parent, Fleet& fleet)
+void jump_query(Widget& parent, Viewer& viewer, Fleet& fleet, uint32_t mode)
 {
-	Widget& self = ui::auto_modal(parent, FLEET_ORDER_SPLIT);
-	Widget& sheet = ui::widget(self, sheet_style());
+	Widget& self = ui::screen(viewer);
+	Widget& modal = ui::popup(self, styles().modal, ui::PopupFlags::None);
+	JumpQuery& query = self.state<JumpQuery>();
+
+	ui::label(modal, "Jump");
+	ui::label(modal, ("to [" + to_string(query.m_coord) + "]").c_str());
+
+	Widget& row = ui::row(modal);
+	ui::label(row, "in directive:");
+
+	if(select_parsec(self, viewer, fleet.galaxy(), query.m_hover, query.m_coord, fleet.m_coord, uint(fleet.m_speed)))
+		fleet.order_jump(query.m_coord, query.m_stance);
+
+	if(ui::enum_input<FleetStance>(row, query.m_stance))
+		fleet.order_jump(query.m_coord, query.m_stance);
+
+	if(ui::button(modal, "Done").activated())	
+		parent.m_switch &= ~mode;
+
+	draw_jump_hover(viewer.m_scene->m_graph, fleet.m_entity.m_position, query.m_hover, fleet.m_commander->m_colour);
+}
+
+void split_query(Widget& parent, Fleet& fleet, uint32_t mode)
+{
+	Widget& modal = ui::auto_modal(parent, mode);
+	Widget& self = ui::widget(modal, panel_style());
 
 	SplitQuery& query = self.state<SplitQuery>();
 
-	ui::label(sheet, ("Split Fleet " + fleet.m_name).c_str());
+	ui::label(self, ("Split Fleet " + fleet.m_name).c_str());
 
-	ui::input_field<std::string>(sheet, "Name", query.m_name);
-	ui::enum_field<FleetStance>(sheet, "Directive", query.m_stance);
+	ui::input_field<std::string>(self, "Name", query.m_name);
+	ui::enum_field<FleetStance>(self, "Directive", query.m_stance);
 
-	Table& table = ui::table(sheet, carray<cstring, 4>{ "Code", "Name", "Number", "Split" }, carray<float, 4>{ 0.2f, 0.6f, 0.2f, 0.2f });
+	Table& table = ui::table(self, carray<cstring, 4>{ "Code", "Name", "Number", "Split" }, carray<float, 4>{ 0.2f, 0.6f, 0.2f, 0.2f });
 
 	for(auto& kv : fleet.m_ships)
 	{
@@ -146,42 +197,56 @@ void split_query(Widget& parent, Fleet& fleet)
 		ui::number_input<size_t>(row, { query.m_ships[kv.first], StatDef<size_t>{ 0, fleet.m_ships[kv.first] } });
 	}
 
-	if(ui::button(sheet, "Split").activated())
+	if(ui::button(self, "Split").activated())
 	{
 		fleet.order_split(query.m_name.c_str(), query.m_stance, query.m_ships);
-		parent.m_switch &= ~FLEET_ORDER_SPLIT;
+		parent.m_switch &= ~mode;
 	}
+}
+
+bool modal_button(Widget& screen, Widget& parent, Style& style, cstring content, uint32_t mode)
+{
+	if(ui::button(parent, style, content).activated())
+		screen.m_switch |= mode;
+	return (screen.m_switch & mode) != 0;
 }
 
 void fleet_orders(Widget& parent, Viewer& viewer, Fleet& fleet)
 {
-	Widget& self = ui::row(parent);
-	if(ui::modal_button(self, self, "Jump", FLEET_ORDER_JUMP))
-		jump_query(self, viewer, fleet);
-	if(ui::modal_button(self, self, "Split", FLEET_ORDER_SPLIT))
-		split_query(self, fleet);
+	enum Modes { Jump = 1 << 0, Split = 1 << 1 };
 
-	if(fleet.m_jump.m_state == FleetJump::Ordered)
-		ui::item(parent, order_style(), ("Jump to [" + to_string(fleet.m_jump.m_destination) + "]").c_str());
-	if(fleet.m_split.m_state == FleetSplit::Ordered)
-		ui::item(parent, order_style(), ("Split to " + fleet.m_split.m_name).c_str());
+	Widget& self = ui::row(parent);
+	if(modal_button(self, self, order_button_style(), "Jump", Jump))
+		jump_query(self, viewer, fleet, Jump);
+	if(modal_button(self, self, order_button_style(), "Split", Split))
+		split_query(self, fleet, Split);
+
+	if(fleet.m_split.m_state == Split::Ordered)
+		ui::item(parent, order_label_style(), ("Split to " + fleet.m_split.m_code).c_str());
+	if(fleet.m_jump.m_state == Jump::Ordered)
+		ui::item(parent, order_label_style(), ("Jump to [" + to_string(fleet.m_jump.m_dest) + "]").c_str());
 }
 
 void fleet_summary(Widget& parent, Fleet& fleet)
 {
-	Table& table = ui::columns(parent, carray<float, 2>{ 0.6f, 0.4f });
+	Widget& self = ui::row(parent);
+	Table& left = ui::columns(self, carray<float, 2>{ 0.6f, 0.4f });
+	Table& right = ui::columns(self, carray<float, 2>{ 0.6f, 0.4f });
 
-	label_entry(table, "Code", fleet.m_name.c_str());
-	number_entry(table, "Speed", fleet.m_speed);
-	number_entry(table, "Scan", fleet.m_scan);
-	number_entry(table, "Spatial Power", fleet.m_spatial_power);
-	number_entry(table, "Planetary Power", fleet.m_planetary_power);
-	label_entry(table, "Size", to_string(fleet_size(fleet.m_spatial_power)).c_str());
+	number_entry(left, "Speed", fleet.m_speed);
+	number_entry(left, "Scan", fleet.m_scan);
+	number_entry(left, "Upkeep", fleet.m_upkeep);
+	label_entry(left, "Stance", to_string(fleet.m_stance).c_str());
+
+	number_entry(right, "Spatial Power", fleet.m_spatial_power);
+	number_entry(right, "Planetary Power", fleet.m_planetary_power);
+	number_entry(right, "Experience", fleet.m_experience);
+	label_entry(right, "Size", to_string(fleet_size(fleet.m_spatial_power)).c_str());
 }
 
 void fleet_scan_sheet(Widget& parent, Fleet& fleet)
 {
-	Widget& self = ui::widget(parent, sheet_style());
+	Widget& self = ui::widget(parent, panel_style());
 
 	commander_emblem(self, *fleet.m_commander);
 
@@ -192,21 +257,20 @@ void fleet_scan_sheet(Widget& parent, Fleet& fleet)
 	label_entry(table, "Experience", to_string(fleet_experience(fleet.m_experience)).c_str());
 }
 
-void fleet_sheet(Widget& parent, Viewer& viewer, Fleet& fleet)
+void fleet_sheet(Widget& parent, Fleet& fleet)
 {
-	Widget& self = ui::widget(parent, sheet_style());
+	Widget& self = ui::widget(parent, sheet_style(), &fleet);
 
-	commander_emblem(self, *fleet.m_commander);
-
-	ui::label(self, ("Fleet " + fleet.m_name).c_str());
-	
-	fleet_summary(self, fleet);
-
-	Widget* spaceships = ui::expandbox(self, "Spaceships", true).m_body;
-
-	if(spaceships)
 	{
-		Table& table = ui::table(*spaceships, carray<cstring, 3>{ "Code", "Name", "Number" }, carray<float, 3>{ 0.2f, 0.6f, 0.2f });
+		Widget& info = ui::widget(self, panel_style());
+		commander_emblem(info, *fleet.m_commander, ("Fleet " + fleet.m_name).c_str());
+		fleet_summary(info, fleet);
+	}
+
+	{
+		Widget& spaceships = ui::widget(self, panel_style());
+
+		Table& table = ui::table(spaceships, carray<cstring, 3>{ "Code", "Name", "Number" }, carray<float, 3>{ 0.2f, 0.6f, 0.2f });
 
 		for(auto& kv : fleet.m_ships)
 		{
@@ -216,10 +280,6 @@ void fleet_sheet(Widget& parent, Viewer& viewer, Fleet& fleet)
 			ui::label(row, to_string(kv.second).c_str());
 		}
 	}
-
-	ui::label(self, "Orders");
-
-	fleet_orders(self, viewer, fleet);
 }
 
 Widget& schema_row(Widget& parent, Schema& schema, bool selected)
@@ -268,9 +328,23 @@ void launch_build_sheet(Widget& parent, Star& star, uint32_t mode)
 	}
 }
 
+void star_orders(Widget& parent, Viewer& viewer, Star& star)
+{
+	UNUSED(viewer);
+	enum Modes { Build = (1 << 0) };
+
+	Widget& self = ui::row(parent);
+
+	if(ui::modal_button(self, self, "Start Construction", Build))
+		launch_build_sheet(self, star, Build);
+	ui::button(self, "Change Taxation");
+	ui::button(self, "Change Politics");
+	ui::button(self, "Transfer System");
+}
+
 void star_scan_sheet(Widget& parent, Star& star)
 {
-	Widget& self = ui::widget(parent, sheet_style());
+	Widget& self = ui::widget(parent, panel_style());
 
 	if(star.m_commander)
 		commander_emblem(self, *star.m_commander);
@@ -284,21 +358,33 @@ void star_scan_sheet(Widget& parent, Star& star)
 
 void star_sheet(Widget& parent, Star& star)
 {
-	Widget& self = ui::widget(parent, sheet_style());
+	Widget& self = ui::widget(parent, sheet_style(), &star);
 
-	if(star.m_commander)
-		commander_emblem(self, *star.m_commander);
-
-	ui::label(self, ("Star " + star.m_name).c_str());
-
-	Widget& info = ui::row(self);
-	label_entry(info, "Population", (to_string(star.m_population) + "/" + to_string(star.m_max_population)).c_str());
-	number_entry(info, "Environment", star.m_environment);
-
-	Widget* resources = ui::expandbox(self, "Resources", true).m_body;
-	if(resources)
 	{
-		Table& table = ui::columns(*resources, carray<float, 2>{ 1.f, 1.f});
+		Widget& info = ui::widget(self, panel_style());
+
+		if(star.m_commander)
+			commander_emblem(info, *star.m_commander, ("Star " + star.m_name).c_str());
+
+		Widget& self = ui::row(info);
+		Table& left = ui::columns(self, carray<float, 2>{ 0.6f, 0.4f });
+		Table& right = ui::columns(self, carray<float, 2>{ 0.6f, 0.4f });
+
+		label_entry(right, "Population", (to_string(star.m_population) + "/" + to_string(star.m_max_population)).c_str());
+		number_entry(right, "Environment", star.m_environment);
+		number_entry(right, "Terraformation", star.m_terraformation);
+		number_entry(right, "Defense", int(star.m_defense));
+
+		label_entry(left, "Politic", to_string(star.m_politic).c_str());
+		label_entry(left, "Taxation", to_string(star.m_taxation).c_str());
+		number_entry(left, "Stability", star.m_stability);
+		label_entry(left, "Militia", (to_string(int(star.m_militia * 100.f)) + "%").c_str());
+	}
+
+	{
+		Widget& resources = ui::widget(self, panel_style());
+
+		Table& table = ui::columns(resources, carray<float, 2>{ 1.f, 1.f});
 		for(Resource resource = Resource(0); resource != Resource::Count; resource = Resource(size_t(resource) + 1))
 			if(star.m_resources[size_t(resource)] > 0)
 			{
@@ -306,10 +392,10 @@ void star_sheet(Widget& parent, Star& star)
 			}
 	}
 
-	Widget* stocks = ui::expandbox(self, "Stocks", true).m_body;
-	if(stocks)
 	{
-		Table& table = ui::columns(*stocks, carray<float, 2>{ 1.f, 1.f});
+		Widget& stocks = ui::widget(self, panel_style());
+
+		Table& table = ui::columns(stocks, carray<float, 2>{ 1.f, 1.f});
 		for(Resource resource = Resource(0); resource != Resource::Count; resource = Resource(size_t(resource) + 1))
 			if(star.m_stocks[size_t(resource)] > 0)
 			{
@@ -317,18 +403,18 @@ void star_sheet(Widget& parent, Star& star)
 			}
 	}
 
-	Widget* buildings = ui::expandbox(self, "Buildings", true).m_body;
-	if(buildings)
 	{
-		Table& table = ui::columns(*buildings, carray<float, 2>{ 1.f, 1.f});
+		Widget& buildings = ui::widget(self, panel_style());
+
+		Table& table = ui::columns(buildings, carray<float, 2>{ 1.f, 1.f});
 		for(auto& kv : star.m_buildings)
-			number_entry(table, kv.first->m_name.c_str(), kv.second);
+			number_entry(table, kv.first->m_code.c_str(), kv.second);
 	}
 
-	Widget* constructing = ui::expandbox(self, "Pending Constructions", true).m_body;
-	if(constructing)
 	{
-		Table& table = ui::table(*constructing, carray<cstring, 3>{ "Code", "Number", "ETA" }, carray<float, 3>{ 1.f, 1.f, 1.f });
+		Widget& constructing = ui::widget(self, panel_style());
+
+		Table& table = ui::table(constructing, carray<cstring, 3>{ "Code", "Number", "ETA" }, carray<float, 3>{ 1.f, 1.f, 1.f });
 		for(Construction& construction : star.m_constructions)
 		{
 			Widget& row = ui::table_row(table);
@@ -337,22 +423,11 @@ void star_sheet(Widget& parent, Star& star)
 			ui::label(row, to_string(construction.m_turns).c_str());
 		}
 	}
-
-	Widget* actions = ui::expandbox(self, "Actions", true).m_body;
-	if(actions)
-	{
-		enum Modes { Build = (1 << 0) };
-		if(ui::modal_button(*actions, *actions, "Start Construction", Build))
-			launch_build_sheet(*actions, star, Build);
-		ui::button(*actions, "Change Taxation");
-		ui::button(*actions, "Change Politics");
-		ui::button(*actions, "Transfer System");
-	}
 }
 
 Widget& sheet(Widget& parent, cstring title)
 {
-	Widget& self = ui::widget(parent, sheet_style());
+	Widget& self = ui::widget(parent, panel_style());
 	ui::title(self, title);
 	return self;
 }
@@ -364,6 +439,7 @@ void commander_sheet(Widget& parent, Commander& commander)
 	commander_emblem(self, commander);
 
 	Table& table = ui::columns(self, carray<float, 2>{ 1.f, 1.f});
+	label_entry(table, "Race", to_string(commander.m_race).c_str());
 	number_entry(table, "Command", commander.m_command);
 	number_entry(table, "Commerce", commander.m_commerce);
 	number_entry(table, "Diplomacy", commander.m_diplomacy);
@@ -406,10 +482,20 @@ void turn_report_stage(Widget& parent, Turn& turn, Commander& commander, TurnSta
 	}
 }
 
-void turn_report_divisions(Widget& parent, Galaxy& galaxy, Turn& turn)
+void turn_report_divisions(Widget& parent, Turn& turn)
 {
-	UNUSED(parent); UNUSED(galaxy);
-	turn.next_stage();
+	sheet(parent, "Divisions");
+
+	Split* split = turn.split();
+
+	if(split)
+	{
+		split->update(*split->m_source, split->m_source->m_entity.m_last_tick);
+		turn.m_split++;
+	}
+
+	if(!split)
+		turn.next_stage();
 }
 
 void jump_camera_to(toy::Camera& camera, const vec3& target, const quat& rotation, float distance, float angle, float duration = 1.f)
@@ -424,27 +510,30 @@ void turn_report_movements(Widget& parent, GameScene& game, Turn& turn)
 {
 	sheet(parent, "Movements");
 
-	Fleet* jumping = turn.current_jump();
-	
-	if(jumping)
+	auto do_jump = [&](Fleet& fleet, Jump& jump)
 	{
-		jumping->m_jump.update(*jumping, jumping->m_entity.m_last_tick);
-		if(jumping->m_jump.m_state_updated == jumping->m_entity.m_last_tick)
+		jump.update(fleet, fleet.m_entity.m_last_tick);
+		if(jump.m_state_updated == fleet.m_entity.m_last_tick)
 		{
-			vec3 position = to_xz(vec2(jumping->m_coord)) + 0.5f + Y3;
-			vec3 destination = to_xz(vec2(jumping->m_jump.m_destination)) + 0.5f + Y3;
-			quat rotation = look_at(position, destination);
+			quat rotation = look_at(jump.m_start_pos, jump.m_dest_pos);
 
-			if(jumping->m_jump.m_state == FleetJump::Start)
-				jump_camera_to(game.m_camera, position, rotation, 2.f, c_pi / 8.f, 3.f);
-			else if(jumping->m_jump.m_state == FleetJump::Jump)
-				jump_camera_to(game.m_camera, destination, 2.f);
+			float size = c_fleet_visu_sizes[size_t(fleet.estimated_size())];
+
+			if(jump.m_state == Jump::Start)
+				jump_camera_to(game.m_camera, jump.m_start_pos, rotation, 2.f * size, c_pi / 8.f, 3.f);
+			else if(jump.m_state == Jump::Warp)
+				jump_camera_to(game.m_camera, jump.m_dest_pos, 2.f * size);
 		}
-		if(jumping->m_jump.m_state == FleetJump::None)
-			turn.m_current_jump++;
-	}
+		if(jump.m_state == Jump::None)
+			turn.m_jump++;
+	};
 
-	if(!jumping)
+	Jump* jump = turn.jump();
+
+	if(jump)
+		do_jump(*jump->m_fleet, *jump);
+
+	if(!jump)
 		turn.next_stage();
 }
 
@@ -468,35 +557,93 @@ void fleet_losses_sheet(Widget& parent, const CombatFleet& combat_fleet, float t
 	}
 }
 
+void system_losses_sheet(Widget& parent, const CombatStar& combat_star, float t)
+{
+	Star& star = *combat_star.m_star;
+	ui::label(parent, ("System " + star.m_name + " of commander " + (star.m_commander ? star.m_commander->m_name : "NEUTRAL")).c_str());
+
+	/*Table& table = ui::table(parent, carray<cstring, 3>{ "Code", "Name", "Losses" }, carray<float, 3>{ 0.2f, 0.6f, 0.2f });
+
+	for(auto& kv : fleet.m_ships)
+	{
+		ShipSchema* ship = kv.first;
+		uint32_t number = kv.second;
+		uint32_t destroyed = uint32_t(float(combat_fleet.m_losses.at(ship)) * t);
+
+		Widget& row = ui::table_row(table);
+		ui::label(row, kv.first->m_code.c_str());
+		ui::label(row, kv.first->m_name.c_str());
+		ui::label(row, (to_string(destroyed) + "/" + to_string(number)).c_str());
+	}*/
+}
+
 void combat_report_sheet(Widget& parent, SpatialCombat& combat)
 {
 	Widget& self = sheet(parent, "Combat");
 
-	ui::label(self, "Allies");
-	for(const CombatFleet& combat_fleet : combat.m_allies)
+	ui::label(self, "Attackers");
+	for(const CombatFleet& combat_fleet : combat.m_attack)
 		fleet_losses_sheet(self, combat_fleet, combat.m_t_damage);
 
-	ui::label(self, "Enemies");
-	for(const CombatFleet& combat_fleet : combat.m_enemies)
+	ui::label(self, "Defenders");
+	for(const CombatFleet& combat_fleet : combat.m_defense)
 		fleet_losses_sheet(self, combat_fleet, combat.m_t_damage);
 }
 
-void turn_report_combats(Widget& parent, GameScene& game, Turn& turn)
+void combat_report_sheet(Widget& parent, PlanetaryCombat& combat)
 {
-	sheet(parent, "Combats");
+	Widget& self = sheet(parent, "Combat");
 
-	SpatialCombat* combat = turn.current_combat();
+	ui::label(self, "Attackers");
+	for(const CombatFleet& combat_fleet : combat.m_attack)
+		fleet_losses_sheet(self, combat_fleet, combat.m_t_damage);
+
+	ui::label(self, "Defenders");
+	system_losses_sheet(self, combat.m_defense, combat.m_t_damage);
+}
+
+void turn_report_spatial_combats(Widget& parent, GameScene& game, Turn& turn)
+{
+	sheet(parent, "Spatial Combats");
+
+	SpatialCombat* combat = turn.spatial_combat();
 
 	if(combat)
 	{
 		//vec3 position = to_xz(vec2(turn.m_current_combat->m_coord)) + 0.5f + Y3;
 		//jump_camera_to(game.m_camera, position);
+		UNUSED(game);
 
 		combat_report_sheet(parent, *combat);
 		if(ui::button(parent, "Next").activated())
 		{
 			combat->apply_losses();
-			turn.m_current_combat++;
+			turn.m_spatial_combat++;
+		}
+	}
+	else
+	{
+		turn.next_stage();
+	}
+}
+
+void turn_report_planetary_combats(Widget& parent, GameScene& game, Turn& turn)
+{
+	sheet(parent, "Planetary Combats");
+
+	PlanetaryCombat* combat = turn.planetary_combat();
+
+	if(combat)
+	{
+		//vec3 position = to_xz(vec2(turn.m_current_combat->m_coord)) + 0.5f + Y3;
+		//jump_camera_to(game.m_camera, position);
+		UNUSED(game);
+
+		combat_report_sheet(parent, *combat);
+		if(ui::button(parent, "Next").activated())
+		{
+			combat->apply_losses();
+			turn.m_planetary_combat++;
 		}
 	}
 	else
@@ -519,11 +666,13 @@ void turn_report_sheet(Widget& parent, GameScene& game, Player& player, Turn& tu
 	if(turn.m_stage == TurnStage::None)
 		turn.next_stage();
 	else if(turn.m_stage == TurnStage::Divisions)
-		turn_report_divisions(parent, *player.m_galaxy, turn);
+		turn_report_divisions(parent, turn);
 	else if(turn.m_stage == TurnStage::Movements)
 		turn_report_movements(parent, game, turn);
-	else if(turn.m_stage == TurnStage::Combats)
-		turn_report_combats(parent, game, turn);
+	else if(turn.m_stage == TurnStage::SpatialCombats)
+		turn_report_spatial_combats(parent, game, turn);
+	else if(turn.m_stage == TurnStage::PlanetaryCombats)
+		turn_report_planetary_combats(parent, game, turn);
 	else if(turn.m_stage == TurnStage::Systems)
 		turn_report_stage(parent, turn, *player.m_commander, TurnStage::Systems);
 	else if(turn.m_stage == TurnStage::Constructions)
@@ -538,27 +687,7 @@ void turn_report_sheet(Widget& parent, GameScene& game, Player& player, Turn& tu
 }
 
 template <class T>
-inline T* try_value(Ref object) { if(type(object).template is<T>()) return &val<T>(object); else return nullptr; }
-
-void space_item_sheet(Widget& parent, Viewer& viewer, Player& player, Ref object)
-{
-	Star* star = try_value<Star>(object);
-	Fleet* fleet = try_value<Fleet>(object);
-	if(star != nullptr)
-	{
-		if(star->m_commander == player.m_commander)
-			star_sheet(parent, *star);
-		else
-			star_scan_sheet(parent, *star);
-	}
-	else if(fleet != nullptr)
-	{
-		if(fleet->m_commander == player.m_commander)
-			fleet_sheet(parent, viewer, *fleet);
-		else
-			fleet_scan_sheet(parent, *fleet);
-	}
-}
+inline T* try_value(Ref object) { if(object && type(object).template is<T>()) return &val<T>(object); else return nullptr; }
 
 static void game_actions(Widget& parent, Player& player)
 {
@@ -566,8 +695,8 @@ static void game_actions(Widget& parent, Player& player)
 
 	if(ui::button(self, "Next Turn").activated())
 	{
-		player.m_last_turn = { player.m_galaxy->m_commanders };
-		player.m_turn_replay = { player.m_galaxy->m_commanders };
+		player.m_last_turn = { *player.m_galaxy };
+		player.m_turn_replay = { *player.m_galaxy };
 		//player.m_turn_replay = player.m_last_turn;
 		player.m_mode = GameMode::TurnReport;
 	}
@@ -598,26 +727,35 @@ static void game_viewer_ui(Widget& parent, GameScene& game, Player& player)
 	Widget& header = ui::header(self);
 	shrink_switch(header, carray<cstring, 3>{ "Empire", "Tactics", "Turn Report" }, (size_t&) player.m_mode);
 	
-	Widget& board = ui::board(self);
-	Widget& left = division(board, 0.3f);
-	Widget& middle = division(board, 0.45f);
-	Widget& right = division(board, 0.25f);
-	UNUSED(middle);
+	struct Divs
+	{
+		Divs(Widget& parent)
+			: board(ui::board(parent))
+			, left(division(board, 0.3f))
+			, middle(division(board, 0.45f))
+			, right(division(board, 0.25f))
+		{}
+		Widget &board, &left, &middle, &right;
+	};
+
+	Divs divs = { self };
 
 	if(player.m_mode == GameMode::Empire)
 	{
 		enum Modes : size_t { Overview, Technology };
 		static Modes mode = Overview;
-		shrink_switch(left, carray<cstring, 2>{ "Overview", "Technology" }, (size_t&) mode);
+		shrink_switch(divs.left, carray<cstring, 2>{ "Overview", "Technology" }, (size_t&) mode);
 
 		if(mode == Overview)
 		{
-			commander_sheet(left, *player.m_commander);
-			empire_sheet(left, *player.m_commander);
+			Widget& sheet = ui::widget(divs.left, sheet_style(), (void*) Overview);
+			commander_sheet(sheet, *player.m_commander);
+			empire_sheet(sheet, *player.m_commander);
 		}
 		else if(mode == Technology)
 		{
-			technology_sheet(left, *player.m_commander);
+			Widget& sheet = ui::widget(divs.left, sheet_style(), (void*) Technology);
+			technology_sheet(sheet, *player.m_commander);
 		}
 
 		player.m_selected_item = {};
@@ -631,20 +769,36 @@ static void game_viewer_ui(Widget& parent, GameScene& game, Player& player)
 		}
 		if(hovered && clock.read() > 0.2f)
 		{
-			space_item_sheet(right, *game.m_viewer, player, hovered);
+			//space_item_sheet(right, *game.m_viewer, player, hovered);
 		}
 	}
 	else if(player.m_mode == GameMode::Tactics)
 	{
 		Ref selected = game.m_selection.size() > 0 ? game.m_selection[0] : Ref();
-		
-		if(selected)
+
+		if(Star* star = try_value<Star>(selected))
 		{
-			Widget& sheet = ui::widget(left, styles().sheet, selected.m_value);
-			space_item_sheet(sheet, *game.m_viewer, player, selected);
+			if(star->m_commander == player.m_commander)
+				star_sheet(divs.left, *star);
+			else
+				star_scan_sheet(divs.left, *star);
+
+			Widget& orders = ui::widget(divs.middle, orders_panel_style());
+			star_orders(orders, *game.m_viewer, *star);
 		}
 
-		game_actions(right, player);
+		if(Fleet* fleet = try_value<Fleet>(selected))
+		{
+			if(fleet->m_commander == player.m_commander)
+				fleet_sheet(divs.left, *fleet);
+			else
+				fleet_scan_sheet(divs.left, *fleet);
+
+			Widget& orders = ui::widget(divs.middle, orders_panel_style());
+			fleet_orders(orders, *game.m_viewer, *fleet);
+		}
+
+		game_actions(divs.right, player);
 
 		if(player.m_selected_item != selected)
 		{
@@ -658,7 +812,7 @@ static void game_viewer_ui(Widget& parent, GameScene& game, Player& player)
 	}
 	else if(player.m_mode == GameMode::TurnReport)
 	{
-		turn_report_sheet(left, game, player, player.m_turn_replay, *player.m_commander);
+		turn_report_sheet(divs.left, game, player, player.m_turn_replay, *player.m_commander);
 	}
 }
 
@@ -676,7 +830,7 @@ void ex_space_ui(Widget& parent, GameScene& game)
 	player.m_hovered_item = viewer.m_hovered;
 
 #if 0
-	if(fleet.m_jump.m_state == FleetJump::END && state.m_position != fleet.m_entity.m_position)
+	if(fleet.m_jump.m_state == Jump::END && state.m_position != fleet.m_entity.m_position)
 	{
 		state.m_position = fleet.m_entity.m_position;
 		move_camera_to(game.m_camera, fleet.m_entity);

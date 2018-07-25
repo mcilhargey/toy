@@ -7,6 +7,20 @@
 
 //#define _PLATFORM_TOOLS
 
+float omni_attenuation(vec3 ray, float range, float attenuation_factor, float lower_bound)
+{
+	float normalized_distance = length(ray) / range;
+	return pow(max(1.f - normalized_distance, lower_bound), attenuation_factor);
+}
+
+float spot_attenuation(vec3 ray, vec3 light, float range, float attenuation_factor, float spot_attenuation, float spot_cutoff)
+{
+	float attenuation = omni_attenuation(ray, range, attenuation_factor, 0.001f);
+	float scos = max(dot(normalize(ray), -light), spot_cutoff);
+	float spot_rim = (1.f - scos) / (1.f - spot_cutoff);
+	return attenuation * (1.f - pow(max(spot_rim, 0.001f), spot_attenuation));
+}
+
 void populate_block(TileBlock& block)
 {
 	generate_crates(block);
@@ -104,11 +118,11 @@ void TileWorld::open_blocks(GfxSystem& gfx_system, const vec3& position, const i
 }
 
 
-Bullet::Bullet(Entity& parent, const vec3& source, const quat& rotation, const vec3& velocity)
-	: Complex(0, type<Bullet>())
+Bullet::Bullet(Entity& parent, const vec3& source, const quat& rotation, float velocity)
+	: Complex(0, type<Bullet>(), *this)
 	, m_entity(0, *this, parent, source, rotation)
 	, m_source(source)
-	, m_velocity(velocity)
+	, m_velocity(rotate(rotation, -Z3) * velocity)
 	//, m_solid(m_entity, *this, Sphere(0.1f), SolidMedium::me(), CollisionGroup(energy), false, 1.f)
 	, m_collider(m_entity, *this, Sphere(0.1f), SolidMedium::me(), CM_SOLID)
 {
@@ -124,19 +138,21 @@ void Bullet::update()
 	if(m_impacted)
 		return;
 
-	short int mask = CM_SOLID | CM_GROUND;
-	
-	Collision collision = m_collider.m_impl->raycast(m_entity.m_position + m_velocity, mask);
+	Collision collision = m_collider.m_impl->raycast(m_entity.m_position + m_velocity, CM_SOLID | CM_GROUND);
 	Entity* hit = collision.m_second ? &collision.m_second->m_entity : nullptr;
 
 	if(hit != nullptr && hit->isa<Human>())
 	{
 		Human& shot = hit->part<Human>();
-		if(shot.m_shield)
+		if(shot.m_shield && shot.m_energy > 0.f)
 		{
 			auto reflect = [](const vec3& I, const vec3& N) { return I - 2.f * dot(N, I) * N; };
 			vec3 N = normalize(collision.m_hit_point - shot.m_entity.m_position + Y3);
 			m_velocity = reflect(m_velocity, N);
+			m_entity.m_rotation = look_at(Zero3, m_velocity);
+
+			shot.m_energy -= 0.5f;
+			shot.m_discharge += 0.5f;
 		}
 		else
 		{
@@ -147,7 +163,7 @@ void Bullet::update()
 		}
 	}
 
-	if(distance(m_entity.m_position, Zero3) > 1000.f)
+	if(distance(m_entity.m_position, m_source) > 100.f)
 		m_destroy = true;
 
 	m_entity.set_position(m_entity.m_position + m_velocity);
@@ -173,7 +189,7 @@ Human::Human(Id id, Entity& parent, const vec3& position, Faction faction)
 	m_entity.m_world.add_task(this, short(Task::State)); // TASK_GAMEOBJECT
 
 	m_emitter.addSphere(VisualMedium::me(), 0.1f);
-	m_receptor.addSphere(VisualMedium::me(), 10.f);
+	m_receptor.addSphere(VisualMedium::me(), 30.f);
 
 	// @5603 : adding to nested only when object is finish -> in prototype
 	m_entity.m_parent->m_contents.add(m_entity);
@@ -187,12 +203,6 @@ Human::~Human()
 void Human::next_frame(size_t tick, size_t delta)
 {
 	UNUSED(tick);
-	vec3 velocity = m_solid->linear_velocity();
-	vec3 force = rotate(m_entity.m_rotation, m_force);
-
-	m_solid->set_linear_velocity({ force.x, velocity.y - 1.f, force.z });
-	m_solid->set_angular_velocity(m_torque);
-
 	m_solid->set_angular_factor(Zero3);
 
 	m_visor = this->aim();
@@ -204,27 +214,57 @@ void Human::next_frame(size_t tick, size_t delta)
 			vector_remove_pt(m_bullets, *bullet);
 	}
 
+	m_energy = min(1.f, m_energy + delta * 0.01f);
+	m_discharge = max(0.f, m_discharge - delta * 0.05f);
+
 	bool ia = m_faction == Faction::Ennemy;
-	if(ia && m_life > 0.f)
+	if(ia)
 	{
-		m_target = nullptr;
+		if(m_life <= 0.f)
+		{
+			m_state = { "Die", false };
+			return;
+		}
 
-		ReceptorScope* vision = m_receptor.scope(VisualMedium::me());
-		for(Entity* entity : vision->m_scope.store())
-			if(entity->isa<Human>())
-			{
-				Human& human = entity->part<Human>();
-				if(human.m_faction != m_faction && human.m_life > 0.f)
-					m_target = &entity->part<Human>();
-			}
+		if(m_target)
+		{
+			Aim aim = this->aim();
+			bool disable = distance(m_target->m_entity.m_position, m_entity.m_position) > 50.f;
+			disable |= aim.hit && aim.hit != &m_target->m_entity;
+			disable |= m_target->m_life <= 0.f;
+			if(disable)
+				m_target = nullptr;
+		}
 
-		m_cooldown = max(0.f, m_cooldown - float(delta) * 0.01f);
+		if(m_target == nullptr)
+		{
+			ReceptorScope* vision = m_receptor.scope(VisualMedium::me());
+			for(Entity* entity : vision->m_scope.store())
+				if(Human* human = entity->try_part<Human>())
+				{
+					if(human->m_faction != m_faction)
+					{
+						vec3 direction = entity->m_position - m_entity.m_position;
+						float light = spot_attenuation(-direction, m_entity.front(), 30.f, 0.5f, 0.9f, cos(to_radians(headlight_angle)));
+						float visibility = light * (human->m_headlight ? 4.f : 0.5f);
+						if(human->m_life > 0.f && (visibility > 0.2f || length(direction) < 4.f))
+						{
+							m_target = human;
+							m_cooldown = 2.f;
+						}
+					}
+				}
+		}
+
+		m_cooldown = max(0.f, m_cooldown - float(delta) * 0.05f);
 		if(m_target)
 		{
 			m_movable.m_linear_velocity = Zero3;
 			m_dest = Zero3;
 
-			m_entity.set_rotation(look_at(m_entity.m_position, m_target->m_entity.m_position));
+			auto x0z = [](const vec3& v) -> vec3 { return { v.x, 0.f, v.z }; };
+
+			m_entity.set_rotation(look_at(x0z(m_entity.m_position), x0z(m_target->m_entity.m_position)));
 			if(m_cooldown == 0.f)
 			{
 				this->shoot();
@@ -248,22 +288,28 @@ void Human::next_frame(size_t tick, size_t delta)
 			{
 				if(steer_2d(m_movable, m_dest, 3.f, float(delta) * float(c_tick_interval), 1.f))
 				{
+					m_state = { "IdleAim", true };
 					m_movable.m_linear_velocity = Zero3;
 					m_dest = Zero3;
+				}
+				else
+				{
+					m_state = { m_walk ? "Walk" : "RunAim", true };
+					m_movable.set_linear_velocity(m_movable.m_linear_velocity - Y3 * 1.f);
 				}
 			}
 		}
 	}
 }
 
-quat Human::sight()
+quat Human::sight(bool aiming)
 {
-	return rotate(m_entity.m_rotation, X3, m_vangle);
+	return aiming ? rotate(m_entity.m_rotation, X3, m_vangle) : m_entity.m_rotation;
 }
 
 Aim Human::aim()
 {
-	quat rotation = this->sight();
+	quat rotation = this->sight(m_aiming);
 	vec3 muzzle = m_entity.m_position + rotate(m_entity.m_rotation, Human::muzzle_offset);
 	vec3 direction = rotate(rotation, -Z3);
 	vec3 end = muzzle + rotate(rotation, -Z3) * 1000.f;
@@ -275,20 +321,18 @@ Aim Human::aim()
 void Human::shoot()
 {
 	Aim aim = this->aim();
-	m_bullets.emplace_back(make_object<Bullet>(m_entity, aim.start, aim.rotation, aim.direction * 10.f));
-	m_solid->impulse(rotate(m_entity.m_rotation, Z3 * 4.f), Zero3);
+	auto fuzz = [](const quat& rotation, const vec3& axis) { return rotate(rotation, axis, random_scalar(-0.05f, 0.05f)); };
+	quat rotation = fuzz(fuzz(aim.rotation, X3), Y3);
+	m_bullets.emplace_back(make_object<Bullet>(m_entity, aim.start, rotation, 2.f));
+	//m_solid->impulse(rotate(m_entity.m_rotation, Z3 * 4.f), Zero3);
 }
 
 void Human::damage(float amount)
 {
-	if(m_shield) return;
-
 	m_life -= amount;
 	if(m_life <= 0.f)
 	{
 		m_headlight = false;
-		m_force = Zero3;
-		m_torque = Zero3;
 		m_movable.m_linear_velocity = Zero3;
 	}
 }
@@ -329,25 +373,26 @@ void Player::spawn(const vec3& start_position)
 void paint_bullet(Gnode& parent, Bullet& bullet)
 {
 	static ParticleGenerator* flash = parent.m_scene->m_gfx_system.particles().file("flash");
-	static ParticleGenerator* trail = parent.m_scene->m_gfx_system.particles().file("impact");
 	static ParticleGenerator* impact = parent.m_scene->m_gfx_system.particles().file("impact");
 
 	Gnode& source = gfx::node(parent, {}, bullet.m_source, bullet.m_entity.m_rotation);
 	gfx::particles(source, *flash);
 
-	toy::sound(source, "schklatweom", false, 0.08f);
+	//toy::sound(source, "rifle", false, 0.4f);
+	toy::sound(source, "rifle2", false, 0.4f);
 
 	if(!bullet.m_impacted)
 	{
 		Gnode& projectile = gfx::node(parent, {}, bullet.m_entity.m_position, bullet.m_entity.m_rotation);
-		gfx::shape(projectile, Cube(vec3(0.02f, 0.02f, 0.4f)), Symbol(Colour::None, Colour(1.f, 2.f, 1.5f)));
-		gfx::particles(projectile, *trail);
+		gfx::shape(projectile, Cube(vec3(0.02f, 0.02f, 0.4f)), Symbol(Colour::None, Colour(2.f, 0.3f, 0.3f) * 4.f));
 	}
 
 	if(bullet.m_impacted)
 	{
 		Gnode& hit = gfx::node(parent, {}, bullet.m_impact, bullet.m_entity.m_rotation);
-		gfx::particles(hit, *impact);
+		toy::sound(source, "impact2", false, 0.4f);
+		if(gfx::particles(hit, *impact).m_ended)
+			bullet.m_destroy = true;
 	}
 }
 
@@ -392,50 +437,36 @@ void paint_human(Gnode& parent, Human& human)
 	static Model& model_stealth = human_model_stealth(parent.m_scene->m_gfx_system);
 	static Model& model_glow = human_model_glow(parent.m_scene->m_gfx_system);
 
-	//Model& model = human.m_stealth ? model_stealth : (human.m_life <= 0.f ? model_normal : model_glow);
 	Model& model = human.m_stealth ? model_stealth : model_glow;
 	
-	//glow_material.m_pbr_block.m_emissive.m_value.m_a;
-
 	Gnode& self = gfx::node(parent, Ref(&human), human.m_entity.m_position, human.m_entity.m_rotation);
 	
 	Item& item = gfx::item(self, model, ITEM_SELECTABLE);
 	Animated& animated = gfx::animated(self, item);
 
-	struct State { std::string name; bool loop; };
-	State state = { "IdleAim", true };
-	if(human.m_force != Zero3 || human.m_torque != Zero3 || human.m_movable.m_linear_velocity != Zero3)
-		state = { human.m_walk ? "Walk" : "RunAim", true };
-	if(human.m_life <= 0.f)
-		state = { "Die", false };
-
-	if(animated.m_playing.empty() || animated.playing() != state.name)
-		animated.play(state.name.c_str(), state.loop, 0.f, human.m_walk ? 0.7f : 1.f);
-
-	Gnode& visor = gfx::node(parent, {}, human.m_visor.end);
-	gfx::shape(visor, Circle(0.01f, Axis::Z), Symbol(Colour::White * 3.f, Colour::None, true), ITEM_BILLBOARD);
-
-	auto bone_pose = [](Bone& bone)
-	{
-		return bxrotation(angle_axis(-c_pi * 0.5f, X3)) * bxscale(vec3(0.009999999776482582f)) * bone.m_pose;
-	};
-
-#if 0
-	for(Bone& bone : animated.m_rig.m_skeleton.m_bones)
-	{
-		mat4 pose = bxrotation(human.m_entity.m_rotation) * bone_pose(bone);
-		Gnode& node = gfx::node(self, {}, human.m_entity.m_position + vec3(pose * vec4(Zero3, 1.f)));
-		gfx::shape(node, Sphere(0.02f), Symbol());
-	}
-#endif
+	if(animated.m_playing.empty() || animated.playing() != human.m_state.name)
+		animated.play(human.m_state.name.c_str(), human.m_state.loop, 0.f, human.m_walk ? 0.7f : 1.f);
 
 	Bone* bone = animated.m_rig.m_skeleton.find_bone("RightHand");
 
-	mat4 pose = bxrotation(human.m_entity.m_rotation) * bone_pose(*bone);
+	mat4 pose = bxrotation(human.m_entity.m_rotation) * fix_bone_pose(*bone);
 	Gnode& arm = gfx::node(self, {}, human.m_entity.m_position + vec3(pose * vec4(Zero3, 1.f)), human.m_entity.m_rotation);
 	gfx::model(arm, "rifle");
 
-	enum States { Shield = 3, Headlight = 4 };
+	enum States { Seek = 3, Dead = 4, Shield = 5, Headlight = 6, Visor = 7 };
+
+	if(human.m_target)
+	{
+		Gnode& seek = gfx::node(parent.subx(Seek), Ref(&human), human.m_entity.m_position, human.m_entity.m_rotation);
+		toy::sound(seek, "destroy", false, 0.5f);
+	}
+
+	if(human.m_life <= 0.f)
+	{
+		Gnode& dead = gfx::node(parent.subx(Dead), Ref(&human), human.m_entity.m_position, human.m_entity.m_rotation);
+		//toy::sound(dead, "robotdeath", false, 0.1f);
+		toy::sound(dead, "sparks", false, 0.1f);
+	}
 
 	if(human.m_shield)
 	{
@@ -453,16 +484,22 @@ void paint_human(Gnode& parent, Human& human)
 		static Material& shield = shield_material(shield_colour, 0.04f);
 
 		static Clock clock;
-		float shield_intensity = remap_trig(sin(clock.read() * 2.f), 0.3f, 1.4f);
-		float light_intensity = remap_trig(sin(clock.read() * 2.f), 0.8f, 1.4f);
+		float shield_intensity = remap_trig(sin(clock.read() * 2.f), 0.3f, 1.4f) * (human.m_energy + human.m_discharge * 10.f);
+		float light_intensity = remap_trig(sin(clock.read() * 2.f), 0.8f, 1.4f) * (human.m_energy + human.m_discharge * 5.f);
 		
 		shield.m_fresnel_block.m_value.m_value = shield_colour * shield_intensity;
 
 		Gnode& center = gfx::node(parent.subx(Shield), Ref(&human), human.m_entity.m_position + rotate(human.m_entity.m_rotation, Y3), human.m_entity.m_rotation);
 		gfx::shape(center, Sphere(1.f), Symbol(Colour::None, shield_colour), 0U, &shield);
 		gfx::light(center, LightType::Point, false, Colour(0.3f, 0.4f, 1.f) * light_intensity, 10.f);
-		//toy::sound(parent, "grzzt");
-		toy::sound(parent, "electricfield", false, 0.3f);
+	
+		toy::sound(center, "electricfield", false, 0.3f);
+
+		if(human.m_discharge > 0.f)
+		{
+			toy::sound(center, "bzwomb");
+			toy::sound(center, "grzzt");
+		}
 	}
 
 	if(human.m_headlight)
@@ -473,8 +510,12 @@ void paint_human(Gnode& parent, Human& human)
 		light.m_spot_attenuation = 0.9f;
 	}
 
-	for(auto& bullet : human.m_bullets)
-		paint_bullet(self, *bullet);
+	if(human.m_faction == Faction::Ally)
+	{
+		Gnode& headlight = gfx::node(parent.subx(Visor), Ref(&human), human.m_entity.m_position + rotate(human.m_entity.m_rotation, Human::muzzle_offset), human.sight(human.m_aiming));
+		//gfx::shape(headlight, Line(-Z3 * 4.f, -Z3 * 8.f), Symbol(Colour(0.2f, 0.8f, 2.4f) * 4.f, Colour::None, true));
+		gfx::shape(headlight, Circle(-Z3 * 8.f, 0.2f, Axis::Z), Symbol(Colour(0.2f, 0.8f, 2.4f) * 4.f, Colour::None, true));
+	}
 }
 
 void paint_block(Gnode& parent, TileBlock& block)
@@ -486,7 +527,7 @@ void paint_block(Gnode& parent, TileBlock& block)
 
 Material& plain_material(GfxSystem& gfx_system, cstring name, const Colour& colour)
 {
-	Material& material = gfx_system.fetch_material("crate", "pbr/pbr");
+	Material& material = gfx_system.fetch_material(name, "pbr/pbr");
 	material.m_pbr_block.m_enabled = true;
 	material.m_pbr_block.m_albedo.m_value = colour;
 	return material;
@@ -496,18 +537,10 @@ void paint_crate(Gnode& parent, Crate& crate)
 {
 	static Material& material = plain_material(parent.m_scene->m_gfx_system, "crate", Colour::White);
 	gfx::shape(parent, Cube(crate.m_extents), Symbol(Colour::None, Colour::White), 0U, &material);
-	//Gnode& node = gfx::node(parent, {}, parent.m_attach->m_position, parent.m_attach->m_rotation, vec3(0.02f) * crate.m_extents);
-	//gfx::model(node, "crate");
-	//gfx::model(node, "futuristic_crate");
 }
 
 void paint_scene(Gnode& parent)
 {
-	//toy::sound(parent, "alarm", true);
-
-	//Light& light = gfx::directional_light_node(parent);
-	//light.m_colour = { 0.3f, 0.1f, 0.1f };
-
 #ifdef TOY_SOUND
 	parent.m_sound_manager->threadUpdate();
 #endif
@@ -516,29 +549,18 @@ void paint_scene(Gnode& parent)
 	parent.m_scene->m_environment.m_radiance.m_ambient = 0.04f;
 
 	gfx::radiance(parent, "radiance/tiber_1_1k.hdr", BackgroundMode::None);
+
+	toy::sound(parent, "complexambient", true, 0.1f);
 }
 
 void paint_viewer(Viewer& viewer)
 {
-#ifndef MUD_PLATFORM_EMSCRIPTEN
 	viewer.m_filters.m_glow.m_enabled = true;
 	viewer.m_filters.m_glow.m_levels_1_4 = { 1.f, 0.f, 0.f, 0.f };
-	viewer.m_filters.m_glow.m_bicubic_filter = true;
 	viewer.m_filters.m_glow.m_intensity = 0.4f;
+#ifndef MUD_PLATFORM_EMSCRIPTEN
+	viewer.m_filters.m_glow.m_bicubic_filter = true;
 #endif
-
-	Fog& fog = viewer.m_scene->m_environment.m_fog;
-
-	static bool once = false;
-	if(!once)
-	{
-		//fog.m_enabled = true;
-		fog.m_colour = Colour::Red * 0.3f;
-		fog.m_density = 0.01f;
-		fog.m_height_curve = 0.1f;
-		fog.m_depth_begin = 50.f;
-		once = true;
-	}
 }
 
 void physic_painter(GameScene& scene)
@@ -582,6 +604,7 @@ void ex_platform_scene(GameShell& app, GameScene& scene)
 	range_entity_painter<Human>(*scene.m_scene, reference, 100.f, "Humans", vision.m_store, paint_human);
 	range_entity_painter<Crate>(*scene.m_scene, reference, 100.f, "Crates", vision.m_store, paint_crate);
 	range_entity_painter<TileBlock>(*scene.m_scene, reference, 200.f, "Tileblocks", vision.m_store, paint_block);
+	range_entity_painter<Bullet>(*scene.m_scene, reference, 100.f, "Bullets", vision.m_store, paint_bullet);
 
 	//physic_painter(*scene.m_scene);
 }
@@ -602,10 +625,7 @@ vec3 find_fitting_player_location(WfcBlock& tileblock)
 
 Style& menu_style()
 {
-	static Style style("GameMenu", styles().wedge, [](Layout& l) { l.m_space = { PARAGRAPH, SHRINK, SHRINK };
-																   l.m_align = { CENTER, CENTER };
-																   l.m_padding = vec4(15.f);
-																   l.m_spacing = vec2(10.f); });
+	static Style style = { "GameMenu", styles().wedge, [](Layout& l) { l.m_space = UNIT; l.m_align = { LEFT, CENTER }; l.m_padding = vec4(120.f); l.m_padding.x = 300.f; l.m_spacing = vec2(30.f); } };
 	return style;
 }
 
@@ -614,6 +634,21 @@ Style& button_style()
 	static Style style("GameButton", styles().button, [](Layout& l) {},
 													  [](InkStyle& s) { s.m_empty = false; s.m_text_colour = Colour::AlphaWhite; s.m_text_size = 24.f; },
 													  [](Style& s) { s.decline_skin(HOVERED).m_text_colour = Colour::White; });
+	return style;
+}
+
+Style& screen_style()
+{
+	static Style style = { "GameScreen", styles().wedge, [](Layout& l) { l.m_space = LAYOUT; l.m_padding = vec4(30.f); } };
+	return style;
+}
+
+Style& left_panel_style(UiWindow& ui_window)
+{
+	static ImageSkin skin = { *ui_window.find_image("graphic/blue_on"), 46, 28, 38, 30 };
+	
+	static Style style = { "GameMenu", styles().wedge, [](Layout& l) { l.m_space = UNIT; l.m_align = { LEFT, CENTER }; l.m_padding = vec4(30.f); l.m_spacing = vec2(30.f); },
+													   [](InkStyle& s) { s.m_empty = false; s.m_image_skin = skin; } };
 	return style;
 }
 
@@ -634,9 +669,19 @@ void human_control_key(Widget& widget, vec3& force, vec3& torque, const KeyMove&
 		force -= move.force * speed;
 }
 
-static void human_velocity_controller(Widget& widget, Human& human)
+void human_controller(HumanController& controller, Human& human, OrbitController& orbit, bool relative = true)
 {
-	bool shift = widget.root_sheet().m_keyboard.m_shift;
+	vec3 velocity = human.m_solid->linear_velocity();
+	vec3 force = relative ? rotate(human.m_entity.m_rotation, controller.m_force)
+						  : rotate(quat(vec3(orbit.m_pitch, orbit.m_yaw, 0.f)), controller.m_force);
+
+	human.m_solid->set_linear_velocity({ force.x, velocity.y - 1.f, force.z });
+	human.m_solid->set_angular_velocity(controller.m_torque);
+}
+
+static void human_velocity_controller(Viewer& viewer, HumanController& controller, Human& human, OrbitController& orbit, bool relative = true)
+{
+	bool shift = viewer.root_sheet().m_keyboard.m_shift;
 
 	const KeyMove moves[8] =
 	{
@@ -647,38 +692,95 @@ static void human_velocity_controller(Widget& widget, Human& human)
 	};
 
 	for(const KeyMove& key_move : moves)
-		human_control_key(widget, human.m_force, human.m_torque, key_move);
+		human_control_key(viewer, controller.m_force, controller.m_torque, key_move);
 
-	if(widget.key_event(KC_SPACE, EventType::Stroked))
+	if(viewer.key_event(KC_SPACE, EventType::Stroked))
 		human.m_solid->impulse(Y3 * 16.f, Zero3);
+
+	if(controller.m_force != Zero3 || controller.m_torque != Zero3)
+	{
+		human.m_state = { human.m_walk ? "Walk" : "RunAim", true };
+	}
+	else
+	{
+		human.m_state = { "IdleAim", true };
+	}
+
+	human_controller(controller, human, orbit, relative);
 }
 
 void ex_platform_game_hud(Viewer& viewer, GameScene& game, Human& human)
 {
-	Widget& overlay = ui::screen(viewer);
+	static Style& style_screen = screen_style();
+	static Style& style_left_panel = left_panel_style(viewer.ui_window());
 
-	bool isometric = false;// true;
-	OrbitController& orbit = isometric ? ui::isometric_controller(viewer)
-									   : ui::orbit_controller(viewer);
+	//Widget& screen = ui::screen(viewer);
+	Widget& screen = ui::widget(viewer, style_screen);
 
-	orbit.set_position(human.m_entity.m_position + Y3 * 2.f);
+	enum Mode { ThirdPerson, Isometric, PseudoIsometric };
+	Mode mode = ThirdPerson;
 
-	if(!isometric)
-		orbit.update_position(human.sight());
+	OrbitController& orbit = mode == Isometric ? ui::isometric_controller(viewer)
+											   : ui::orbit_controller(viewer);
+
+	orbit.set_target(human.m_entity.m_position + Y3 * 2.f);
 
 	if(MouseEvent mouse_event = viewer.mouse_event(DeviceType::Mouse, EventType::Moved))
 	{
 		const float rotation_speed = 1.f;
 		vec2 angle = -mouse_event.m_delta / 250.f * rotation_speed;
 
-		human.m_entity.rotate(Y3, angle.x);
-		human.m_vangle += angle.y;
-		human.m_vangle = min(c_pi / 2.f - 0.01f, max(-c_pi / 2.f + 0.01f, human.m_vangle));
+		if(mode != ThirdPerson)
+		{
+			Ray ray = viewer.m_viewport.ray(mouse_event.m_relative);
+			vec3 target = plane_segment_intersection(Plane(Y3, human.m_entity.m_position.y), to_segment(ray));
+			if(mode == Isometric)
+			{
+				human.m_entity.set_rotation(look_at(human.m_entity.m_position, target));
+			}
+			else if(mode == PseudoIsometric)
+			{
+				human.m_entity.set_rotation(quat(vec3(0.f, orbit.m_yaw, 0.f)));
+				orbit.m_yaw += angle.x;
+			}
+		}
+		else
+		{
+			human.m_aiming = true;
+			human.m_entity.rotate(Y3, angle.x);
+			human.m_vangle += angle.y;
+			human.m_vangle = min(c_pi / 2.f - 0.01f, max(-c_pi / 2.f + 0.01f, human.m_vangle));
+		}
+	}
+
+	if(mode == ThirdPerson)
+		orbit.set_eye(human.sight());
+
+	if(mode == PseudoIsometric)
+	{
+		orbit.m_pitch = -c_pi / 4.f;
+		orbit.update_eye();
+	}
+
+	Widget& board = ui::board(screen);
+	Widget& row = ui::row(screen);
+	Widget& left_panel = ui::widget(row, style_left_panel);
+
+	static HumanController controller;
+
+	if(human.m_life <= 0.f)
+	{
+		controller.m_force = Zero3;
+		controller.m_torque = Zero3;
+		human.m_state = { "Die", false };
 	}
 
 	if(human.m_life > 0.f)
 	{
-		human_velocity_controller(viewer, human);
+		human_velocity_controller(viewer, controller, human, orbit, mode != Isometric);
+
+		if(mode == Isometric && controller.m_force != Zero3)
+			human.m_entity.set_rotation(look_at(Zero3, rotate(quat(vec3(0.f, orbit.m_yaw, 0.f)), controller.m_force)));
 
 		if(viewer.mouse_event(DeviceType::MouseLeft, EventType::Stroked))
 		{
@@ -692,12 +794,12 @@ void ex_platform_game_hud(Viewer& viewer, GameScene& game, Human& human)
 		if(viewer.key_event(KC_LCONTROL, EventType::Pressed))
 			human.m_shield = !human.m_shield;
 
-		ui::fill_bar(overlay, human.m_life);
+		ui::fill_bar(left_panel, human.m_life);
 	}
 
 	if(human.m_life <= 0.f)
 	{
-		Widget& modal = ui::popup(overlay, styles().modal, ui::PopupFlags::None);
+		Widget& modal = ui::popup(screen, styles().modal, ui::PopupFlags::None);
 		ui::title(modal, "You are DEAD");
 		ui::label(modal, "Press ENTER to try again");
 
@@ -717,10 +819,7 @@ void ex_platform_game_ui(Widget& parent, GameScene& game)
 	//viewer.take_modal();
 
 	paint_viewer(viewer);
-
-	//Viewer& secondary_viewer = ui::viewer(self, game.m_scene->m_scene);
-	//ui::isometric_controller(viewer);
-
+	
 	Player& player = val<Player>(game.m_player);
 	if(player.m_human)
 		ex_platform_game_hud(viewer, game, *player.m_human);
@@ -741,14 +840,12 @@ Viewer& ex_platform_menu_viewport(Widget& parent, GameShell& app)
 	static Model& human = human_model_glow(viewer.m_scene->m_gfx_system);
 	static Clock clock;
 
-	Gnode& node = gfx::node(scene, {}, -Y3 * 0.4f, angle_axis(fmod(clock.read(), 2.f * c_pi), Y3), Unit3 * 0.5f);
+	Gnode& node = gfx::node(scene, {}, -Y3 * 0.5f + X3 * 0.6f, angle_axis(fmod(clock.read(), 2.f * c_pi), Y3), Unit3 * 0.5f);
 	Item& item = gfx::item(node, human);
 	Animated& animated = gfx::animated(node, item);
 	 
 	if(animated.m_playing.empty())
 		animated.play("IdleAim", true, 0.f);
-
-	toy::sound(node, "complexambient", false, 0.2f);
 
 	return viewer;
 }

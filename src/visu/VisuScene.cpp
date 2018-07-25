@@ -300,7 +300,6 @@ using namespace mud; namespace toy
 		if(self.m_sound)
 		{
 			self.m_sound->set_position(parent.m_attach->m_position);
-			self.m_sound->update3D();
 			return self.m_sound->m_state != Sound::STOPPED;
 		}
 

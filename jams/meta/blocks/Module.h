@@ -58,5 +58,7 @@
 		static _blocks& m() { static _blocks instance; return instance; }
 	};
 
-	extern "C"
-	_BLOCKS_REFL_EXPORT Module& getModule();
+#ifdef _BLOCKS_MODULE
+extern "C"
+_BLOCKS_REFL_EXPORT Module& getModule();
+#endif

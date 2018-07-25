@@ -1,39 +1,42 @@
 -- toy engine
 -- toy jam example applications
 
-function jam_project(name, deps)
-    project("ex_" .. name)
-        kind "ConsoleApp"
-
-        includedirs {
-            path.join(TOY_DIR, "example"),
-            path.join(MUD_DIR, "example"),
-        }
-
-        mud.jams[name] = mud_module(nil, "_" .. name, path.join(TOY_DIR, "jams"), name, nil, nil, nil, toy.all)
-        
-        mud_refl(mud.jams[name])
-        mud_module_decl(mud.jams[name].refl, false)
-        
-        mud.jams[name].decl(mud.jams[name], false)
-        
-		for _, depname in ipairs(deps or {}) do
-            mud.examples[depname].decl(mud.examples[depname], false)
-        end
-        
-        toy_binary(name)
-        
-        configuration { "asmjs" }
-            linkoptions {
-                "--preload-file ../../../data/examples/ex_" .. name .. "@data/",
-            }
-        
-        configuration {}
+function uses_jam()
+    includedirs {
+        path.join(TOY_DIR, "example"),
+        path.join(MUD_DIR, "example"),
+    }
 end
 
-mud.jams = {}
+toy.all = table.union(mud.mud, toy.toy)
 
-jam_project("space")
-jam_project("platform")--, "05_character")
-jam_project("blocks")--, "05_character")
+minimal     = mud_module(nil, "_minimal",   path.join(TOY_DIR, "jams"), "minimal",  nil, nil, uses_jam, toy.all)
+space       = mud_module(nil, "_space",     path.join(TOY_DIR, "jams"), "space",    nil, nil, uses_jam, toy.all)
+platform    = mud_module(nil, "_platform",  path.join(TOY_DIR, "jams"), "platform", nil, nil, uses_jam, toy.all)
+blocks      = mud_module(nil, "_blocks",    path.join(TOY_DIR, "jams"), "blocks",   nil, nil, uses_jam, toy.all)
+
+function preload_example_folder(name)
+    configuration { "asmjs" }
+        linkoptions {
+            "--preload-file ../../../data/examples/" .. name .. "@data/",
+        }
+    
+    configuration {}
+end
+
+function jam_project(name, modules, folders)
+    toy_shell("ex_" .. name, modules)
+    --toy_dll("ex_" .. name, modules)
+    
+    preload_example_folder("ex_" .. name)
+    
+    for _, f in pairs(folders or {}) do
+        preload_example_folder(f)
+    end
+end
+
+jam_project("minimal",  { minimal })
+jam_project("space",    { space })
+jam_project("platform", { platform }, { "05_character", "17_wfc" })
+jam_project("blocks",   { blocks, _G["05_character"] })
 

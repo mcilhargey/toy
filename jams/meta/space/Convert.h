@@ -34,7 +34,10 @@ namespace mud
     
     export_ template <> inline void from_string(const string& str, Resource& val) { val = static_cast<Resource>(enu<Resource>().value(str.c_str())); };
     export_ template <> inline void to_string(const Resource& val, string& str) { str = enu<Resource>().m_map[size_t(val)]; };
-    
+
+	export_ template <> inline void from_string(const string& str, Politic& val) { val = static_cast<Politic>(enu<Politic>().value(str.c_str())); };
+	export_ template <> inline void to_string(const Politic& val, string& str) { str = enu<Politic>().m_map[size_t(val)]; };
+
     export_ template <> inline void from_string(const string& str, Taxation& val) { val = static_cast<Taxation>(enu<Taxation>().value(str.c_str())); };
     export_ template <> inline void to_string(const Taxation& val, string& str) { str = enu<Taxation>().m_map[size_t(val)]; };
     

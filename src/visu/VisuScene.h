@@ -97,7 +97,7 @@ using namespace mud; namespace toy
 		template <class T, class T_Container>
 		inline void object_painter(cstring name, T_Container& objects, void (*paint_func)(Gnode&, T&))
 		{
-			auto paint = [=](size_t index, VisuScene&, Gnode& parent)
+			auto paint = [this, &objects, paint_func](size_t index, VisuScene&, Gnode& parent)
 			{
 				for(T* object : objects)
 					paint_func(this->entity_node(parent, object->m_entity, index), *object);

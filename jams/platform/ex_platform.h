@@ -44,7 +44,7 @@ public:
 class refl_ _PLATFORM_EXPORT Bullet : public Complex, public ColliderObject
 {
 public:
-	Bullet(Entity& parent, const vec3& source, const quat& rotation, const vec3& velocity);
+	Bullet(Entity& parent, const vec3& source, const quat& rotation, float velocity);
 	~Bullet();
 
 	comp_ attr_ Entity m_entity;
@@ -77,6 +77,12 @@ struct Aim
 	Entity* hit;
 };
 
+struct HumanController
+{
+	vec3 m_force = Zero3;
+	vec3 m_torque = Zero3;
+};
+
 class refl_ _PLATFORM_EXPORT Human : public Complex, public Updatable, public ColliderObject
 {
 public:
@@ -93,10 +99,8 @@ public:
 
 	Faction m_faction;
 
-	vec3 m_force = Zero3;
-	vec3 m_torque = Zero3;
-
 	float m_vangle = 0.f;
+	bool m_aiming = false;
 	Aim m_visor;
 
 	float m_life = 1.f;
@@ -105,7 +109,8 @@ public:
 	bool m_shield = false;
 	bool m_stealth = false;
 	bool m_walk = true;
-	float m_energy = 100.f;
+	float m_energy = 1.f;
+	float m_discharge = 0.f;
 
 	std::vector<unique_ptr<Bullet>> m_bullets;
 
@@ -113,9 +118,12 @@ public:
 	vec3 m_dest = Zero3;
 	float m_cooldown = 0.f;
 
+	struct State { std::string name; bool loop; };
+	State m_state = { "IdleAim", true };
+
 	void next_frame(size_t tick, size_t delta);
 
-	quat sight();
+	quat sight(bool aiming = true);
 	Aim aim();
 	void shoot();
 	void damage(float amount);

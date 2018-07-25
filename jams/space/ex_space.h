@@ -28,12 +28,22 @@ _SPACE_EXPORT void next_turn(Turn& turn);
 _SPACE_EXPORT void turn_begin(Turn& turn);
 _SPACE_EXPORT void turn_divisions(Turn& turn);
 _SPACE_EXPORT void turn_jumps(Turn& turn);
-_SPACE_EXPORT void turn_combats(Turn& turn);
+_SPACE_EXPORT void turn_spatial_combats(Turn& turn);
+_SPACE_EXPORT void turn_planetary_combats(Turn& turn);
 _SPACE_EXPORT void turn_stars(Turn& turn);
 _SPACE_EXPORT void turn_constructions(Turn& turn);
 _SPACE_EXPORT void turn_fleets(Turn& turn);
 _SPACE_EXPORT void turn_technology(Turn& turn);
 _SPACE_EXPORT void turn_scans(Turn& turn);
+
+void builtin_buildings(BuildingDatabase& database);
+void builtin_ships(ShipDatabase& database);
+
+inline bool intersects(const uvec2& coord, const uvec2& lo, const uvec2& hi)
+{
+	return coord.x >= lo.x && coord.x <= hi.x
+		&& coord.y >= lo.y && coord.y <= hi.y;
+}
 
 enum class refl_ GameMode : size_t
 {
@@ -64,18 +74,28 @@ enum class refl_ Regime : unsigned int
 	Piratery,
 };
 
+enum class refl_ Politic : unsigned int
+{
+	Taxes,			// +20% revenue from taxes
+	Commerce,		// +1 each resource
+	Construction,	// -1 construction time
+	Defense,		// +20% combat potential
+	Pacification,	// +4 stability & taxation must be <= light
+};
+
 enum class refl_ Taxation : unsigned int
 {
 	None,			// revenue x0, stability +6%/turn
 	Light,			// revenue x1, stability +3%/turn
 	Medium,			// revenue x1.5
 	Heavy,			// revenue x2, stability -3%/turn, growth -1%
-	VeryHeavy,		// revenue x2.5, stability -7%/turn, growth -3%
+	Heaviest,		// revenue x2.5, stability -7%/turn, growth -3%
 	Total,			// revenue x3, stability -12%/turn, growth -5%
 };
 
 enum class refl_ Resource : unsigned int
 {
+	None = 0,
 	Minerals,
 	Andrium,
 	Alcool,
@@ -93,7 +113,7 @@ enum class refl_ FleetSize : unsigned int
 {
 	Ridicule,
 	Minuscule,
-	VerySmall,
+	Tiny,
 	Small,
 	Medium,
 	Respectable,
@@ -103,6 +123,7 @@ enum class refl_ FleetSize : unsigned int
 	Titanesque,
 	Cyclopean,
 	Divine,
+	Count,
 };
 
 enum class refl_ Experience : unsigned int
@@ -139,7 +160,7 @@ enum class refl_ Technology : unsigned int
 	Engines,			// engine range +1/level
 	EcoEnergy,			// ships upkeep -4%/level until level 10, then -2%/level
 	Scanners,			// scanner range +1/level
-	PlanetaryShields,	// planetary shield +2%/level 
+	PlanetaryShields,	// planetary shield +2%/level
 	SpatialShields,		// shields resistance +2%/level
 	LaserPlasmaIons,	// laser/plasma/ions power +10%/level
 	Torpedoes,			// torpedoes power +10%/level
@@ -168,7 +189,7 @@ enum class refl_ CombatType : unsigned int
 
 static const WeaponType s_weapon_types[4] = { WeaponType::Ion, WeaponType::Laser, WeaponType::Plasma, WeaponType::Torpedo };
 
-extern float g_hullWeight[8];
+extern float g_hull_weight[8];
 
 struct RacialFactors
 {
@@ -199,7 +220,7 @@ inline FleetSize fleet_size(float power)
 {
 	if(power < 100.f)			return FleetSize::Ridicule;
 	else if(power < 300.f)		return FleetSize::Minuscule;
-	else if(power < 800.f)		return FleetSize::VerySmall;
+	else if(power < 800.f)		return FleetSize::Tiny;
 	else if(power < 1'600.f)	return FleetSize::Small;
 	else if(power < 3'200.f)	return FleetSize::Medium;
 	else if(power < 7'500.f)	return FleetSize::Respectable;
@@ -231,15 +252,46 @@ inline int construction_time(int level)
 	else return 6;
 }
 
-inline float star_revenue(Taxation taxation)
+inline float star_taxation_revenue(Taxation taxation)
 {
-	if(taxation == Taxation::None) return 0.f;
-	else if(taxation == Taxation::Light) return 1.f;
-	else if(taxation == Taxation::Medium) return 1.5f;
-	else if(taxation == Taxation::Heavy) return 2.f;
-	else if(taxation == Taxation::VeryHeavy) return 2.5f;
-	else if(taxation == Taxation::Total) return 3.f;
+	if(taxation == Taxation::None)			return 0.f;
+	else if(taxation == Taxation::Light)	return 1.f;
+	else if(taxation == Taxation::Medium)	return 1.5f;
+	else if(taxation == Taxation::Heavy)	return 2.f;
+	else if(taxation == Taxation::Heaviest) return 2.5f;
+	else if(taxation == Taxation::Total)	return 3.f;
 	return 0.f;
+}
+
+inline int star_taxation_stability(Taxation taxation)
+{
+	if(taxation == Taxation::None)			return +6;
+	else if(taxation == Taxation::Light)	return +3;
+	else if(taxation == Taxation::Medium)	return 0;
+	else if(taxation == Taxation::Heavy)	return -3;
+	else if(taxation == Taxation::Heaviest) return -7;
+	else if(taxation == Taxation::Total)	return -12;
+	return 0;
+}
+
+inline float star_taxation_growth(Taxation taxation)
+{
+	if(taxation <= Taxation::Medium)		return 0.f;
+	else if(taxation == Taxation::Heavy)	return -1.f;
+	else if(taxation == Taxation::Heaviest) return -3.f;
+	else if(taxation == Taxation::Total)	return -5.f;
+	return 0.f;
+}
+
+inline int star_distance_stability(int distance)
+{
+	if(distance == 0) return +2;
+	else if(distance <= 2) return +1;
+	else if(distance <= 5) return 0;
+	else if(distance <= 8) return -1;
+	else if(distance <= 11) return -3;
+	else if(distance <= 13) return -7;
+	else return -10;
 }
 
 inline float fleet_stance_modifier(FleetStance stance, CombatType combat, bool fought)
@@ -275,6 +327,8 @@ inline int techno_level(int points)
 	else if(points >= 100) return 1;
 	else return 0;
 }
+
+const float c_fleet_visu_sizes[size_t(FleetSize::Count)] = { 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.f, 1.1f };
 
 struct VisuPlanet
 {
@@ -333,13 +387,14 @@ enum class TurnStage : unsigned int
 	None = 0,
 	Divisions = 1,
 	Movements = 2,
-	Combats = 3,
-	Systems = 4,
-	Constructions = 5,
-	Fleets = 6,
-	Technology = 7,
-	Scans = 8,
-	Count = 9
+	SpatialCombats = 3,
+	PlanetaryCombats = 4,
+	Systems = 5,
+	Constructions = 6,
+	Fleets = 7,
+	Technology = 8,
+	Scans = 9,
+	Count = 10
 };
 
 using TurnStep = void(*)(Turn&);
@@ -355,10 +410,11 @@ struct TurnEvents
 	enum_array<TurnStage, std::vector<Item>> m_items;
 };
 
-struct Turn
+struct refl_ _SPACE_EXPORT Turn
 {
-	Turn(std::vector<Commander*> commanders) : m_commanders(commanders) {}
+	Turn(Galaxy& galaxy);
 
+	Galaxy* m_galaxy;
 	std::vector<Commander*> m_commanders;
 
 	TurnStage m_stage = TurnStage::None;
@@ -372,17 +428,22 @@ struct Turn
 
 	std::map<Commander*, TurnEvents> m_events;
 
-	std::vector<Fleet*> m_divisions;
-	std::vector<Fleet*> m_jumps;
-	std::vector<Fleet*> m_tracks;
+	std::vector<Split*> m_divisions;
+	std::vector<Jump*> m_jumps;
+	std::vector<Jump*> m_tracks;
 	std::vector<SpatialCombat> m_spatial_combats;
 	std::vector<PlanetaryCombat> m_planetary_combats;
 
-	size_t m_current_combat = 0;
-	size_t m_current_jump = 0;
+	size_t m_split = 0;
+	size_t m_spatial_combat = 0;
+	size_t m_planetary_combat = 0;
+	size_t m_jump = 0;
 
-	SpatialCombat* current_combat() { return m_current_combat < m_spatial_combats.size() ? &m_spatial_combats[m_current_combat] : nullptr; }
-	Fleet* current_jump() { return m_current_jump < m_jumps.size() ? m_jumps[m_current_jump] : nullptr; }
+	Split* split() { return m_split < m_divisions.size() ? m_divisions[m_split] : nullptr; }
+	SpatialCombat* spatial_combat() { return m_spatial_combat < m_spatial_combats.size() ? &m_spatial_combats[m_spatial_combat] : nullptr; }
+	PlanetaryCombat* planetary_combat() { return m_planetary_combat < m_planetary_combats.size() ? &m_planetary_combats[m_planetary_combat] : nullptr; }
+	Jump* jump() { return m_jump < m_jumps.size() ? m_jumps[m_jump] : nullptr; }
+	Jump* track() { return m_jump < m_tracks.size() ? m_tracks[m_jump] : nullptr; }
 };
 
 class refl_ _SPACE_EXPORT Player
@@ -406,12 +467,15 @@ struct refl_ _SPACE_EXPORT SpatialPower
 {
 	SpatialPower() : m_values{ 0.f } {}
 	SpatialPower(std::array<float, 8> values) : m_values(values) {}
-
+	
 	std::array<float, 8> m_values;
+
+	float& operator[](size_t at) { return m_values[at]; }
+	const float& operator[](size_t at) const { return m_values[at]; }
 
 	SpatialPower& operator+=(const SpatialPower& rhs) { for(size_t i = 0; i < 8; ++i) m_values[i] += rhs.m_values[i]; return *this; }
 	SpatialPower& operator*=(float factor) { for(size_t i = 0; i < 8; ++i) m_values[i] *= factor; return *this; }
-	SpatialPower operator*(float factor) { SpatialPower result; for(size_t i = 0; i < 8; ++i) result.m_values[i] *= factor; return result; }
+	SpatialPower operator*(float factor) { SpatialPower result = *this; for(size_t i = 0; i < 8; ++i) result.m_values[i] *= factor; return result; }
 };
 
 struct refl_ _SPACE_EXPORT Construction
@@ -429,17 +493,15 @@ public:
 	~Star();
 
 	comp_ attr_ Entity m_entity;
-	comp_ attr_ Emitter m_emitter;
-	comp_ attr_ Receptor m_receptor;
 	comp_ attr_ Active m_active;
 
 	attr_ uvec2 m_coord;
 	attr_ std::string m_name;
 	
-	enum_array<Resource, int> m_resources;
-	enum_array<Resource, int> m_stocks;
+	enum_array<Resource, int> m_resources = {};
+	enum_array<Resource, int> m_stocks = {};
 
-	enum_array<Resource, int> m_extractors;
+	enum_array<Resource, int> m_extractors = {};
 
 	std::map<BuildingSchema*, int> m_buildings;
 
@@ -455,6 +517,11 @@ public:
 	attr_ int m_max_population = 0;
 	attr_ int m_population = 0;
 
+	attr_ float m_militia = 0.1f;
+	attr_ float m_defense = 0.f;
+	attr_ float m_revenue = 0.f;
+
+	attr_ Politic m_politic = Politic::Taxes;
 	attr_ Taxation m_taxation = Taxation::Medium;
 
 	attr_ Commander* m_commander = nullptr;
@@ -468,34 +535,54 @@ public:
 	void next_frame(size_t tick, size_t delta);
 
 	void add_construction(Schema& schema, int number, Fleet* destination = nullptr);
+
+	void set_buildings(BuildingSchema& schema, size_t number);
+	void set_buildings(const std::string& code, size_t number);
+
+	void add_buildings(BuildingSchema& schema, int number);
+	void add_buildings(const std::string& code, int number);
 };
 
-struct refl_ _SPACE_EXPORT FleetJump
+struct refl_ _SPACE_EXPORT Jump
 {
-	FleetJump() : m_state(None) {}
-	FleetJump(uvec2 dest, FleetStance stance, size_t tick) : m_destination(dest), m_stance(stance), m_state(Ordered), m_state_updated(tick) {}
+	Jump() : m_state(None) {}
+	Jump(Fleet& fleet, uvec2 start, uvec2 dest, FleetStance stance, size_t tick)
+		: m_fleet(&fleet), m_start(start), m_dest(dest), m_stance(stance), m_state(Ordered), m_state_updated(tick)
+		, m_start_pos(to_xz(vec2(start)) + 0.5f + Y3)
+		, m_dest_pos(to_xz(vec2(dest)) + 0.5f + Y3)
+	{}
 
 	enum State : unsigned int
 	{
 		None,
 		Ordered,
 		Start,
-		Jump,
+		Warp,
 		End,
 	};
 
 	void update(Fleet& fleet, size_t tick);
 
-	attr_ uvec2 m_destination;
+	attr_ Fleet* m_fleet;
+	attr_ uvec2 m_start;
+	attr_ uvec2 m_dest;
 	attr_ FleetStance m_stance;
+
+	attr_ Fleet* m_track;
+
+	vec3 m_start_pos;
+	vec3 m_dest_pos;
+
 	State m_state;
 	size_t m_state_updated = 0;
 };
 
-struct refl_ _SPACE_EXPORT FleetSplit
+struct refl_ _SPACE_EXPORT Split
 {
-	FleetSplit() : m_state(None) {}
-	FleetSplit(const std::string& name, FleetStance stance, std::map<ShipSchema*, size_t> ships, size_t tick) : m_name(name), m_stance(stance), m_ships(ships), m_state(Ordered), m_state_updated(tick) {}
+	Split() : m_state(None) {}
+	Split(Fleet& source, Fleet& dest, const std::string& code, FleetStance stance, std::map<ShipSchema*, size_t> ships, size_t tick)
+		: m_source(&source), m_dest(&dest), m_code(code), m_stance(stance), m_ships(ships), m_state(Ordered), m_state_updated(tick)
+	{}
 
 	enum State : unsigned int
 	{
@@ -506,9 +593,13 @@ struct refl_ _SPACE_EXPORT FleetSplit
 
 	void update(Fleet& fleet, size_t tick);
 
-	attr_ std::string m_name;
+	attr_ Fleet* m_source;
+	attr_ Fleet* m_dest;
+
+	attr_ std::string m_code;
 	attr_ FleetStance m_stance;
 	std::map<ShipSchema*, size_t> m_ships;
+
 	State m_state;
 	size_t m_state_updated = 0;
 };
@@ -520,26 +611,25 @@ public:
 	~Fleet();
 
 	comp_ attr_ Entity m_entity;
-	comp_ attr_ Emitter m_emitter;
-	comp_ attr_ Receptor m_receptor;
 	comp_ attr_ Active m_active;
 
 	attr_ Commander* m_commander;
 	attr_ uvec2 m_coord;
+	attr_ vec3 m_slot;
 	attr_ std::string m_name;
 
 	attr_ float m_experience = 0.f;
 	attr_ SpatialPower m_spatial;
 	attr_ float m_spatial_power = 0.f;
 	attr_ float m_planetary_power = 0.f;
-	attr_ size_t m_speed = 0;
-	attr_ size_t m_scan = 0;
+	attr_ uint8_t m_speed = 0;
+	attr_ uint8_t m_scan = 0;
 	attr_ float m_upkeep = 0.f;
 
 	attr_ FleetStance m_stance = FleetStance::Movement;
 	
-	attr_ FleetJump m_jump;
-	attr_ FleetSplit m_split;
+	attr_ Jump m_jump;
+	attr_ Split m_split;
 
 	attr_ bool m_fought = false;
 	
@@ -562,9 +652,10 @@ public:
 	void add_ships(const std::string& code, int number);
 	void set_ships(const std::string& code, size_t number);
 
-	void update_stats();
+	void update_ships();
 
 	void jump();
+	void split();
 
 	meth_ void order_jump(vec2 coord, FleetStance stance);
 	/*meth_*/ void order_split(cstring name, FleetStance stance, std::map<ShipSchema*, size_t> ships);
@@ -576,27 +667,28 @@ public:
 struct refl_ _SPACE_EXPORT Schema
 {
 	Schema() {}
-	Schema(std::string code, std::string name, std::string conceptor, size_t level, float cost, float minerals,
-		   float andrium, float planetary = 0.f, std::array<float, 8> spatial = {}, float resistance = 0.f, size_t speed = 0, size_t scan = 0)
+	Schema(std::string code, std::string name, std::string conceptor, uint8_t level, float cost, float minerals,
+		   float andrium, float resistance = 0.f, uint8_t speed = 0, uint8_t scan = 0, float planetary = 0.f, std::array<float, 8> spatial = {})
 		: m_code(code), m_name(name), m_conceptor(conceptor), m_level(level), m_cost(cost), m_minerals(minerals)
-		, m_andrium(andrium), m_planetary(planetary), m_spatial(spatial), m_resistance(resistance), m_speed(speed), m_scan(scan)
+		, m_andrium(andrium), m_resistance(resistance), m_speed(speed), m_scan(scan), m_planetary(planetary), m_spatial(spatial)
 	{}
 
 	attr_ std::string m_code;
 	attr_ std::string m_name;
 	attr_ std::string m_conceptor;
 
-	attr_ size_t m_level = 1;
+	attr_ uint8_t m_level = 1;
 
 	attr_ float m_cost = 0.f;
 	attr_ float m_minerals = 0.f;
 	attr_ float m_andrium = 0.f;
-	
+
+	attr_ float m_resistance = 0.f;
+	attr_ uint8_t m_speed = 0;
+	attr_ uint8_t m_scan = 0;
+
 	attr_ float m_planetary = 0.f;
 	attr_ SpatialPower m_spatial = {};
-	attr_ float m_resistance = 0.f;
-	attr_ size_t m_speed = 0;
-	attr_ size_t m_scan = 0;
 
 	attr_ float m_upkeep_factor = 1.f;
 };
@@ -619,9 +711,9 @@ struct refl_ _SPACE_EXPORT ShipComponent : public Schema
 struct refl_ _SPACE_EXPORT ShipSchema : public Schema
 {
 	ShipSchema() {}
-	ShipSchema(size_t size, std::string code, std::string name, std::string conceptor, size_t level, float cost, float minerals,
-		float andrium, float planetary, std::array<float, 8> spatial, float resistance, size_t speed, size_t scan, std::array<uint, 6> weapon_count = {})
-		: Schema(code, name, conceptor, level, cost, minerals, andrium, planetary, spatial, resistance, speed, scan)
+	ShipSchema(size_t size, std::string code, std::string name, std::string conceptor, uint8_t level, float cost, float minerals,
+		float andrium, float resistance, uint8_t speed, uint8_t scan, float planetary, std::array<float, 8> spatial, std::array<uint, 6> weapon_count = {})
+		: Schema(code, name, conceptor, level, cost, minerals, andrium, resistance, speed, scan, planetary, spatial)
 		, m_size(size), m_weapon_count(weapon_count)
 	{
 		uint max_weapon = 0;
@@ -647,6 +739,13 @@ struct refl_ _SPACE_EXPORT ShipSchema : public Schema
 struct refl_  _SPACE_EXPORT BuildingSchema : public Schema
 {
 	using Schema::Schema;
+
+	BuildingSchema(std::string code, std::string name, std::string conceptor, uint8_t level, float cost, float minerals, Resource extractor)
+		: Schema(code, name, conceptor, level, cost, minerals, 0.f)
+		, m_extractor(extractor)
+	{}
+
+	Resource m_extractor = Resource::None;
 };
 
 template <class T_Schema>
@@ -709,6 +808,9 @@ public:
 	attr_ int m_commerce;
 	attr_ int m_diplomacy;
 
+	attr_ int m_reputation;
+	attr_ int m_victory;
+
 	Colour m_colour;
 	Image256 m_avatar;
 
@@ -723,13 +825,14 @@ public:
 
 	attr_ Scans m_scans;
 	
-	enum_array<Technology, TechDomain> m_technology;
+	enum_array<Technology, TechDomain> m_technology = {};
 
 	inline int level(Technology tech) { return m_technology[size_t(tech)].m_level; }
 
 	void next_frame(size_t tick, size_t delta);
 
 	void update_scans();
+	void update_power();
 
 	void take_star(Star& star);
 	void take_fleet(Fleet& fleet);
@@ -743,9 +846,6 @@ public:
 	constr_ Quadrant(Id id, Entity& parent, const vec3& position, const uvec2& coord, float size);
 
 	comp_ attr_ Entity m_entity;
-	comp_ attr_ Emitter m_emitter;
-	comp_ attr_ WorldPage m_world_page;
-	comp_ attr_ BufferPage m_buffer_page;
 
 	attr_ uvec2 m_coord;
 	attr_ float m_size;
@@ -755,33 +855,48 @@ public:
 
 struct GalaxyGrid
 {
-	GalaxyGrid() {}
+	GalaxyGrid();
 
-	void add_fleet(Fleet& fleet, uvec2 coord)
-	{
-		m_fleets[coord].push_back(&fleet);
-	}
+	void add_fleet(Fleet& fleet, uvec2 coord);
+	void move_fleet(Fleet& fleet, uvec2 start, uvec2 dest);
 
-	void move_fleet(Fleet& fleet, uvec2 from, uvec2 dest)
-	{
-		vector_remove(m_fleets[from], &fleet);
-		m_fleets[dest].push_back(&fleet);
-		fleet.m_coord = dest;
-	}
+	void update_slots(uvec2 coord);
 
 	std::map<uvec2, std::vector<Fleet*>> m_fleets;
 	std::map<uvec2, Star*> m_stars;
 };
 
+using Buildings = std::map<BuildingSchema*, uint32_t>;
 using Ships = std::map<ShipSchema*, uint32_t>;
 using Flotilla = std::vector<Fleet*>;
 
 struct refl_ _SPACE_EXPORT Combat
 {
-};
+	enum State : unsigned int
+	{
+		DONE,
+		APPROACH,
+		ENGAGE,
+	};
 
-struct refl_ _SPACE_EXPORT PlanetaryCombat
-{
+	Combat(State state, size_t tick = 0) : m_state(state), m_state_updated(tick) {}
+
+	State m_state;
+	size_t m_state_updated = 0;
+
+	float m_t = 0.f;
+	float m_t_damage = 0.f;
+	float m_t_position = 0.f;
+	float m_dt_intensity = 0.f;
+
+	struct Force
+	{
+		float m_damage[8] = {};
+		float m_metal[8] = {};
+	};
+
+	Force m_force_attack;
+	Force m_force_defense;
 
 };
 
@@ -794,33 +909,43 @@ struct refl_ _SPACE_EXPORT CombatFleet
 	std::array<uint32_t, 8> m_hull_losses = {};
 };
 
-struct refl_ _SPACE_EXPORT SpatialCombat
+struct refl_ _SPACE_EXPORT CombatStar
 {
-	SpatialCombat() : m_state(DONE) {}
+	CombatStar() {}
+	CombatStar(Star& star) : m_star(&star) {}
+	Star* m_star = nullptr;
+	float m_damage = 0.f;
+	Buildings m_losses = {};
+};
 
-	SpatialCombat(uvec2 coord, size_t tick)
-		: m_coord(coord), m_state(APPROACH), m_state_updated(tick)
+struct refl_ _SPACE_EXPORT PlanetaryCombat : public Combat
+{
+	PlanetaryCombat() : Combat(DONE) {}
+
+	PlanetaryCombat(Star& star, uvec2 coord, size_t tick)
+		: Combat(APPROACH, tick), m_coord(coord), m_defense(star)
 	{}
-
-	enum State : unsigned int
-	{
-		DONE,
-		APPROACH,
-		ENGAGE,
-	};
 
 	attr_ uvec2 m_coord;
 
-	attr_ std::vector<CombatFleet> m_allies;
-	attr_ std::vector<CombatFleet> m_enemies;
+	attr_ std::vector<CombatFleet> m_attack;
+	attr_ CombatStar m_defense;
 
-	State m_state;
-	size_t m_state_updated = 0;
+	void apply_losses();
+};
 
-	float m_t = 0.f;
-	float m_t_damage = 0.f;
-	float m_t_position = 0.f;
-	float m_dt_intensity = 0.f;
+struct refl_ _SPACE_EXPORT SpatialCombat : public Combat
+{
+	SpatialCombat() : Combat(DONE) {}
+
+	SpatialCombat(uvec2 coord, size_t tick)
+		: Combat(APPROACH, tick), m_coord(coord)
+	{}
+
+	attr_ uvec2 m_coord;
+
+	attr_ std::vector<CombatFleet> m_attack;
+	attr_ std::vector<CombatFleet> m_defense;
 
 	void apply_losses();
 };
@@ -840,9 +965,8 @@ public:
 
 	GalaxyGrid m_grid;
 
-	uvec3 m_scale;
-	Plane m_plane;
-	uvec2 m_highlight;
+	uvec3 m_scale = uvec3(1);
+	Plane m_plane = { Y3, 0.5f };
 
 	uvec2 intersect_coord(Ray ray);
 };

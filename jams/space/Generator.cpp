@@ -102,6 +102,15 @@ Commander* generate_commander(Entity& galaxy, Star& star)
 	Commander& commander = GlobalPool::me().pool<Commander>().construct(0, generate_name(), race, command, commerce, diplomacy);
 	commander.take_star(star);
 	commander.m_capital = &star;
+	commander.m_centaures = 10'000.f;
+
+	star.m_stocks[size_t(Resource::Minerals)] = 200;
+
+	star.set_buildings("MINE", 3);
+	star.set_buildings("CHANTIER", 1);
+	star.set_buildings("POSTE", 1);
+	//BLASER1 : 50
+	//BPLASMA1 : 20
 
 	galaxy.part<Galaxy>().m_commanders.push_back(&commander);
 
@@ -110,11 +119,11 @@ Commander* generate_commander(Entity& galaxy, Star& star)
 	Fleet& fleet = galaxy.construct<Fleet>(star.m_entity.m_position + 1.0f * Y3, commander, star.m_coord, generate_name());
 
 	float size = random_scalar(1.f, 3.f);
-	fleet.set_ships("sonde", size_t(1 * size));
-	fleet.set_ships("cha", size_t(20 * size));
-	//fleet.set_ships("chabom", size_t(10 * size));
-	//fleet.set_ships("bom", size_t(10 * size));
-	//fleet.set_ships("cor", size_t(5 * size));
+	fleet.set_ships("SONDE", size_t(1 * size));
+	fleet.set_ships("CHA", size_t(20 * size));
+	fleet.set_ships("CHABOM", size_t(10 * size));
+	fleet.set_ships("BOM", size_t(10 * size));
+	fleet.set_ships("COR", size_t(5 * size));
 
 	return &commander;
 }

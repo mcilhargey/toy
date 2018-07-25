@@ -296,38 +296,6 @@ namespace mud
     
     
         
-    // toy::DynamicToolbox
-    {
-        static Meta meta = { type<toy::DynamicToolbox>(), &namspc({ "toy" }), "DynamicToolbox", sizeof(toy::DynamicToolbox), TypeClass::Object };
-        static Class cls = { type<toy::DynamicToolbox>(),
-            // bases
-            { &type<toy::Toolbox>() },
-            { base_offset<toy::DynamicToolbox, toy::Toolbox>() },
-            // constructors
-            {
-            },
-            // copy constructor
-            {
-            },
-            // members
-            {
-            },
-            // methods
-            {
-            },
-            // static members
-            {
-            }
-        };
-        
-        
-        
-        
-        meta_class<toy::DynamicToolbox>();
-    }
-    
-    
-        
     // toy::PlayTool
     {
         static Meta meta = { type<toy::PlayTool>(), &namspc({ "toy" }), "PlayTool", sizeof(toy::PlayTool), TypeClass::Object };
@@ -356,6 +324,38 @@ namespace mud
         
         
         meta_class<toy::PlayTool>();
+    }
+    
+    
+        
+    // toy::DynamicToolbox
+    {
+        static Meta meta = { type<toy::DynamicToolbox>(), &namspc({ "toy" }), "DynamicToolbox", sizeof(toy::DynamicToolbox), TypeClass::Object };
+        static Class cls = { type<toy::DynamicToolbox>(),
+            // bases
+            { &type<toy::Toolbox>() },
+            { base_offset<toy::DynamicToolbox, toy::Toolbox>() },
+            // constructors
+            {
+            },
+            // copy constructor
+            {
+            },
+            // members
+            {
+            },
+            // methods
+            {
+            },
+            // static members
+            {
+            }
+        };
+        
+        
+        
+        
+        meta_class<toy::DynamicToolbox>();
     }
     
     
@@ -400,8 +400,8 @@ namespace mud
         m.m_types.push_back(&type<toy::Paste>());
         m.m_types.push_back(&type<toy::Toolbelt>());
         m.m_types.push_back(&type<toy::Toolbox>());
-        m.m_types.push_back(&type<toy::DynamicToolbox>());
         m.m_types.push_back(&type<toy::PlayTool>());
+        m.m_types.push_back(&type<toy::DynamicToolbox>());
         m.m_types.push_back(&type<toy::Editor>());
     
     }

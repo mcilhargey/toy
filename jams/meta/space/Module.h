@@ -58,5 +58,7 @@
 		static _space& m() { static _space instance; return instance; }
 	};
 
-	extern "C"
-	_SPACE_REFL_EXPORT Module& getModule();
+#ifdef _SPACE_MODULE
+extern "C"
+_SPACE_REFL_EXPORT Module& getModule();
+#endif

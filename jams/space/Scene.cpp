@@ -5,31 +5,6 @@
 
 #include <toy/toy.h>
 
-ParticleGenerator jump_particles(VisuFleet& visu_fleet)
-{
-	UNUSED(visu_fleet);
-	ParticleGenerator emitter;
-	float scale = 0.02f;
-	emitter.m_rate = { 500 };
-	emitter.m_colour = { std::vector<Colour>({ Colour::Transparent, Colour::White }) };
-	emitter.m_scale = { std::vector<float>({ scale, scale * 2.f }) };
-	emitter.m_speed = { 0.f };
-	//emitter.m_lifetime = { 0.3f, 0.4f };
-	emitter.m_lifetime = { std::vector<float>({ 0.1f, 0.1f }) };
-	return emitter;
-}
-
-ParticleGenerator in_jump_particles(VisuFleet& visu_fleet)
-{
-	float scale = 0.02f;
-	ParticleGenerator emitter = jump_particles(visu_fleet);
-	emitter.m_colour = { Colour::White };
-	emitter.m_blend = { std::vector<float>({ 1.f, 0.f }) };
-	emitter.m_scale = { std::vector<float>({ scale, scale * 0.3f }) };
-	emitter.m_lifetime = { 1.f };
-	return emitter;
-}
-
 void fill_star(VisuStar& visu, Star& star)
 {
 	UNUSED(star);
@@ -100,6 +75,7 @@ void paint_range_grid(Gnode& parent, const Colour& colour, int range)
 
 void paint_range(Gnode& parent, const Colour& colour, int range)
 {
+	if(range == 0) return;
 	float side = float(range * 2 + 1);
 	Gnode& projected = gfx::node(parent, {}, { parent.m_attach->m_position.x, 0.5f, parent.m_attach->m_position.z });
 	gfx::shape(projected, Quad(side, X3, Z3), Symbol(colour));
@@ -134,11 +110,11 @@ void paint_scan_star(Gnode& parent, Star& star, Player& player)
 	if(hovered)
 		colour = colour * 1.5f;
 
-	if(star.m_commander)
-		gfx::sprite(parent, star.m_commander->m_avatar, vec2{ 0.4f }, ITEM_BILLBOARD | ITEM_SELECTABLE);
-
 	gfx::shape(parent, Circle(0.4f, Axis::Y), Symbol(colour));
 	//gfx::shape(parent, Circle(0.4f, Axis::Z), Symbol(colour), ITEM_BILLBOARD);
+
+	//if(star.m_commander)
+	//	gfx::sprite(parent, star.m_commander->m_avatar, vec2{ 0.4f }, ITEM_BILLBOARD | ITEM_SELECTABLE);
 
 	if(star.m_commander == player.m_commander)
 	{
@@ -166,6 +142,7 @@ void paint_scan_star(Gnode& parent, Star& star)
 }
 
 static float spaceship_sizes[8] = { 0.01f, 0.02f, 0.03f, 0.04f, 0.05f, 0.06f, 0.08f, 0.1f };
+float ship_size(size_t size) { return spaceship_sizes[size - 1]; }
 
 void fill_fleet(VisuFleet& visu, const std::map<ShipSchema*, size_t>& ships)
 {
@@ -173,23 +150,23 @@ void fill_fleet(VisuFleet& visu, const std::map<ShipSchema*, size_t>& ships)
 		visu.m_ships[i].clear();
 
 	visu.m_points.m_points.clear();
-
+	
 	for(auto& kv : ships)
 	{
 		ShipSchema& schema = *kv.first;
 		for(size_t i = 0; i < kv.second; ++i)
 		{
-			visu.m_ships[schema.m_size].push_back({ spaceship_sizes[schema.m_size] });
+			visu.m_ships[schema.m_size].push_back({ ship_size(schema.m_size) });
 			visu.m_ships[schema.m_size].back().m_weapon = schema.m_main_weapon;
 			visu.m_ships[schema.m_size].back().m_destroyed = false;
 		}
 	}
 
-	Poisson distribution = { vec2{ 1.f }, spaceship_sizes[7] };
-	distribution.m_start_from_center = true;
-
 	for(size_t size = 0; size < 8; ++size)
 	{
+		Poisson distribution = { vec2{ 1.f }, spaceship_sizes[size] };
+		distribution.m_start_from_center = true;
+
 		visu.m_points.m_points.resize(visu.m_points.m_points.size() + visu.m_ships[size].size());
 
 		for(VisuShip& ship : visu.m_ships[size])
@@ -229,8 +206,6 @@ mat4 ship_transform(VisuShip& ship, const mat4& transform, const vec3& position,
 
 void paint_fleet_ships(Gnode& parent, VisuFleet& visu, float radius, float ship_scale)
 {
-	//toy::sound(parent, "thrusters", true);
-
 	update_fleet_positions(visu, radius);
 
 	size_t index = 0;
@@ -244,59 +219,38 @@ void paint_fleet_ships(Gnode& parent, VisuFleet& visu, float radius, float ship_
 		}
 }
 
-void debug_tree(Gnode& node, size_t index = 0, size_t depth = 0)
-{
-	auto print_depth = [](size_t depth) { for(size_t i = 0; i < depth; ++i) printf("    "); };
-	print_depth(depth);
-	printf("node %i\n", int(index));
-	if(node.m_item)
-	{
-		print_depth(depth + 1);
-		printf("item %s\n", node.m_item->m_model->m_name.c_str());
-	}
-	for(size_t i = 0; i < node.m_nodes.size(); ++i)
-		debug_tree(*node.m_nodes[i], i, depth + 1);
-}
-
 void paint_fleet_orders(Gnode& parent, Fleet& fleet, const Colour& colour)
 {
-	if(fleet.m_jump.m_state == FleetJump::Ordered)
+	if(fleet.m_jump.m_state == Jump::Ordered)
 	{
-		vec3 start = to_xz(vec2(fleet.m_coord)) + 0.5f;
-		vec3 end = to_xz(vec2(fleet.m_jump.m_destination)) + 0.5f;
-		vec3 middle = (end + start) / 2.f + Y3 * 2.f;// * length(end - start);
+		vec3 start = fleet.m_jump.m_start_pos;
+		vec3 end = fleet.m_jump.m_dest_pos;
+		vec3 middle = (end + start) / 2.f + Y3 * 0.2f * length(end - start);
 		gfx::shape(parent, ArcLine(-start, start, middle, end), Symbol(colour));
 	}
-	//else
-	//{
-	//	debug_tree(*parent.m_parent);
-	//}
 }
 
-void paint_fleet_jumping(Gnode& parent, VisuFleet& visu, const Colour& colour)
+void paint_fleet_jumping(Gnode& parent, Fleet& fleet, const Colour& colour)
 {
-	static ParticleGenerator particles = jump_particles(visu);
-	//particles.m_shape = &visu.m_points;
-	gfx::particles(parent, particles);
-	gfx::shape(parent, Circle(0.4f, Axis::Z), Symbol(colour, Colour::Invisible), ITEM_BILLBOARD);
+	float size = c_fleet_visu_sizes[size_t(fleet.estimated_size())];
+	gfx::shape(parent, Circle(0.4f * size, Axis::Z), Symbol(colour, Colour::Invisible), ITEM_BILLBOARD);
 }
 
 void paint_fleet_warp(Gnode& parent, VisuFleet& visu)
 {
-	static ParticleGenerator particles = in_jump_particles(visu);
-	//particles.m_shape = &visu.m_points;
-	gfx::particles(parent, particles);
+	UNUSED(parent); UNUSED(visu);
 }
 
-void paint_fleet_stationary(Gnode& parent, VisuFleet& visu, const Colour& colour)
+void paint_fleet_stationary(Gnode& parent, Fleet& fleet, VisuFleet& visu, const Colour& colour)
 {
-	gfx::shape(parent, Triangle({ 0.4f, 0.6f }), Symbol(colour, Colour::Invisible), ITEM_BILLBOARD | ITEM_SELECTABLE);
-	paint_fleet_ships(parent, visu);
+	float size = c_fleet_visu_sizes[size_t(fleet.estimated_size())];
+	gfx::shape(parent, Triangle({ 0.4f * size, 0.6f * size }), Symbol(colour, Colour::Invisible), ITEM_BILLBOARD | ITEM_SELECTABLE);
+	paint_fleet_ships(parent, visu, 0.4f * size * 2.f, 0.01f);
 }
 
 void paint_scan_fleet(Gnode& parent, Fleet& fleet, Player& player)
 {
-	enum States {  Fleet = 0, Warp = 1, Jump = 2, Orders = 3, ScanRange = 4, JumpRange = 5 };
+	enum States {  Fleet = 0, Warp = 1, Jump = 2, Orders = 3, ScanRange = 4, JumpRange = 5, Thrusters = 6 };
 
 	VisuFleet& visu = fleet.m_visu;
 
@@ -315,13 +269,13 @@ void paint_scan_fleet(Gnode& parent, Fleet& fleet, Player& player)
 	if(hovered)
 		colour = colour * 1.5f;
 
-	//if(fleet.m_jump.m_state != FleetJump::Jump)
-		paint_fleet_stationary(parent.subx(Fleet), visu, colour);
-	if(fleet.m_jump.m_state >= FleetJump::Start)
-		toy::sound(parent.subx(Warp), "warp", false);
-	if(fleet.m_jump.m_state == FleetJump::Start || fleet.m_jump.m_state == FleetJump::End)
-		paint_fleet_jumping(parent.subx(Jump), visu, colour);
-	//if(fleet.m_jump.m_state == FleetJump::Jump || fleet.m_jump.m_state == FleetJump::End)
+	//if(fleet.m_jump.m_state != Jump::Warp)
+		paint_fleet_stationary(parent.subx(Fleet), fleet, visu, colour);
+	if(fleet.m_jump.m_state >= Jump::Start)
+		toy::sound(parent.subx(Warp), "warp", false, 0.5f);
+	if(fleet.m_jump.m_state == Jump::Start || fleet.m_jump.m_state == Jump::End)
+		paint_fleet_jumping(parent.subx(Jump), fleet, colour);
+	//if(fleet.m_jump.m_state == Jump::Jump || fleet.m_jump.m_state == Jump::End)
 	//	paint_fleet_warp(parent, visu);
 
 	if(fleet.m_commander == player.m_commander)
@@ -337,6 +291,7 @@ void paint_scan_fleet(Gnode& parent, Fleet& fleet, Player& player)
 		paint_range(parent.subx(JumpRange), colour, fleet.m_speed);
 		//if(fleet.m_scan > 0)
 			//paint_range(parent, fleet.m_commander->m_colour * 2.f, fleet.m_scan);
+		toy::sound(parent.subx(Thrusters), "thrusters", true, 0.2f);
 	}
 }
 
@@ -490,15 +445,15 @@ void paint_combat_fleet(Gnode& parent, const std::vector<CombatFleet>& flotilla,
 
 void paint_combat(Gnode& parent, SpatialCombat& combat)
 {
-	toy::sound(parent, "hornwar");
+	toy::sound(parent, "hornwar", false, 0.3f);
 
 	vec3 offset = Z3 * 0.5f;
 
 	if(combat.m_state == SpatialCombat::APPROACH)
 	{
-		for(CombatFleet& combat_fleet : combat.m_allies)
+		for(CombatFleet& combat_fleet : combat.m_attack)
 			combat_fleet.m_fleet->m_entity.m_position = combat_fleet.m_fleet->base_position() - offset;
-		for(CombatFleet& combat_fleet : combat.m_enemies)
+		for(CombatFleet& combat_fleet : combat.m_defense)
 			combat_fleet.m_fleet->m_entity.m_position = combat_fleet.m_fleet->base_position() + offset;
 
 		combat.m_state = SpatialCombat::ENGAGE;
@@ -531,18 +486,18 @@ void paint_combat(Gnode& parent, SpatialCombat& combat)
 		}
 	};
 
-	for(CombatFleet& combat_fleet : combat.m_allies)
+	for(CombatFleet& combat_fleet : combat.m_attack)
 		destroy_ships(*combat_fleet.m_fleet, combat_fleet.m_hull_losses.data());
-	for(CombatFleet& combat_fleet : combat.m_enemies)
+	for(CombatFleet& combat_fleet : combat.m_defense)
 		destroy_ships(*combat_fleet.m_fleet, combat_fleet.m_hull_losses.data());
 
-	for(CombatFleet& combat_fleet : combat.m_allies)
+	for(CombatFleet& combat_fleet : combat.m_attack)
 		combat_fleet.m_fleet->m_entity.m_position = combat_fleet.m_fleet->base_position() - offset + offset * combat.m_t_position;
-	for(CombatFleet& combat_fleet : combat.m_enemies)
+	for(CombatFleet& combat_fleet : combat.m_defense)
 		combat_fleet.m_fleet->m_entity.m_position = combat_fleet.m_fleet->base_position() + offset - offset * combat.m_t_position;
 
-	paint_combat_fleet(parent, combat.m_allies, combat.m_enemies, delta, combat.m_dt_intensity);
-	paint_combat_fleet(parent, combat.m_enemies, combat.m_allies, delta, combat.m_dt_intensity);
+	paint_combat_fleet(parent, combat.m_attack, combat.m_defense, delta, combat.m_dt_intensity);
+	paint_combat_fleet(parent, combat.m_defense, combat.m_attack, delta, combat.m_dt_intensity);
 }
 
 void galaxy_grid(Gnode& parent, Galaxy& galaxy)
@@ -560,8 +515,7 @@ void highlighted_sector(Gnode& parent, const vec2& coord)
 
 void paint_galaxy(Gnode& parent, Galaxy& galaxy)
 {
-	if(galaxy.m_highlight != uvec2(UINT32_MAX))
-		highlighted_sector(parent, galaxy.m_highlight);
+	UNUSED(parent); UNUSED(galaxy);
 }
 
 void paint_scene(Gnode& parent)
@@ -576,7 +530,7 @@ void paint_scene(Gnode& parent)
 	gfx::radiance(parent, "equirectangular_space_sampler.jpg", BackgroundMode::None);
 	//gfx::custom_sky(parent, "start_nest");
 
-	toy::sound(parent, "deep", true);
+	toy::sound(parent, "deep", true, 0.4f);
 
 	static float crackle = 170.f;
 	static float grtgrtttt = 55.f;
@@ -595,14 +549,18 @@ void paint_scene(Gnode& parent)
 		}
 	};
 
-	update_sound(crackle, "crackle", 180.f, 0.3f);
+	//update_sound(crackle, "crackle", 180.f, 0.3f);
 	//update_sound(grtgrtttt, "grtgrtttt", 60.f, 0.1f);
-	//update_sound(grzzt, "grzzt", 10.f);
+	update_sound(grzzt, "grzzt", 10.f, 0.02f);
 }
 
 void paint_viewer(Viewer& viewer)
 {
+	viewer.m_camera.m_near = 0.0001f;
+
 	viewer.m_filters.m_glow.m_enabled = true;
 	viewer.m_filters.m_glow.m_levels_1_4 = { 1.f, 1.f, 0.f, 0.f };
+#ifndef MUD_PLATFORM_EMSCRIPTEN
 	viewer.m_filters.m_glow.m_bicubic_filter = true;
+#endif
 }
