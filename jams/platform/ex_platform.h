@@ -68,12 +68,12 @@ enum class refl_ Faction
 	Ennemy
 };
 
-struct Aim
+struct refl_ Aim
 {
-	quat rotation;
-	vec3 start;
-	vec3 end;
-	Entity* hit;
+	attr_ quat rotation;
+	attr_ vec3 start;
+	attr_ vec3 end;
+	attr_ Entity* hit;
 };
 
 struct HumanController
@@ -105,28 +105,27 @@ public:
 
 	attr_ float m_life = 1.f;
 	attr_ float m_energy = 1.f;
-	float m_discharge = 0.f;
+	attr_ float m_discharge = 0.f;
 
 	attr_ bool m_headlight = true;
 	attr_ bool m_shield = false;
+	attr_ bool m_walk = true;
 
-	bool m_stealth = false;
-	bool m_walk = true;
+	attr_ Human* m_target = nullptr;
+	attr_ vec3 m_dest = Zero3;
+	attr_ float m_cooldown = 0.f;
+
+	struct refl_ State { constr_ State(const std::string& name, bool loop) : name(name), loop(loop) {} attr_ std::string name; attr_ bool loop; };
+	attr_ State m_state = { "IdleAim", true };
 
 	std::vector<unique_ptr<Bullet>> m_bullets;
 
-	Human* m_target = nullptr;
-	vec3 m_dest = Zero3;
-	float m_cooldown = 0.f;
-
-	struct State { std::string name; bool loop; };
-	State m_state = { "IdleAim", true };
-
 	void next_frame(size_t tick, size_t delta);
 
-	quat sight(bool aiming = true);
-	Aim aim();
-	void shoot();
+	meth_ quat sight(bool aiming = true);
+	meth_ Aim aim();
+	meth_ void shoot();
+	meth_ void stop();
 	void damage(float amount);
 
 	static const vec3 muzzle_offset;

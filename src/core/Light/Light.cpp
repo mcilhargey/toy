@@ -22,7 +22,7 @@ using namespace mud; namespace toy
 	LightReflector::LightReflector(Entity& entity, Receptor& receptor)
 		: m_entity(entity)
 		, m_brightness(0.f)
-		, m_sphere(receptor.addSphere(VisualMedium::me(), 0.1f, CM_LIGHTREFLECTOR))
+		, m_sphere(receptor.add_sphere(VisualMedium::me(), 0.1f, CM_LIGHTREFLECTOR))
 	{
 		//entity.add_part(type<LightReflector>(), this);
 	}
@@ -42,7 +42,7 @@ using namespace mud; namespace toy
 		, m_intensity(intensity)
 		, m_colour(std::move(colour))
 		, m_shadows(shadows)
-		, m_sphere(emitter.addSphere(VisualMedium::me(), range, CM_LIGHT))
+		, m_sphere(emitter.add_sphere(VisualMedium::me(), range, CM_LIGHT))
     {
 		m_sphere.m_scope.observe(*this);
 	}

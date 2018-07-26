@@ -71,13 +71,13 @@ using namespace mud; namespace toy
 	Emitter::~Emitter()
 	{}
 
-	EmitterScope& Emitter::addScope(Medium& medium, const CollisionShape& collision_shape, CollisionGroup group)
+	EmitterScope& Emitter::add_scope(Medium& medium, const CollisionShape& collision_shape, CollisionGroup group)
 	{
 		m_emitters.emplace_back(make_object<EmitterScope>(m_entity, medium, collision_shape, group));
 		return *m_emitters.back();
 	}
 
-	EmitterSphere& Emitter::addSphere(Medium& medium, float radius, CollisionGroup group)
+	EmitterSphere& Emitter::add_sphere(Medium& medium, float radius, CollisionGroup group)
 	{
 		m_emitters.emplace_back(make_object<EmitterSphere>(m_entity, medium, group, radius));
 		return as<EmitterSphere>(*m_emitters.back());
@@ -90,13 +90,13 @@ using namespace mud; namespace toy
 	Receptor::~Receptor()
 	{}
 
-	ReceptorScope& Receptor::addScope(object_ptr<ReceptorScope> scope)
+	ReceptorScope& Receptor::add_scope(object_ptr<ReceptorScope> scope)
 	{
 		m_receptors.emplace_back(std::move(scope));
 		return *m_receptors.back();
 	}
 
-	ReceptorSphere& Receptor::addSphere(Medium& medium, float radius, CollisionGroup group)
+	ReceptorSphere& Receptor::add_sphere(Medium& medium, float radius, CollisionGroup group)
 	{
 		m_receptors.emplace_back(make_object<ReceptorSphere>(m_entity, medium, group, radius));
 		return as<ReceptorSphere>(*m_receptors.back());

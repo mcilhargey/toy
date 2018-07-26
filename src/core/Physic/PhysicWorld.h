@@ -16,11 +16,11 @@
 
 using namespace mud; namespace toy
 {
-	class TOY_CORE_EXPORT SubPhysicWorld
+	class TOY_CORE_EXPORT PhysicMedium
 	{
 	public:
-		SubPhysicWorld(World& world, Medium& medium);
-		virtual ~SubPhysicWorld() {}
+		PhysicMedium(World& world, Medium& medium);
+		virtual ~PhysicMedium() {}
 
 		World& m_world;
 		Medium& m_medium;
@@ -48,14 +48,14 @@ using namespace mud; namespace toy
 
 		void next_frame(size_t tick, size_t delta);
 
-		SubPhysicWorld& sub_world(Medium& medium);
+		PhysicMedium& sub_world(Medium& medium);
 
 	public:
-		virtual object_ptr<SubPhysicWorld> create_sub_world(Medium& medium) = 0;
-		virtual vec3 ground_point(const Ray& ray) = 0;
-		virtual Collision raycast(const Ray& ray, short int mask) = 0;
+		virtual object_ptr<PhysicMedium> create_sub_world(Medium& medium) = 0;
+		meth_ virtual vec3 ground_point(const Ray& ray) = 0;
+		meth_ virtual Collision raycast(const Ray& ray, short int mask) = 0;
 
 	protected:
-		std::map<Medium*, object_ptr<SubPhysicWorld>> m_subworlds;
+		std::map<Medium*, object_ptr<PhysicMedium>> m_subworlds;
     };
 }

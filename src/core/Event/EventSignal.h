@@ -29,7 +29,7 @@ using namespace mud; namespace toy
 	public:
 		EventReceptor(Entity& entity, EventRelay& event_relay);
 
-		void addScope(Medium& medium, float radius, CollisionGroup group = CM_RECEPTOR);
+		void add_scope(Medium& medium, float radius, CollisionGroup group = CM_RECEPTOR);
 		void removeScope(ReceptorScope& scope);
 
 		void handle_add(Entity& emitter);

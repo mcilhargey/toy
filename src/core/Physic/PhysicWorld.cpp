@@ -9,7 +9,7 @@
 
 using namespace mud; namespace toy
 {
-	SubPhysicWorld::SubPhysicWorld(World& world, Medium& medium)
+	PhysicMedium::PhysicMedium(World& world, Medium& medium)
 		: m_world(world)
 		, m_medium(medium)
 	{}
@@ -31,7 +31,7 @@ using namespace mud; namespace toy
 			kv.second->next_frame(tick, delta);
 	}
 
-	SubPhysicWorld& PhysicWorld::sub_world(Medium& medium)
+	PhysicMedium& PhysicWorld::sub_world(Medium& medium)
 	{
 		if(m_subworlds.find(&medium) == m_subworlds.end())
 			m_subworlds[&medium] = this->create_sub_world(medium);

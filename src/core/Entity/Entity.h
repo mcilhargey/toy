@@ -54,8 +54,8 @@ using namespace mud; namespace toy
 		inline void set_dirty(bool moved) { m_last_updated = m_last_tick + 1; m_last_modified = m_last_tick + 1; m_moved = moved; }
 		inline void set_sync_dirty(bool moved) { m_last_updated = m_last_tick + 1; m_moved = moved; }
 
-		inline void set_position(const vec3& position) { m_position = position; this->set_dirty(true); }
-		inline void set_rotation(const quat& rotation) { m_rotation = rotation; this->set_dirty(false); }
+		meth_ inline void set_position(const vec3& position) { m_position = position; this->set_dirty(true); }
+		meth_ inline void set_rotation(const quat& rotation) { m_rotation = rotation; this->set_dirty(false); }
 
 		inline void sync_position(const vec3& position) { m_position = position; this->set_sync_dirty(true); }
 		inline void sync_rotation(const quat& rotation) { m_rotation = rotation; this->set_sync_dirty(false); }

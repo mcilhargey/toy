@@ -34,7 +34,7 @@ using namespace mud; namespace toy
 	static void collisionEnded(btPersistentManifold* manifold);
 #endif
 
-	class refl_ TOY_CORE_EXPORT SubBulletWorld : public SubPhysicWorld
+	class refl_ TOY_CORE_EXPORT SubBulletWorld : public PhysicMedium
 	{
 	public:
         SubBulletWorld(World& world, Medium& medium);
@@ -103,7 +103,7 @@ using namespace mud; namespace toy
 		constr_ BulletWorld(World& world);
         ~BulletWorld();
 
-		object_ptr<SubPhysicWorld> create_sub_world(Medium& medium);
+		object_ptr<PhysicMedium> create_sub_world(Medium& medium);
 
 		vec3 ground_point(const Ray& ray);
 		Collision raycast(const Ray& ray, short int mask);

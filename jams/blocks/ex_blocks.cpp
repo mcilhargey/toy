@@ -164,8 +164,8 @@ Tank::Tank(Id id, Entity& parent, const vec3& position, Faction& faction)
 {
 	m_entity.m_world.add_task(this, short(Task::State)); // TASK_GAMEOBJECT
 
-	m_emitter.addSphere(VisualMedium::me(), 0.1f);
-	m_receptor.addSphere(VisualMedium::me(), 100.f);
+	m_emitter.add_sphere(VisualMedium::me(), 0.1f);
+	m_receptor.add_sphere(VisualMedium::me(), 100.f);
 }
 
 Tank::~Tank()

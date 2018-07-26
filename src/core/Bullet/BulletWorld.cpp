@@ -72,7 +72,7 @@ using namespace mud; namespace toy
 #define BULLET_WORLD_SCALE 10000.f
 
     SubBulletWorld::SubBulletWorld(World& world, Medium& medium)
-        : SubPhysicWorld(world, medium)
+        : PhysicMedium(world, medium)
         , m_collisionConfiguration(make_unique<btDefaultCollisionConfiguration>())
         , m_collisionDispatcher(make_unique<btCollisionDispatcher>(m_collisionConfiguration.get()))
 		, m_broadphaseInterface(make_unique<btAxisSweep3>(btVector3/*worldAabbMin*/(-1.f,-1.f,-1.f) * -BULLET_WORLD_SCALE, btVector3/*worldAabbMax*/(1.f, 1.f, 1.f) * BULLET_WORLD_SCALE, /*maxProxies*/32000)) // @crash btAssert(m_firstFreeHandle) is limited by this setting
@@ -239,7 +239,7 @@ using namespace mud; namespace toy
 	BulletWorld::~BulletWorld()
     {}
 
-	object_ptr<SubPhysicWorld> BulletWorld::create_sub_world(Medium& medium)
+	object_ptr<PhysicMedium> BulletWorld::create_sub_world(Medium& medium)
 	{
 		return make_object<SubBulletWorld>(m_world, medium);
 	}

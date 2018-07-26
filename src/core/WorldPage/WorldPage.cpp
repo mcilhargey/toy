@@ -32,7 +32,7 @@ using namespace mud; namespace toy
 		, m_open(open)
 		, m_extents(extents)
 		, m_world(entity.m_world)
-		, m_scope(emitter.addScope(WorldMedium::me(), Cube(m_extents / 2.f), CM_SOURCE))
+		, m_scope(emitter.add_scope(WorldMedium::me(), Cube(m_extents / 2.f), CM_SOURCE))
     {
 		entity.m_world.add_task(this, short(Task::World)); // @todo in the long term this should be moved out of the entity's responsibility
 		m_entity.m_contents.observe(*this);

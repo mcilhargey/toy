@@ -100,7 +100,7 @@ namespace toy {
     class ParallelSection;
     class Origin;
     class World;
-    class SubPhysicWorld;
+    class PhysicMedium;
     class PhysicWorld;
     class SubBulletWorld;
     class BulletWorld;

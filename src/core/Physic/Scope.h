@@ -21,6 +21,8 @@ using namespace mud; namespace toy
 		virtual void add_contact(Collider& object);
 		virtual void remove_contact(Collider& collider);
 
+		meth_ inline std::vector<Entity*>& scope() { return m_scope.store(); }
+
 		Array<Entity> m_scope;
 	};
 
@@ -66,8 +68,8 @@ using namespace mud; namespace toy
 
 		attr_ Entity& m_entity;
 
-		EmitterScope& addScope(Medium& medium, const CollisionShape& collision_shape, CollisionGroup group);
-		EmitterSphere& addSphere(Medium& medium, float radius, CollisionGroup group = CM_SOURCE);
+		EmitterScope& add_scope(Medium& medium, const CollisionShape& collision_shape, CollisionGroup group);
+		EmitterSphere& add_sphere(Medium& medium, float radius, CollisionGroup group = CM_SOURCE);
 
 	protected:
 		std::vector<object_ptr<EmitterScope>> m_emitters;
@@ -81,10 +83,10 @@ using namespace mud; namespace toy
 
 		attr_ Entity& m_entity;
 
-		ReceptorScope& addScope(object_ptr<ReceptorScope> emitter);
-		ReceptorSphere& addSphere(Medium& medium, float radius, CollisionGroup group = CM_RECEPTOR);
+		ReceptorScope& add_scope(object_ptr<ReceptorScope> emitter);
+		ReceptorSphere& add_sphere(Medium& medium, float radius, CollisionGroup group = CM_RECEPTOR);
 
-		ReceptorScope* scope(Medium& medium);
+		meth_ ReceptorScope* scope(Medium& medium);
 
 	protected:
 		std::vector<object_ptr<ReceptorScope>> m_receptors;

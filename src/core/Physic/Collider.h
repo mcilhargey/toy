@@ -18,13 +18,13 @@
 
 using namespace mud; namespace toy
 {
-	struct TOY_CORE_EXPORT Collision
+	struct refl_ TOY_CORE_EXPORT Collision
 	{
 		Collision() {}
 		Collision(Collider* first, Collider* second, const vec3& hit_point) : m_first(first), m_second(second), m_hit_point(hit_point) {}
-		Collider* m_first = nullptr;
-		Collider* m_second = nullptr;
-		vec3 m_hit_point = Zero3;
+		attr_ Collider* m_first = nullptr;
+		attr_ Collider* m_second = nullptr;
+		attr_ vec3 m_hit_point = Zero3;
 	};
 
 	class refl_ TOY_CORE_EXPORT ColliderImpl : public MotionSource
@@ -73,13 +73,13 @@ using namespace mud; namespace toy
 		Collider(Entity& entity, ColliderObject& object, const CollisionShape& collision_shape, Medium& medium, CollisionGroup group, bool init = true);
         virtual ~Collider();
 
-		Entity& m_entity;
+		attr_ Entity& m_entity;
 		ColliderObject& m_object;
 		CollisionShape m_collision_shape;
-		Medium& m_medium;
+		attr_ Medium& m_medium;
 		CollisionGroup m_group;
 
-		SubPhysicWorld& m_world;
+		PhysicMedium& m_world;
 		object_ptr<ColliderImpl> m_impl;
 
 		MotionState m_motion_state;

@@ -28,9 +28,9 @@ using namespace mud; namespace toy
 		event_relay.appendEventTubeEnd(*this);
 	}
 
-	void EventReceptor::addScope(Medium& medium, float radius, CollisionGroup group)
+	void EventReceptor::add_scope(Medium& medium, float radius, CollisionGroup group)
 	{
-		ReceptorSphere& scope = this->addSphere(medium, radius, group);
+		ReceptorSphere& scope = this->add_sphere(medium, radius, group);
 		scope.m_scope.observe(*this);
 	}
 
