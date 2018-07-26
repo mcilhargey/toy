@@ -691,6 +691,8 @@ namespace mud
     
     
     
+    
+    
         
     // Fleet
     {
@@ -1089,6 +1091,7 @@ namespace mud
             // members
             {
                 { type<ShipSchema>(), member_address(&ShipSchema::m_size), type<size_t>(), "size", var(size_t()), Member::Value, nullptr },
+                { type<ShipSchema>(), member_address(&ShipSchema::m_class), type<size_t>(), "class", var(size_t()), Member::Value, nullptr },
                 { type<ShipSchema>(), member_address(&ShipSchema::m_main_weapon), type<WeaponType>(), "main_weapon", var(WeaponType()), Member::Value, nullptr }
             },
             // methods

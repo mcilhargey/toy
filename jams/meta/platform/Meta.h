@@ -238,7 +238,8 @@ namespace mud
                 { type<Human>(), member_address(&Human::m_movable), type<toy::Movable>(), "movable", Ref(type<toy::Movable>()), Member::Component, nullptr },
                 { type<Human>(), member_address(&Human::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component, nullptr },
                 { type<Human>(), member_address(&Human::m_receptor), type<toy::Receptor>(), "receptor", Ref(type<toy::Receptor>()), Member::Component, nullptr },
-                { type<Human>(), member_address(&Human::m_active), type<toy::Active>(), "active", Ref(type<toy::Active>()), Member::Component, nullptr }
+                { type<Human>(), member_address(&Human::m_active), type<toy::Active>(), "active", Ref(type<toy::Active>()), Member::Component, nullptr },
+                { type<Human>(), member_address(&Human::m_script), type<toy::EntityScript>(), "script", Ref(type<toy::EntityScript>()), Member::Component, nullptr }
             },
             // methods
             {

@@ -103,14 +103,15 @@ public:
 	bool m_aiming = false;
 	Aim m_visor;
 
-	float m_life = 1.f;
+	attr_ float m_life = 1.f;
+	attr_ float m_energy = 1.f;
+	float m_discharge = 0.f;
 
-	bool m_headlight = true;
-	bool m_shield = false;
+	attr_ bool m_headlight = true;
+	attr_ bool m_shield = false;
+
 	bool m_stealth = false;
 	bool m_walk = true;
-	float m_energy = 1.f;
-	float m_discharge = 0.f;
 
 	std::vector<unique_ptr<Bullet>> m_bullets;
 

@@ -39,12 +39,10 @@ namespace glm {
     
 }
 
-namespace mud {
-namespace gfx {
+namespace bx {
 
     
     
-}
 }
 
 namespace json11 {
@@ -67,10 +65,12 @@ namespace detail {
 }
 }
 
-namespace bgfx {
+namespace mud {
+namespace gfx {
 
     
     
+}
 }
 
 namespace bimg {
@@ -177,6 +177,8 @@ namespace toy {
     class User;
     class Behavior;
     class Reactive;
+    class ComponentPool;
+    class EntityScript;
     class TargetDispatcher;
     class Selector;
     class Symbolic;
@@ -192,7 +194,7 @@ namespace toy {
     class WorldPage;
 }
 
-namespace bx {
+namespace bgfx {
 
     
     

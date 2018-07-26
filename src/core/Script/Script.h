@@ -21,10 +21,13 @@ using namespace mud; namespace toy
 	class refl_ TOY_CORE_EXPORT EntityScript : public NonCopy
 	{
 	public:
-		EntityScript(Entity& entity);
+		constr_ EntityScript(Entity& entity);
 		
-		Entity& m_entity;
-		Script* m_logic_script = nullptr;
-		Script* m_render_script = nullptr;
+		attr_ Entity& m_entity;
+		attr_ Script* m_logic_script = nullptr;
+		attr_ Script* m_render_script = nullptr;
+
+		void run_logic();
+		void run_render(); // Gnode& parent
 	};
 }

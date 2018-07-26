@@ -501,15 +501,15 @@ void paint_combat(Gnode& parent, SpatialCombat& combat)
 
 void galaxy_grid(Gnode& parent, Galaxy& galaxy)
 {
-	Colour colour = Colour::White * 3.f;//{ 0.3f, 0.3f, 0.3f, 0.04f };
-	Gnode& self = gfx::node(parent, {}, vec3{ 0.f, 0.5f, 0.f });
+	Colour colour = Colour::White * 3.f;
+	Gnode& self = gfx::node(parent, {}, Y3 * 0.5f);
 	gfx::shape(self, Grid2(galaxy.m_size), Symbol(colour));
 }
 
 void highlighted_sector(Gnode& parent, const vec2& coord)
 {
 	Gnode& self = gfx::node(parent, {}, vec3{ coord.x, 0.f, coord.y } + 0.5f);
-	gfx::shape(self, Rect(0.f, 0.f, 1.f, 1.f), Symbol(Colour::White)); // Quad(1.f, X3, Z3)
+	gfx::shape(self, Quad(1.f, X3, Z3), Symbol(Colour::White));
 }
 
 void paint_galaxy(Gnode& parent, Galaxy& galaxy)

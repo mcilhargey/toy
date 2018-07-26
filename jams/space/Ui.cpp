@@ -562,19 +562,19 @@ void system_losses_sheet(Widget& parent, const CombatStar& combat_star, float t)
 	Star& star = *combat_star.m_star;
 	ui::label(parent, ("System " + star.m_name + " of commander " + (star.m_commander ? star.m_commander->m_name : "NEUTRAL")).c_str());
 
-	/*Table& table = ui::table(parent, carray<cstring, 3>{ "Code", "Name", "Losses" }, carray<float, 3>{ 0.2f, 0.6f, 0.2f });
+	Table& table = ui::table(parent, carray<cstring, 3>{ "Code", "Name", "Losses" }, carray<float, 3>{ 0.2f, 0.6f, 0.2f });
 
-	for(auto& kv : fleet.m_ships)
+	for(auto& kv : combat_star.m_losses)
 	{
-		ShipSchema* ship = kv.first;
-		uint32_t number = kv.second;
-		uint32_t destroyed = uint32_t(float(combat_fleet.m_losses.at(ship)) * t);
+		BuildingSchema* building = kv.first;
+		uint32_t number = star.m_buildings[building];
+		uint32_t destroyed = uint32_t(float(kv.second) * t);
 
 		Widget& row = ui::table_row(table);
 		ui::label(row, kv.first->m_code.c_str());
 		ui::label(row, kv.first->m_name.c_str());
 		ui::label(row, (to_string(destroyed) + "/" + to_string(number)).c_str());
-	}*/
+	}
 }
 
 void combat_report_sheet(Widget& parent, SpatialCombat& combat)
@@ -828,12 +828,4 @@ void ex_space_ui(Widget& parent, GameScene& scene)
 	game_viewer_ui(viewer, scene, player);
 
 	player.m_hovered_item = viewer.m_hovered;
-
-#if 0
-	if(fleet.m_jump.m_state == Jump::END && state.m_position != fleet.m_entity.m_position)
-	{
-		state.m_position = fleet.m_entity.m_position;
-		move_camera_to(scene.m_camera, fleet.m_entity);
-	}
-#endif
 }

@@ -153,6 +153,8 @@ using namespace mud; namespace toy
 		m_game_module->m_on_init(*this, m_game);
 
 		System::instance().load_module(*game_module.m_module);
+
+		m_interpreter->declare_types();
 	}
 
 	void GameShell::load(const string& module_name)

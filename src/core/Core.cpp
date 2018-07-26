@@ -2,6 +2,7 @@
 //  This software is provided 'as-is' under the zlib License, see the LICENSE.txt file.
 //  This notice and the license may not be removed or altered from any source distribution.
 
+#include <core/Types.h>
 #include <core/Core.h>
 
 #include <core/Player/Player.h>
@@ -15,6 +16,8 @@
 #include <refl/Injector.h>
 #include <refl/System.h>
 
+#include <obj/Indexer.h>
+#include <core/Script/Script.h>
 
 using namespace mud; namespace toy
 {
@@ -38,6 +41,11 @@ using namespace mud; namespace toy
 
 		for(Task task = Task(0); task < Task::Count; task = Task(uint(task) + 1))
 			m_sections[size_t(task)]->update();
+
+		Indexer& scripts = indexer(type<EntityScript>());
+		for(Ref object : scripts.m_objects)
+			if(object)
+				val<EntityScript>(object).run_logic();
 	}
 
 	DefaultWorld::DefaultWorld(const string& name)
