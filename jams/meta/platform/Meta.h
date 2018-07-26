@@ -239,7 +239,12 @@ namespace mud
                 { type<Human>(), member_address(&Human::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component, nullptr },
                 { type<Human>(), member_address(&Human::m_receptor), type<toy::Receptor>(), "receptor", Ref(type<toy::Receptor>()), Member::Component, nullptr },
                 { type<Human>(), member_address(&Human::m_active), type<toy::Active>(), "active", Ref(type<toy::Active>()), Member::Component, nullptr },
-                { type<Human>(), member_address(&Human::m_script), type<toy::EntityScript>(), "script", Ref(type<toy::EntityScript>()), Member::Component, nullptr }
+                { type<Human>(), member_address(&Human::m_script), type<toy::EntityScript>(), "script", Ref(type<toy::EntityScript>()), Member::Component, nullptr },
+                { type<Human>(), member_address(&Human::m_faction), type<Faction>(), "faction", var(Faction()), Member::Value, nullptr },
+                { type<Human>(), member_address(&Human::m_life), type<float>(), "life", var(float(1.f)), Member::Value, nullptr },
+                { type<Human>(), member_address(&Human::m_energy), type<float>(), "energy", var(float(1.f)), Member::Value, nullptr },
+                { type<Human>(), member_address(&Human::m_headlight), type<bool>(), "headlight", var(bool(true)), Member::Value, nullptr },
+                { type<Human>(), member_address(&Human::m_shield), type<bool>(), "shield", var(bool(false)), Member::Value, nullptr }
             },
             // methods
             {

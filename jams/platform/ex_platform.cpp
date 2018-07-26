@@ -195,6 +195,81 @@ Human::~Human()
 	m_entity.m_world.remove_task(this, short(Task::State));
 }
 
+std::string enemy_ai_script()
+{
+	std::string script =
+		"function ia(self)\n"
+		"    if self.life <= 0.0 then\n"
+		"        self.state = Human.State('Die', false)\n"
+		"        return\n"
+		"    end\n"
+		"    \n"
+		"    if self.target then\n"
+		"        local aim = self.aim()\n"
+		"        if distance(self.target.entity.position, self.entity.position) > 50.0\n"
+		"        or aim.hit and aim.hit ~= self.target.entity\n"
+		"        or self.target.life <= 0.0 then\n"
+		"            self.target = nil\n"
+		"        then\n"
+		"    end\n"
+		"    \n"
+		"    if self.target then\n"
+		"        local vision = self.receptor.scope(VisualMedium.me())\n"
+		"        \n"
+		"        for _, entity in pairs(vision.scope.store()) do\n"
+		"            target = entity.try_part(Human)\n"
+		"            if target and target.faction ~= self.faction then\n"
+		"                local direction = entity.position - self.entity.position\n"
+		"                \n"
+		"                --local light = spot_attenuation(-direction, self.entity.front(), 30.0, 0.5, 0.9, cos(to_radians(headlight_angle)))\n"
+		"                local light = 1.0\n"
+		"                local visibility = light * (target.headlight ? 4.0 : 0.5)\n"
+		"                if target.life > 0.0 and (visibility > 0.2 or length(direction) < 4.0) then\n"
+		"                    self.target = target\n"
+		"                    self.cooldown = 2.0\n"
+		"                end\n"
+		"            end\n"
+		"        end\n"
+		"    end\n"
+		"    \n"
+		"    self.cooldown = max(0.0, self.cooldown - delta * 0.05)\n"
+		"    if self.target then\n"
+		"        self.stop()\n"
+		"        self.entity.look_at_2d(self.target.entity.position)))\n"
+		"        \n"
+		"        if self.cooldown == 0.0 then\n"
+		"            self.shoot()\n"
+		"            self.cooldown = 1.0\n"
+		"        end\n"
+		"    else\n"
+		"        function to_ray(pos, dir)\n"
+		"            return Ray(pos, pos + dir * 1000.0, dir, 1.0 / dir)\n"
+		"        end\n"
+		"        function is_walkable(pos)\n"
+		"            return self.entity.world.part(PhysicWorld).ground_point(to_ray(pos, -Y3)) ~= vec3(0)\n"
+		"        end\n"
+		"        \n"
+		"        if self.dest == vec3(0) then\n"
+		"            local amplitude = 10.0\n"
+		"            self.dest = self.entity.position + vec3(random_scalar(-amplitude, amplitude), 0.0, random_scalar(-amplitude, amplitude))\n"
+		"            if !is_walkable(self.dest) then\n"
+		"                self.dest = vec3(0)\n"
+		"            end\n"
+		"        end\n"
+		"        \n"
+		"        if self.dest ~= vec3(0) then\n"
+		"            if steer_2d(self.movable, self.dest, 3.0, delta * c_tick_interval, 1.0) then\n"
+		"                self.stop()\n"
+		"            else\n"
+		"                self.state = Human.State(iff(self.walk, 'Walk', 'RunAim'), true)\n"
+		"                self.movable.set_linear_velocity(self.movable.linear_velocity - Y3 * 1.0)\n"
+		"            end\n"
+		"        end\n"
+		"    end\n"
+		"end\n";
+	return script;
+}
+
 void Human::next_frame(size_t tick, size_t delta)
 {
 	UNUSED(tick);
@@ -702,7 +777,7 @@ void ex_platform_game_hud(Viewer& viewer, GameScene& scene, Human& human)
 
 		if(viewer.mouse_event(DeviceType::MouseLeft, EventType::Stroked))
 		{
-			viewer.take_focus();
+			//viewer.take_focus();
 			human.shoot();
 		}
 
@@ -738,6 +813,11 @@ void ex_platform_game_ui(Widget& parent, Game& game, GameScene& scene)
 		viewer.take_modal();
 	else if(game.m_mode == GameMode::PlayEditor && viewer.modal())
 		viewer.yield_modal();
+
+	if(viewer.key_event(KC_ESCAPE, EventType::Stroked))
+	{
+		game.m_mode == GameMode::Play;
+	}
 
 	paint_viewer(viewer);
 	
@@ -833,6 +913,9 @@ void ex_platform_init(GameShell& app, Game& game)
 	app.m_gfx_system->add_resource_path("examples/ex_platform/");
 	app.m_gfx_system->add_resource_path("examples/05_character/");
 	app.m_gfx_system->add_resource_path("examples/17_wfc/");
+
+	LuaScript& script = app.m_editor.m_script_editor.create_script("enemy_ai");
+	script.m_script = enemy_ai_script();
 }
 
 void ex_platform_start(GameShell& app, Game& game)

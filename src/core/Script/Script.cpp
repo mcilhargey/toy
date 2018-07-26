@@ -6,6 +6,7 @@
 #include <core/Script/Script.h>
 
 #include <obj/Indexer.h>
+#include <refl/Class.h>
 #include <lang/Script.h>
 
 #include <core/Entity/Entity.h>
@@ -27,7 +28,7 @@ using namespace mud; namespace toy
 			// @hack @kludge add proper way to define a script signature
 			if(m_logic_script->m_signature.m_params.empty())
 			{
-				m_logic_script->m_signature.m_params.push_back({ "object", Ref(m_entity.m_complex.m_type) });
+				m_logic_script->m_signature.m_params.push_back({ "self", Ref(m_entity.m_complex.m_type) });
 				m_logic_script->m_signature.m_params.push_back({ "entity", Ref(type<Entity>()) });
 			}
 

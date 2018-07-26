@@ -97,7 +97,7 @@ public:
 
 	Solid m_solid;
 
-	Faction m_faction;
+	attr_ Faction m_faction;
 
 	float m_vangle = 0.f;
 	bool m_aiming = false;

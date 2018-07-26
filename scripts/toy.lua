@@ -63,7 +63,7 @@ toy = {}
 
 --                           base   name        root path    sub path   decl        self decl       decl transitive     dependencies
 toy.util        = mud_module("toy", "util",     TOY_SRC_DIR, "util",    nil,        nil,            nil,                { mud.obj, mud.math })
-toy.core        = mud_module("toy", "core",     TOY_SRC_DIR, "core",    nil,        toy_core,       uses_toy_core,      { mud.obj, mud.proto, mud.math, mud.geom, toy.util })
+toy.core        = mud_module("toy", "core",     TOY_SRC_DIR, "core",    nil,        toy_core,       uses_toy_core,      { mud.obj, mud.proto, mud.math, mud.geom, mud.lang, toy.util })
 if _OPTIONS["sound"] then
     toy.visu    = mud_module("toy", "visu",     TOY_SRC_DIR, "visu",    nil,        toy_visu,       uses_toy_visu,      { mud.obj, mud.snd, mud.gfx, toy.util, toy.core })
 else
