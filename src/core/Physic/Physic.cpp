@@ -10,8 +10,8 @@
 
 using namespace mud; namespace toy
 {
-	PhysicMedium::PhysicMedium()
-		: Medium("PhysicMedium", false)
+	AreaMedium::AreaMedium()
+		: Medium("AreaMedium", false)
 	{
 		m_masks[CM_OBJECT] = CM_BUFFER | CM_AREA;
 		m_masks[CM_BUFFER] = CM_OBJECT;
@@ -22,7 +22,7 @@ using namespace mud; namespace toy
 		//: m_areaStore()
 	{
 		UNUSED(entity);
-		//entity.part<Emitter>().addEmitter(PhysicMedium::me(), make_object<SphereShape>(0.1f), CM_OBJECT);
+		//entity.part<Emitter>().addEmitter(AreaMedium::me(), make_object<SphereShape>(0.1f), CM_OBJECT);
 	}
 
     /*void Physic::handle_add(Collider& object)

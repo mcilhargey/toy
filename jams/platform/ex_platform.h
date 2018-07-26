@@ -111,6 +111,8 @@ public:
 	attr_ bool m_shield = false;
 	attr_ bool m_walk = true;
 
+	bool m_stealth = false;
+
 	attr_ Human* m_target = nullptr;
 	attr_ vec3 m_dest = Zero3;
 	attr_ float m_cooldown = 0.f;

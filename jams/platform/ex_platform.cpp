@@ -843,7 +843,7 @@ void ex_platform_init(GameShell& app, Game& game)
 	if(location.m_name != nullptr)
 	{
 		LuaScript& script = app.m_editor.m_script_editor.create_script("enemy_ai");
-		script.m_script = read_text_file(string(location.m_location) + location.m_name);
+		script.m_script = read_text_file(std::string(location.m_location) + location.m_name);
 	}
 }
 

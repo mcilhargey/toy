@@ -413,6 +413,6 @@ using namespace mud; namespace toy
 	{
 		Complex& modular = val<Complex>(object);
 		if(modular.has_part(m_type))
-			ObjectLoader::queue(modular.partref(m_type), depth);
+			ObjectLoader::queue(modular.part(m_type), depth);
 	}
 }
