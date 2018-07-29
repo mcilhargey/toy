@@ -290,9 +290,7 @@ gfx_system.textures().release(texture);
 ### asynchronous loading
 resources can be loaded in a background thread. the returned pointer is null until the resource has actually loaded.
 
-## basic rendering
-
-### scene, viewport and camera
+## scene, viewport and camera
 Scenes represent a graph of objects to be rendered.
 Cameras represent the properties of the viewpoint used for rendering the Scene.
 Viewports represent a rectangle on a render target to render a given Camera to.
@@ -313,7 +311,7 @@ while(true)
 }
 ```
 
-#### camera
+### camera
 Cameras are defined by two points in space: the eye, and the target.
 
 Like most classes of toy, the Camera fields can be modified on-the-fly, for direct effect.
@@ -331,10 +329,10 @@ camera.m_fov = 90.f;
 
 The `m_lod_offsets` field holds 4 distances that can be tweaked to determine how the 4 LOD are distributed along the linear depth scale.
 
-#### viewport
+### viewport
 Everything related to the specific effects applied to a rendering is applied to the viewport.
 
-### declarative graph
+## declarative graph
 Every rendered object in toy is added to a graph through a declarative idiom.
 This means you don't need to manage the lifetimes of the rendered objects yourself: you just need to traverse, each frame, the declarations of what needs to be rendered, and the lifetime management is handled for you.
 
@@ -345,17 +343,17 @@ Model& model = gfx_system.models().file("my_model.obj");
 gfx::item(root, model);
 ```
 
-### meshes and models
+## meshes and models
 
-#### meshes
+### meshes
 Meshes are the primitive geometry units used when rendering a scene. They map to the different primitives exposed by the rendering APIs: lines, line strips and loops, triangles, triangle strips and loops.
 
 Meshes are never dealt with directly when rendering, because meshes are always rendered as part of a Model, which is simply a group of mesh with given transforms and materials for each mesh instance.
 
-#### creating meshes
+### creating meshes
 Meshes are just a primitive type, and a set of buffers filled with data describing their vertices and indices. Filling these buffers is usually done by the different Model importers, but you can also create Meshes manually.
 
-#### cached meshes
+### cached meshes
 Meshes are usually sent directly to the GPU, after the necessary attributes have been computed, like bounding volume. However you can specify a mesh to be kept accessible on the CPU side to access its vertices later-on.
 
 To read a cached mesh, you need to fetch the `MeshData` stored in the `m_cache` attribute of the Mesh, and iterate over the vertices.
@@ -369,7 +367,7 @@ for(size_t i = 0; i < data.m_vertices.size(); ++i)
 }
 ```
 
-### textures
+## textures
 A Texture in toy is an image file that has been uploaded to the GPU, ready to be used for rendering.
 toy uses the bimg library to load textures, which supports the following formats:
 - BMP
@@ -397,12 +395,13 @@ Some properties are stored in the Texture object for convenience:
 
 The Texture data can be read using the bgfx API directly, using `bgfx::readTexture()`
 
-### shaders, programs, and materials
-#### programs and shaders
+## shaders, programs, and materials
+
+### programs and shaders
 A Program in toy is defined as a combination of Shaders for a given draw call.
 Usually, a Program is composed of a Vertex Shader and a Fragment Shader, which are defined in the bgfx shader language, which compiles to the target shader language required by the platform toy is running on.
 
-#### materials
+### materials
 A Material in toy is simply a set of parameters for a given (GPU) Program to execute correctly. In programming terms, the Program is a (very complex) function executed on the GPU, and the Material holds some of the specific parameters for that function invocation. Other parameters will come from other sources (Camera, Scene, Lights, Environment...).
 
 To represent that distinction, Programs are composed of Blocks. A Program relies on a set of functional Blocks, some of which are Material Blocks, and some other Blocks. A Material associated to this Program holds one of each Material Blocks expected by the Program. The other Blocks are provided by the Scene, the Camera, etc...
@@ -429,7 +428,7 @@ UnshadedBlock unshaded_block = {};
 Material material = { program, base_block, { unshaded_block } };
 ```
 
-#### material parameters
+### material parameters
 Material parameters, or Material Block parameters (since each one is accessed from its block), are set just like regular C++ attributes on any object.
 
 Their only particularity is that most parameters are of the type MaterialParam<T>, which holds three things:
@@ -442,11 +441,11 @@ material.block<UnshadedBlock>().m_color.m_value = Colour::White;
 material.block<UnshadedBlock>().m_color.m_texture = gfx_system.textures().file("my_texture.png");
 ```
 
-### models
+## models
 A Model is the basic primitive for rendering any geometry. When rendering any geometry, you render a Model, which gather a number of Meshes, each with a Transform and an assigned Material.
 This is represented as a collection of ModelItems, stored in the `m_items` attribute. Each time you render a Model, you are actually sending each of the Meshes that compose it to the renderer.
 
-#### importing models
+### importing models
 
 Models are imported by importers defined for each specific format. So far, toy provides an OBJ importer and a glTF importer.
 
@@ -460,7 +459,7 @@ The import process can be configured using a ModelConfig structured passed to th
 When rendering a model, the materials applied are the material specified in each ModelItem.
 You can override the material, either for the whole model (i.e. all meshes) by passing a material, or you can override specific materials by creating a model variant.
 
-### lights
+## lights
 Lights exist as graphics primitives in toy. However, until you use a shaded renderer pipeline, they won't actually affect rendering at all. This is on purpose: the toy renderer is flexible and designed to implement. toy provides a default PBR rendering pipeline that uses Lights as you would expect from any PBR renderer.
 
 toy supports three types of lights:
@@ -484,9 +483,9 @@ the following are specific to Spot Lights:
 - `m_spot_angle`: the angle of the spotlight cone
 - `m_spot_attenuation`: the term of the spotlight attenuation formula (angle to direction axis)
 
-### skeletons and rigs
+## skeletons and rigs
 
-### animations
+## animations
 
 ## advanced rendering
 
