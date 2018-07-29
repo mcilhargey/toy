@@ -354,10 +354,10 @@ Meshes are the primitive geometry units used when rendering a scene. They map to
 
 Meshes are never dealt with directly when rendering, because meshes are always rendered as part of a Model, which is simply a group of mesh with given transforms and materials for each mesh instance.
 
-##### creating meshes
+#### creating meshes
 Meshes are just a primitive type, and a set of buffers filled with data describing their vertices and indices. Filling these buffers is usually done by the different Model importers, but you can also create Meshes manually.
 
-##### cached meshes
+#### cached meshes
 Meshes are usually sent directly to the GPU, after the necessary attributes have been computed, like bounding volume. However you can specify a mesh to be kept accessible on the CPU side to access its vertices later-on.
 
 To read a cached mesh, you need to fetch the `MeshData` stored in the `m_cache` attribute of the Mesh, and iterate over the vertices.
@@ -400,7 +400,7 @@ Some properties are stored in the Texture object for convenience:
 The Texture data can be read using the bgfx API directly, using `bgfx::readTexture()`
 
 ### shaders, programs, and materials
-##### programs and shaders
+#### programs and shaders
 A Program in toy is defined as a combination of Shaders for a given draw call.
 Usually, a Program is composed of a Vertex Shader and a Fragment Shader, which are defined in the bgfx shader language, which compiles to the target shader language required by the platform toy is running on.
 
@@ -444,11 +444,11 @@ material.block<UnshadedBlock>().m_color.m_value = Colour::White;
 material.block<UnshadedBlock>().m_color.m_texture = gfx_system.textures().file("my_texture.png");
 ```
 
-#### models
+### models
 A Model is the basic primitive for rendering any geometry. When rendering any geometry, you render a Model, which gather a number of Meshes, each with a Transform and an assigned Material.
 This is represented as a collection of ModelItems, stored in the `m_items` attribute. Each time you render a Model, you are actually sending each of the Meshes that compose it to the renderer.
 
-##### importing models
+#### importing models
 
 Models are imported by importers defined for each specific format. So far, toy provides an OBJ importer and a glTF importer.
 
