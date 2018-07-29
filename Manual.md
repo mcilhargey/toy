@@ -25,10 +25,12 @@
   - [resources](#resources)
     - [loading resources](#loading-resources)
     - [asynchronous loading](#asynchronous-loading)
-  - [scene, viewport and camera](#scene-viewport-and-camera)
+  - [scene and graph](#scene-and-graph)
+    - [scene](#scene)
+    - [declarative graph](#declarative-graph)
+  - [viewport and camera](#scene-viewport-and-camera)
     - [camera](#camera)
     - [viewport](#viewport)
-  - [declarative graph](#declarative-graph)
   - [meshes and models](#meshes-and-models)
     - [meshes](#meshes)
     - [creating meshes](#creating-meshes)
@@ -290,14 +292,40 @@ gfx_system.textures().release(texture);
 ### asynchronous loading
 resources can be loaded in a background thread. the returned pointer is null until the resource has actually loaded.
 
-## scene, viewport and camera
+## scene and graph
+
+### scene
 Scenes represent a graph of objects to be rendered.
+
+```cpp
+Scene scene = { gfx_system };
+
+while(true)
+{
+    // rendering logic
+}
+```
+
+### declarative graph
+Every rendered object in toy is added to a graph through a declarative idiom.
+This means you don't need to manage the lifetimes of the rendered objects yourself: you just need to traverse, each frame, the declarations of what needs to be rendered, and the lifetime management is handled for you.
+
+```cpp
+// inside the drawing loop
+Gnode& root = scene.begin();
+Model& model = gfx_system.models().file("my_model.obj");
+gfx::item(root, model);
+```
+
+
+## viewport and camera
 Cameras represent the properties of the viewpoint used for rendering the Scene.
 Viewports represent a rectangle on a render target to render a given Camera to.
 
 As a user of toy, you will mostly be creating Viewers, which are interface elements themselves holding a Camera and a Viewport.
 In this case you can interact with the underlying Camera and Viewport directly to change their parameters.
 If you want to interact with the rendering layer directly though, the only things needed to start rendering is a Camera, a Viewport, and a Scene.
+
 ```cpp
 Scene scene = { gfx_system };
 Camera camera = { &scene };
@@ -331,17 +359,6 @@ The `m_lod_offsets` field holds 4 distances that can be tweaked to determine how
 
 ### viewport
 Everything related to the specific effects applied to a rendering is applied to the viewport.
-
-## declarative graph
-Every rendered object in toy is added to a graph through a declarative idiom.
-This means you don't need to manage the lifetimes of the rendered objects yourself: you just need to traverse, each frame, the declarations of what needs to be rendered, and the lifetime management is handled for you.
-
-```cpp
-// inside the drawing loop
-Gnode& root = scene.begin();
-Model& model = gfx_system.models().file("my_model.obj");
-gfx::item(root, model);
-```
 
 ## meshes and models
 
