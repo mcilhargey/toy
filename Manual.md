@@ -91,13 +91,13 @@
 
 # toy engine manual
 
-## project setup
-### modules
+# project setup
+## modules
 a [module](modules.md) in mud is a group of c++ files located in the same directory and signaled by a `module.py` definition file.  
 all the c++ files in one module must be able to be compiled together : they cannot contradict.  
 that means, for example, you can't have duplicate definitions of the same function or class.
 
-### a simple module
+## a simple module
 the simplest mud [module](modules.md) is one `.cpp` file, one `.h`, and a `module.py` definition. let's create our first module :
 ```
 +-- MyModule
@@ -119,7 +119,7 @@ in this case, the dependencies : [obj](meta.md), [math](math.md), [ui](ui.md), [
 the next step is to setup a build : a mud project can be built with the compiler and build system of your choice.  
 mud comes with scripts for the [GENie](https://github.com/bkaradzic/GENie) project generator, which is what we will use : it's the quickest way to bootstrap a mud project, and manage both [project files](#generate-a-project) generation and [precompiling](#precompiling) the reflection files from one script
 
-### generate a project
+## generate a project
 let's define a [GENie](https://github.com/bkaradzic/GENie) script, through which all build actions can be performed :
 ```lua
 project "MyModule"
@@ -142,7 +142,7 @@ genie [options] action
 ```
 
 
-## simple app
+# simple app
 ```cpp
 class MyGame : public GameModule
 {
@@ -165,9 +165,8 @@ int main()
 }
 ```
 
-## 
 
-## entities
+# entities
 In toy we separate the game entities and the rendered objects (models, meshes, particles).
 Entities represent objects on the game logic side, localized in space, aggregating an array of components of your choice.
 
@@ -193,9 +192,9 @@ To move an entity, you can directly modify the `position`, `rotation` members, o
 The Movable component is used for objects that move in space over time.
 It holds a linear velocity and an angular velocity.
 
-## reflection
+# reflection
 
-### annotating code
+## annotating code
 The prerequisite to using generic [primitives](#primitives) and [operations](#operations) on any given c++ construct, is to produce the necessary reflection data, for this construct.  
 This is done by annotating the code in the following manner, which is then fed to a precompiler or reflection [generator](#generator) :
 ```c++
@@ -222,11 +221,11 @@ Notice how this is a standard c++ definition, with some added [reflection hints]
 
 Using these annotations, the reflection [generator](#generator) produces a couple of reflection files, which declares and registers [constructs](#constructs) using mud corresponding types: [functions](../src/obj/Reflect/Method.h), [types](../src/obj/Reflect/Meta.h), [classes](../src/obj/Reflect/Class.h), [class members](../src/obj/Reflect/Member.h), [class methods](../src/obj/Reflect/Method.h), [enums](../src/obj/Reflect/Enum.h).  
 
-### precompiling
+## precompiling
 
-## scripting
+# scripting
 
-## context
+# context
 mud supports four context providers :
 - [glfw](../src/ctx-glfw): cross-platform OpenGL context
 - [windows](../src/ctx-win): native Windows context
@@ -258,15 +257,15 @@ while(render_system->next_frame())
 }
 ```
 
-## math
+# math
 
-## geometry
+# geometry
 
-## graphics
+# graphics
 
-### resources
+## resources
 
-#### loading resources
+### loading resources
 the following graphics resources are loaded from files of standard formats:
 - models: `.gltf` and `.obj` files
 - programs: `.sc` files
@@ -290,12 +289,12 @@ Resources lifetimes are managed by the user explicitly: to free a resource, simp
 gfx_system.textures().release(texture);
 ```
 
-#### asynchronous loading
+### asynchronous loading
 resources can be loaded in a background thread. the returned pointer is null until the resource has actually loaded.
 
-### basic rendering
+## basic rendering
 
-#### scene, viewport and camera
+### scene, viewport and camera
 Scenes represent a graph of objects to be rendered.
 Cameras represent the properties of the viewpoint used for rendering the Scene.
 Viewports represent a rectangle on a render target to render a given Camera to.
@@ -316,7 +315,7 @@ while(true)
 }
 ```
 
-##### camera
+#### camera
 Cameras are defined by two points in space: the eye, and the target.
 
 Like most classes of toy, the Camera fields can be modified on-the-fly, for direct effect.
@@ -334,10 +333,10 @@ camera.m_fov = 90.f;
 
 The `m_lod_offsets` field holds 4 distances that can be tweaked to determine how the 4 LOD are distributed along the linear depth scale.
 
-##### viewport
+#### viewport
 Everything related to the specific effects applied to a rendering is applied to the viewport.
 
-#### declarative graph
+### declarative graph
 Every rendered object in toy is added to a graph through a declarative idiom.
 This means you don't need to manage the lifetimes of the rendered objects yourself: you just need to traverse, each frame, the declarations of what needs to be rendered, and the lifetime management is handled for you.
 
@@ -348,17 +347,17 @@ Model& model = gfx_system.models().file("my_model.obj");
 gfx::item(root, model);
 ```
 
-#### meshes and models
+### meshes and models
 
-##### meshes
+#### meshes
 Meshes are the primitive geometry units used when rendering a scene. They map to the different primitives exposed by the rendering APIs: lines, line strips and loops, triangles, triangle strips and loops.
 
 Meshes are never dealt with directly when rendering, because meshes are always rendered as part of a Model, which is simply a group of mesh with given transforms and materials for each mesh instance.
 
-###### creating meshes
+##### creating meshes
 Meshes are just a primitive type, and a set of buffers filled with data describing their vertices and indices. Filling these buffers is usually done by the different Model importers, but you can also create Meshes manually.
 
-###### cached meshes
+##### cached meshes
 Meshes are usually sent directly to the GPU, after the necessary attributes have been computed, like bounding volume. However you can specify a mesh to be kept accessible on the CPU side to access its vertices later-on.
 
 To read a cached mesh, you need to fetch the `MeshData` stored in the `m_cache` attribute of the Mesh, and iterate over the vertices.
@@ -372,7 +371,7 @@ for(size_t i = 0; i < data.m_vertices.size(); ++i)
 }
 ```
 
-#### textures
+### textures
 A Texture in toy is an image file that has been uploaded to the GPU, ready to be used for rendering.
 toy uses the bimg library to load textures, which supports the following formats:
 - BMP
@@ -400,12 +399,12 @@ Some properties are stored in the Texture object for convenience:
 
 The Texture data can be read using the bgfx API directly, using `bgfx::readTexture()`
 
-#### shaders, programs, and materials
+### shaders, programs, and materials
 ##### programs and shaders
 A Program in toy is defined as a combination of Shaders for a given draw call.
 Usually, a Program is composed of a Vertex Shader and a Fragment Shader, which are defined in the bgfx shader language, which compiles to the target shader language required by the platform toy is running on.
 
-##### materials
+#### materials
 A Material in toy is simply a set of parameters for a given (GPU) Program to execute correctly. In programming terms, the Program is a (very complex) function executed on the GPU, and the Material holds some of the specific parameters for that function invocation. Other parameters will come from other sources (Camera, Scene, Lights, Environment...).
 
 To represent that distinction, Programs are composed of Blocks. A Program relies on a set of functional Blocks, some of which are Material Blocks, and some other Blocks. A Material associated to this Program holds one of each Material Blocks expected by the Program. The other Blocks are provided by the Scene, the Camera, etc...
@@ -432,7 +431,7 @@ UnshadedBlock unshaded_block = {};
 Material material = { program, base_block, { unshaded_block } };
 ```
 
-##### material parameters
+#### material parameters
 Material parameters, or Material Block parameters (since each one is accessed from its block), are set just like regular C++ attributes on any object.
 
 Their only particularity is that most parameters are of the type MaterialParam<T>, which holds three things:
@@ -445,11 +444,11 @@ material.block<UnshadedBlock>().m_color.m_value = Colour::White;
 material.block<UnshadedBlock>().m_color.m_texture = gfx_system.textures().file("my_texture.png");
 ```
 
-##### models
+#### models
 A Model is the basic primitive for rendering any geometry. When rendering any geometry, you render a Model, which gather a number of Meshes, each with a Transform and an assigned Material.
 This is represented as a collection of ModelItems, stored in the `m_items` attribute. Each time you render a Model, you are actually sending each of the Meshes that compose it to the renderer.
 
-###### importing models
+##### importing models
 
 Models are imported by importers defined for each specific format. So far, toy provides an OBJ importer and a glTF importer.
 
@@ -463,7 +462,7 @@ The import process can be configured using a ModelConfig structured passed to th
 When rendering a model, the materials applied are the material specified in each ModelItem.
 You can override the material, either for the whole model (i.e. all meshes) by passing a material, or you can override specific materials by creating a model variant.
 
-#### lights
+### lights
 Lights exist as graphics primitives in toy. However, until you use a shaded renderer pipeline, they won't actually affect rendering at all. This is on purpose: the toy renderer is flexible and designed to implement. toy provides a default PBR rendering pipeline that uses Lights as you would expect from any PBR renderer.
 
 toy supports three types of lights:
@@ -487,38 +486,39 @@ the following are specific to Spot Lights:
 - `m_spot_angle`: the angle of the spotlight cone
 - `m_spot_attenuation`: the term of the spotlight attenuation formula (angle to direction axis)
 
-#### skeletons and rigs
+### skeletons and rigs
 
-#### animations
+### animations
 
-### advanced rendering
-#### custom programs and materials
+## advanced rendering
 
-
-### pbr 
-
-#### environment and radiance
-
-#### lights
-
-#### shadows
+### custom programs and materials
 
 
-### importers
+## pbr 
 
-#### gltf importer
+### environment and radiance
+
+### lights
+
+### shadows
+
+
+## importers
+
+### gltf importer
 The glTF importer is a minimal implementation to load models written according the the `glTF 2.0 specification`.
 To use it, you simply need to create the `ImporterGlTF` when initializing the application. The importer will automatically register itself to the Model Asset Store, so that you can directly open glTF models from files.
 
 
-#### obj importer
+### obj importer
 The OBJ importer implements importing of Wavefront OBJ files.
 To use it, you simply need to create the `ImporterOBJ` when initializing the application. The importer will automatically register itself to the Model Asset Store, so that you can directly open OBJ models from files.
 
 
-## user interface
+# user interface
 
-### input 
+## input 
 Input handling is provided by the Context and injected directly into the User Interface. To query for any input, you will usually do so through a user interface element.
 Since toy uses a immediate like paradigm, input handling is done in an immediate way, which means, you check for each event in the body of each of your user interface elements declaration functions.
 
@@ -554,13 +554,13 @@ if(MouseEvent mouse_event = self.mouse_event(DeviceType::MouseLeft, EventType::P
 ```
 
 
-### declarative graph
+## declarative graph
 
-### widgets
+## widgets
 to create a widget, call its function, the first parameter of which is always the **parent** it should be nested in.  
 widgets taking a string or vector of string parameters representing their contents, display each string either as a label, or as an icon if it is of the form `(icon.png)`
 
-#### [basic widgets](../src/ui/Button/Button.h)
+### [basic widgets](../src/ui/Button/Button.h)
 ```c++
 namespace ui
 {
@@ -570,7 +570,7 @@ namespace ui
 }
 ```
 
-#### [basic controls](../src/ui/Button/Button.h)
+### [basic controls](../src/ui/Button/Button.h)
 ```c++
 namespace ui
 {
@@ -584,7 +584,7 @@ namespace ui
 }
 ```
 
-#### [sliders](../src/ui/Button/Slider.h)
+### [sliders](../src/ui/Button/Slider.h)
 ```c++
 namespace ui
 {
@@ -592,7 +592,7 @@ namespace ui
 }
 ```
 
-#### [misc widgets](../src/ui/Button/Button.h)
+### [misc widgets](../src/ui/Button/Button.h)
 ```c++
 namespace ui
 {
@@ -600,7 +600,7 @@ namespace ui
 }
 ```
 
-#### [selector widgets](../src/ui/Button/Button.h)
+### [selector widgets](../src/ui/Button/Button.h)
 all selector widgets have a similar interface : they take a vector of string elements representing each choice, and they update an index parameter depending which is the currently selected choice
 
 ```c++
@@ -612,7 +612,7 @@ namespace ui
 }
 ```
 
-#### [text editor](../src/ui/TypeIn.h)
+### [text editor](../src/ui/TypeIn.h)
 mud has a pretty full featured [text editor](../src/ui/TypeIn.h#L147) with mouse and keyboard selection, line numbers, undo and redo, syntax hilighting, on-hover tooltips, and auto-complete.
 
 ```c++
@@ -623,7 +623,7 @@ namespace ui
 }
 ```
 
-#### [input widgets](../src/ui/Edit/Input.h)
+### [input widgets](../src/ui/Edit/Input.h)
 there is a range of built-in input widgets :
 `input<T>()` maps to number input for numbers, and to checkbox and textboxes for bool and string types
 
@@ -641,7 +641,7 @@ namespace ui
 }
 ```
 
-#### [popups and modals](../src/ui/Widget/Sheet.h)
+### [popups and modals](../src/ui/Widget/Sheet.h)
 ```c++
 namespace ui
 {
@@ -650,7 +650,7 @@ namespace ui
 }
 ```
 
-#### [toolbars](../src/ui/Button/Button.h)
+### [toolbars](../src/ui/Button/Button.h)
 ```c++
 namespace ui
 {
@@ -660,7 +660,7 @@ namespace ui
 }
 ```
     
-#### [menus](../src/ui/Button/Button.h)
+### [menus](../src/ui/Button/Button.h)
 ```c++
 namespace ui
 {
@@ -670,7 +670,7 @@ namespace ui
 }
 ```
 
-#### [containers](../src/ui/Container/Container.h)
+### [containers](../src/ui/Container/Container.h)
 ```c++
 namespace ui
 {
@@ -694,7 +694,7 @@ namespace ui
 }
 ```
 
-#### file browser
+### file browser
 ```c++
 namespace ui
 {
@@ -703,7 +703,7 @@ namespace ui
 }
 ```
 
-#### [windows](../src/ui/Window/Window.h)
+### [windows](../src/ui/Window/Window.h)
 ```c++
 namespace ui
 {
@@ -711,9 +711,9 @@ namespace ui
 }
 ```
 
-#### dock containers
+### dock containers
 
-#### [nodes](../src/ui/Window/Node.h)
+### [nodes](../src/ui/Window/Node.h)
 ```c++
 namespace ui
 {
@@ -727,9 +727,9 @@ namespace ui
 }
 ```
 
-### viewers
+## viewers
 
-### layout system
+## layout system
 the first fundamental block of **mud ui** is the **layout system** : it dictates the positioning and sizing of **all** widgets on the screen.  
 each widget in mud has a [frame](../src/ui/Frame/Frame.h) object : mostly a rectangle with a few additional properties.  
 every frame that is in the [flow]() is automatically laid out by its parent [solver](), depending on both children and parent layout properties.
@@ -764,7 +764,7 @@ we believe the above set of properties and solvers is sufficiently wide, so that
 
 all these properties are computed for each frame, by their widget [style](../src/ui/Frame/Style.h#L163), which holds a [layout](../src/ui/Frame/Style.h#L82) object.
 
-### skin system
+## skin system
 if the layout of the frames is determined by the layout, the graphical appearance of the ui elements itself is determined by the [skin](../src/ui/Style/Style.h#L114).  
 [styles](../src/ui/Style/Style.h#L163) hold both : a layout, a skin, and an additional list of skins affected to specific widget states.
 
@@ -786,7 +786,7 @@ the skin properties are *very* similar to CSS graphical properties :
 - [shadow colour](../src/ui/Style/Style.h#L140):
 - [hover cursor](../src/ui/Style/Style.h#L140):
 
-### styling
+## styling
 a [style](../src/ui/Style/Style.h#L163) object contains a [layout](../src/ui/Frame/Style.h#L82) and [skin](../src/ui/Style/Style.h#L114) which are both applied to each widget set to this style.  
 a **style** also holds some [additional skins](../src/ui/Style/Style.h#L163) that apply only to specific widget states.
 
@@ -839,18 +839,18 @@ to set attributes for a specific widget states, the syntax is the following :
 ```
 
 
-## sound
+# sound
 
-### audio files
+## audio files
 
-### playing sounds
+## playing sounds
 
-## physics
+# physics
 
-### colliders
+## colliders
 
-### solids (aka rigid bodies)
+## solids (aka rigid bodies)
 
-### queries and raycasts
+## queries and raycasts
 
-### mediums
+## mediums
