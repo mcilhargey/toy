@@ -92,6 +92,55 @@
 # toy engine manual
 
 ## project setup
+### modules
+a [module](modules.md) in mud is a group of c++ files located in the same directory and signaled by a `module.py` definition file.  
+all the c++ files in one module must be able to be compiled together : they cannot contradict.  
+that means, for example, you can't have duplicate definitions of the same function or class.
+
+### a simple module
+the simplest mud [module](modules.md) is one `.cpp` file, one `.h`, and a `module.py` definition. let's create our first module :
+```
++-- MyModule
+    +-- MyModule.h
+    +-- MyModule.cpp
+    +-- module.py
+```
+
+a `module.py` definition file in its simplest form looks like this :
+```python
+name = 'MyModule'
+namespace = ''
+dependencies = ['obj', 'math', 'ui', 'uio', 'gfx', 'edit', 'shell']
+```
+these are the parameters needed by the [reflection generator](reflection.md#generator) to correctly [precompile](#precompiling) your module.  
+it simply states its `name`, an optional enclosing `namespace`, and the set of `modules` it depends on.  
+in this case, the dependencies : [obj](meta.md), [math](math.md), [ui](ui.md), [uio](uio.md), [gfx](gfx.md), [edit](edit.md), [shell](shell.md) are all mud built-in modules.
+
+the next step is to setup a build : a mud project can be built with the compiler and build system of your choice.  
+mud comes with scripts for the [GENie](https://github.com/bkaradzic/GENie) project generator, which is what we will use : it's the quickest way to bootstrap a mud project, and manage both [project files](#generate-a-project) generation and [precompiling](#precompiling) the reflection files from one script
+
+### generate a project
+let's define a [GENie](https://github.com/bkaradzic/GENie) script, through which all build actions can be performed :
+```lua
+project "MyModule"
+    kind "ConsoleApp"
+
+    mud_module("MyModule", ROOT_DIR, "MyModule")
+    mud_binary()
+```
+the first few lines consist of [GENie functions](https://github.com/bkaradzic/GENie/blob/master/docs/scripting-reference.md) : create a [project](https://github.com/bkaradzic/GENie/blob/master/docs/scripting-reference.md#projectname) named `MyModule`, of [kind](https://github.com/bkaradzic/GENie/blob/master/docs/scripting-reference.md#kindkind) `ConsoleApp` (= a binary).  
+the key part is the `mud_module` call, which is a shortcut for doing the following :
+- add the root folder as an [include](https://github.com/bkaradzic/GENie/blob/master/docs/scripting-reference.md#includedirspaths) directory 
+- add all the `.cpp` and `.h` files under this path as compile targets 
+- add the `module.py` file to the list of reflected modules
+
+[GENie](https://github.com/bkaradzic/GENie) is then invoked with different `actions` :
+- `[generator]` for the build system/IDE of your choice : `vs201x`, `xcode`, `gmake`
+- `reflect` which calls the reflection generator
+```
+genie [options] action
+```
+
 
 ## simple app
 ```cpp
@@ -123,7 +172,7 @@ In toy we separate the game entities and the rendered objects (models, meshes, p
 Entities represent objects on the game logic side, localized in space, aggregating an array of components of your choice.
 
 A very simple example of an entity could look like this :
-```
+```cpp
 class Human : public Complex
 {
 public:
@@ -230,14 +279,14 @@ the following graphics resources are created and managed by the graphics system:
 To load a resource, you need to use the AssetStore using the `load()` function, passing the path of the resource to be loaded.
 Each Asset Store holds the specific operations to do in order to load a given type of resource. 
 
-```
+```cpp
 Texture* texture = gfx_system.textures().file("my_texture.png");
 Model* model = gfx_system.textures().file("my_model.gltf");
 ```
 
 Resources lifetimes are managed by the user explicitly: to free a resource, simply call
 
-```
+```cpp
 gfx_system.textures().release(texture);
 ```
 
@@ -254,7 +303,7 @@ Viewports represent a rectangle on a render target to render a given Camera to.
 As a user of toy, you will mostly be creating Viewers, which are interface elements themselves holding a Camera and a Viewport.
 In this case you can interact with the underlying Camera and Viewport directly to change their parameters.
 If you want to interact with the rendering layer directly though, the only things needed to start rendering is a Camera, a Viewport, and a Scene.
-```
+```cpp
 Scene scene = { gfx_system };
 Camera camera = { &scene };
 Viewport viewport = { camera, scene };
@@ -278,7 +327,7 @@ Like most classes of toy, the Camera fields can be modified on-the-fly, for dire
 
 On each frame, you can change these to update how the camera is rendered.
 
-```
+```cpp
 camera.m_ortographic = false;
 camera.m_fov = 90.f;
 ```
@@ -292,7 +341,7 @@ Everything related to the specific effects applied to a rendering is applied to 
 Every rendered object in toy is added to a graph through a declarative idiom.
 This means you don't need to manage the lifetimes of the rendered objects yourself: you just need to traverse, each frame, the declarations of what needs to be rendered, and the lifetime management is handled for you.
 
-```
+```cpp
 // inside the drawing loop
 Gnode& root = scene.begin();
 Model& model = gfx_system.models().file("my_model.obj");
@@ -313,7 +362,7 @@ Meshes are just a primitive type, and a set of buffers filled with data describi
 Meshes are usually sent directly to the GPU, after the necessary attributes have been computed, like bounding volume. However you can specify a mesh to be kept accessible on the CPU side to access its vertices later-on.
 
 To read a cached mesh, you need to fetch the `MeshData` stored in the `m_cache` attribute of the Mesh, and iterate over the vertices.
-```
+```cpp
 MeshData data = mesh.m_cache;
 
 for(size_t i = 0; i < data.m_vertices.size(); ++i)
@@ -340,7 +389,7 @@ toy uses the bimg library to load textures, which supports the following formats
 - TIFF
 
 A Texture is loaded explicitly with the following code:
-```
+```cpp
 // loads and return a texture, or nullptr if the file isn't found in any resource paths
 Texture* texture = gfx_system.textures().file("my_texture.png");
 ```
@@ -373,7 +422,7 @@ The BasicBlock holds the following Material attributes, which are used by every 
 - `m_uvX_offset`: an offset added to the X (0 or 1) set of UV
 - `m_is_alpha`: whether this material uses alpha blending
 
-```
+```cpp
 // fetch the program
 Program& program = gfx_system.programs().file("unshaded");
 
@@ -391,7 +440,7 @@ Their only particularity is that most parameters are of the type MaterialParam<T
 - the texture bound to this parameters
 - the texture channel on which this specific parameter value is encoded
 
-```
+```cpp
 material.block<UnshadedBlock>().m_color.m_value = Colour::White;
 material.block<UnshadedBlock>().m_color.m_texture = gfx_system.textures().file("my_texture.png");
 ```
@@ -475,13 +524,13 @@ Since toy uses a immediate like paradigm, input handling is done in an immediate
 
 To query for mouse button presses, you should use the `Widget::key_event()` query on the ui element.
 
-```
+```cpp
 widget.key_event(KC_C, EventType::Stroked); // query for a key stroke
 widget.key_event(KC_C, EventType::Pressed); // query for a key press
 widget.key_event(KC_C, EventType::Released); // query for a key released
 ```
 
-```
+```cpp
 widget.mouse_event(Device::LeftButton, EventType::Moved);
 ```
 
