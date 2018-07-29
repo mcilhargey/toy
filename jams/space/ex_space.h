@@ -505,7 +505,6 @@ public:
 	~Star();
 
 	comp_ attr_ Entity m_entity;
-	comp_ attr_ Active m_active;
 
 	attr_ uvec2 m_coord;
 	attr_ std::string m_name;
@@ -623,7 +622,6 @@ public:
 	~Fleet();
 
 	comp_ attr_ Entity m_entity;
-	comp_ attr_ Active m_active;
 
 	attr_ Commander* m_commander;
 	attr_ uvec2 m_coord;
@@ -774,16 +772,18 @@ public:
 	std::vector<T_Schema> m_schemas;
 };
 
-class _SPACE_EXPORT ShipDatabase : public SchemaDatabase<ShipSchema>, public LazyGlobal<ShipDatabase>
+class _SPACE_EXPORT ShipDatabase : public SchemaDatabase<ShipSchema>
 {
 public:
 	ShipDatabase();
+	attr_ static ShipDatabase me;
 };
 
-class _SPACE_EXPORT BuildingDatabase : public SchemaDatabase<BuildingSchema>, public LazyGlobal<BuildingDatabase>
+class _SPACE_EXPORT BuildingDatabase : public SchemaDatabase<BuildingSchema>
 {
 public:
 	BuildingDatabase();
+	attr_ static BuildingDatabase me;
 };
 
 struct refl_ _SPACE_EXPORT Scans

@@ -21,7 +21,7 @@
 "styles" :
 [
     {   
-        "selector" : "Label, Title, Tooltip, TextEdit, TypeLabel, TypeZone, SliderDisplay, RadioChoiceItem",
+        "selector" : "Label, Title, Message, Tooltip, TextEdit, TypeLabel, TypeZone, SliderDisplay, RadioChoiceItem",
         "text_colour" : "White",
         "skin_padding" : [4],
         "disabled" : {
@@ -107,7 +107,7 @@
         }
     },
     {
-        "selector" : "Slider, Fillbar, TypeIn, Input<string>",
+        "selector" : "Element, Slider, Fillbar, TypeIn, Input<string>",
         "background_colour" : "Grey145",
         "border_colour" : "Grey312",
         "border_width" : [1],
@@ -118,6 +118,9 @@
         },
         "focused" : {
             "background_colour" : "ActiveBlue"
+        },
+        "selected" : {
+            "border_colour" : "ActiveBlue"
         }
     },
     {   

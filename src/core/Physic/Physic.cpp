@@ -10,6 +10,8 @@
 
 using namespace mud; namespace toy
 {
+	AreaMedium AreaMedium::me;
+
 	AreaMedium::AreaMedium()
 		: Medium("AreaMedium", false)
 	{
@@ -22,16 +24,16 @@ using namespace mud; namespace toy
 		//: m_areaStore()
 	{
 		UNUSED(entity);
-		//entity.part<Emitter>().addEmitter(AreaMedium::me(), make_object<SphereShape>(0.1f), CM_OBJECT);
+		//entity.as<Emitter>().addEmitter(AreaMedium::me, make_object<SphereShape>(0.1f), CM_OBJECT);
 	}
 
     /*void Physic::handle_add(Collider& object)
     {
-		m_areaStore.add(object->m_entity.part<Area>());
+		m_areaStore.add(object->m_entity.as<Area>());
 	}
 
     void Physic::handle_remove(Collider& object)
     {
-		m_areaStore.add(object->m_entity.part<Area>());
+		m_areaStore.add(object->m_entity.as<Area>());
     }*/
 }

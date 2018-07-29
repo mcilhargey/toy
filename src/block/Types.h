@@ -35,6 +35,7 @@ namespace mud
     export_ template <> TOY_BLOCK_EXPORT Type& type<toy::Heap>();
     export_ template <> TOY_BLOCK_EXPORT Type& type<toy::Sector>();
     export_ template <> TOY_BLOCK_EXPORT Type& type<toy::TileBlock>();
+    export_ template <> TOY_BLOCK_EXPORT Type& type<toy::Earth>();
     
 	export_ template struct TOY_BLOCK_EXPORT Typed<std::vector<toy::Element*>>;
 	export_ template struct TOY_BLOCK_EXPORT Typed<std::vector<mud::Grid<toy::Block*>*>>;
@@ -43,4 +44,5 @@ namespace mud
 	export_ template struct TOY_BLOCK_EXPORT Typed<std::vector<toy::Heap*>>;
 	export_ template struct TOY_BLOCK_EXPORT Typed<std::vector<toy::Sector*>>;
 	export_ template struct TOY_BLOCK_EXPORT Typed<std::vector<toy::TileBlock*>>;
+	export_ template struct TOY_BLOCK_EXPORT Typed<std::vector<toy::Earth*>>;
 }

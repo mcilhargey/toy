@@ -6,4 +6,12 @@
 
 using namespace mud; namespace toy
 {
+	Earth Earth::me;
+	Stone Stone::me;
+	Sand Sand::me;
+	Air Air::me;
+	Gas Gas::me;
+	Minerals Minerals::me;
+	Fungus Fungus::me;
+	Water Water::me;
 }

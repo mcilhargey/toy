@@ -47,7 +47,7 @@ using namespace mud; namespace toy
 		inline bool isa() { return m_complex.isa<T>(); }
 
 		template <class T>
-		inline T& part() { return m_complex.part<T>(); }
+		inline T& as() { return m_complex.as<T>(); }
 
     private:
 		std::vector<object_ptr<TaskSection>> m_sections;

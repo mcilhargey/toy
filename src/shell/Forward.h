@@ -100,6 +100,7 @@ namespace bimg {
 
 namespace toy {
 
+    enum class GameMode : int;
     
     
     struct GameScene;

@@ -131,7 +131,7 @@ using namespace mud; namespace toy
 
 	void PhysicDebugDraw::draw_physics(Gnode& parent, World& world, Medium& medium)
 	{
-		SubBulletWorld& bullet_world = as<SubBulletWorld>(world.part<BulletWorld>().sub_world(medium));
+		SubBulletWorld& bullet_world = as<SubBulletWorld>(world.as<BulletWorld>().sub_world(medium));
 
 		if(!bullet_world.m_bullet_world->getDebugDrawer())
 		bullet_world.m_bullet_world->setDebugDrawer(m_impl.get());

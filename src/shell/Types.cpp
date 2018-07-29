@@ -14,6 +14,7 @@ module toy.shell;
 namespace mud
 {
     // Exported types
+    template <> TOY_SHELL_EXPORT Type& type<toy::GameMode>() { static Type ty("toy::GameMode"); return ty; }
     
     template <> TOY_SHELL_EXPORT Type& type<toy::GameShell>() { static Type ty("GameShell"); return ty; }
 }

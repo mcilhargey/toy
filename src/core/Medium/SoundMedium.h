@@ -10,12 +10,10 @@
 
 using namespace mud; namespace toy
 {
-	class refl_ TOY_CORE_EXPORT SoundMedium : public Medium, public LazyGlobal<SoundMedium>
+	class refl_ TOY_CORE_EXPORT SoundMedium : public Medium
 	{
 	public:
 		constr_ SoundMedium();
-
-	private:
-		float m_ambientIntensity;
+		attr_ static SoundMedium me;
 	};
 }

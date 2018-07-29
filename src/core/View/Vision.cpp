@@ -41,13 +41,13 @@ using namespace mud; namespace toy
 	void Vision::handle_add(Entity& owned)
 	{
 		if(owned.isa<Camera>())
-			m_cameras.add(owned.part<Camera>());
+			m_cameras.add(owned.as<Camera>());
 	}
 
 	void Vision::handle_remove(Entity& owned)
 	{
 		if(owned.isa<Camera>())
-			m_cameras.remove(owned.part<Camera>());
+			m_cameras.remove(owned.as<Camera>());
 	}
 
 	Camera& Vision::addCamera(const vec3& position, float lensDistance, bool planar)
@@ -63,10 +63,10 @@ using namespace mud; namespace toy
 	PlayerVision::PlayerVision(Player& player, World& world)
 		: Vision(world)
 		//, m_ownedView(*this, "owned", player.m_owneds)
-		//, m_visualView(*this, VisualMedium::me(), player.m_owneds)
-		//, m_soundView(*this, SoundMedium::me(), player.m_owneds)
-		//, m_worldView(*this, WorldMedium::me(), player.m_owneds)
-		//, m_bufferView(*this, WorldMedium::me(), player.m_owneds)
+		//, m_visualView(*this, VisualMedium::me, player.m_owneds)
+		//, m_soundView(*this, SoundMedium::me, player.m_owneds)
+		//, m_worldView(*this, WorldMedium::me, player.m_owneds)
+		//, m_bufferView(*this, WorldMedium::me, player.m_owneds)
 	{
 		UNUSED(player);
 	}

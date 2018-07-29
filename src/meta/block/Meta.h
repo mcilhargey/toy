@@ -335,6 +335,39 @@ namespace mud
     
     
     
+        
+    // toy::Earth
+    {
+        static Meta meta = { type<toy::Earth>(), &namspc({ "toy" }), "Earth", sizeof(toy::Earth), TypeClass::Object };
+        static Class cls = { type<toy::Earth>(),
+            // bases
+            { &type<toy::Element>() },
+            { base_offset<toy::Earth, toy::Element>() },
+            // constructors
+            {
+                { type<toy::Earth>(), [](Ref ref, array<Var> args) { UNUSED(args);new(&val<toy::Earth>(ref)) toy::Earth(  ); }, {} }
+            },
+            // copy constructor
+            {
+            },
+            // members
+            {
+            },
+            // methods
+            {
+            },
+            // static members
+            {
+                { type<toy::Earth>(), "me", Ref(&toy::Earth::me) }
+            }
+        };
+        
+        
+        init_pool<toy::Earth>(); 
+        
+        meta_class<toy::Earth>();
+    }
+    
     
     
     
@@ -354,6 +387,7 @@ namespace mud
         m.m_types.push_back(&type<toy::Heap>());
         m.m_types.push_back(&type<toy::Sector>());
         m.m_types.push_back(&type<toy::TileBlock>());
+        m.m_types.push_back(&type<toy::Earth>());
     
         {
             auto func = [](array<Var> args, Var& result) { UNUSED(result);  toy::paint_block_height(val<toy::Block>(args[0]), val<mud::Image256>(args[1]), val<toy::Element>(args[2])); };

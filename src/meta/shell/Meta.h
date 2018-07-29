@@ -18,9 +18,19 @@ namespace mud
     // Base Types
     
     // Enums
+    {
+        static Meta meta = { type<toy::GameMode>(), &namspc({ "toy" }), "GameMode", sizeof(toy::GameMode), TypeClass::Enum };
+        static Enum enu = { type<toy::GameMode>(),
+            true,
+            { "Play", "PlayEditor", "Pause" },
+            { 0, 1, 2 },
+            { var(toy::GameMode::Play), var(toy::GameMode::PlayEditor), var(toy::GameMode::Pause) }
+        };
+        meta_enum<toy::GameMode>();
+    }
+    
     
     // Sequences
-    
     
     
     
@@ -58,8 +68,10 @@ namespace mud
     }
     
     
+    
 
     
+        m.m_types.push_back(&type<toy::GameMode>());
         m.m_types.push_back(&type<toy::GameShell>());
     
     }

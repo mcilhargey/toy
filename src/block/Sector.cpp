@@ -22,7 +22,7 @@ using namespace mud; namespace toy
 		, m_emitter(m_entity)
 		, m_world_page(m_entity, m_emitter, true, size)
 		, m_bufferPage(m_entity, m_world_page, true)
-		, m_navblock(m_entity.m_world.part<Navmesh>(), m_entity, m_world_page)
+		, m_navblock(m_entity.m_world.as<Navmesh>(), m_entity, m_world_page)
 		, m_coordinate(coordinate)
 		, m_size(size)
 		, m_block(nullptr)
@@ -80,7 +80,7 @@ using namespace mud; namespace toy
 		, m_entity(id, *this, parent, position, ZeroQuat)
 		, m_emitter(m_entity)
 		, m_world_page(m_entity, m_emitter, true, vec3(size) * 0.5f)
-		, m_navblock(m_entity.m_world.part<Navmesh>(), m_entity, m_world_page)
+		, m_navblock(m_entity.m_world.as<Navmesh>(), m_entity, m_world_page)
 		, m_wfc_block(position, size, period, tileset)
 	{
 		m_entity.m_world.add_task(this, short(Task::Background));

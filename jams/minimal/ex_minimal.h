@@ -59,7 +59,6 @@ public:
 
 	comp_ attr_ Entity m_entity;
 	comp_ attr_ Movable m_movable;
-	comp_ attr_ Active m_active;
 
 	Solid m_solid;
 

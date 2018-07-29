@@ -117,6 +117,7 @@ using namespace mud; namespace toy
 			printf("ERROR: Sound - failed to init\n");
 		}
 #endif
+		//m_context = m_gfx_system->create_context("mud EditorCore", 1920, 1080, false);
 		m_context = m_gfx_system->create_context("mud EditorCore", 1600, 900, false);
 		//m_context = m_gfx_system.create_context("mud EditorCore", 1280, 720, false);
 		GfxContext& context = as<GfxContext>(*m_context);
@@ -136,8 +137,8 @@ using namespace mud; namespace toy
 		static ImporterOBJ obj_importer(*m_gfx_system);
 		static ImporterGltf gltf_importer(*m_gfx_system);
 
-		//string stylesheet = "minimal.yml";
-		string stylesheet = "vector.yml";
+		string stylesheet = "minimal.yml";
+		//string stylesheet = "vector.yml";
 		//string stylesheet = "blendish_dark.yml";
 		set_style_sheet(*m_ui_window->m_styler, (string(m_ui_window->m_resource_path) + "interface/styles/" + stylesheet).c_str());
 

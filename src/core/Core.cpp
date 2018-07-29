@@ -37,7 +37,7 @@ using namespace mud; namespace toy
 
 	void Core::next_frame()
 	{
-		Animator::me().next_frame(0, 0);
+		Animator::me.next_frame(0, 0);
 
 		for(Task task = Task(0); task < Task::Count; task = Task(uint(task) + 1))
 			m_sections[size_t(task)]->update();

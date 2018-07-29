@@ -88,7 +88,7 @@ using namespace mud; namespace toy
 			{
 				for(Entity* entity : entities.store())
 					if(entity->isa<T>())
-						paint_func(this->entity_node(parent, *entity, index), entity->part<T>());
+						paint_func(this->entity_node(parent, *entity, index), entity->as<T>());
 			};
 			m_painters.emplace_back(make_unique<VisuPainter>(name, m_painters.size(), paint));
 		}

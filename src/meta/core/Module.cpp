@@ -22,6 +22,7 @@ namespace toy
         mud_proto::m();
         mud_math::m();
         mud_geom::m();
+        mud_lang::m();
         toy_util::m();
 
         // setup reflection meta data

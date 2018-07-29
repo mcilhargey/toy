@@ -112,7 +112,7 @@ Commander* generate_commander(Entity& galaxy, Star& star)
 	//BLASER1 : 50
 	//BPLASMA1 : 20
 
-	galaxy.part<Galaxy>().m_commanders.push_back(&commander);
+	galaxy.as<Galaxy>().m_commanders.push_back(&commander);
 
 	generate_avatar(commander.m_colour, commander.m_avatar);
 

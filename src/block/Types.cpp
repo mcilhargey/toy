@@ -23,4 +23,5 @@ namespace mud
     template <> TOY_BLOCK_EXPORT Type& type<toy::Heap>() { static Type ty("Heap", type<mud::Complex>()); return ty; }
     template <> TOY_BLOCK_EXPORT Type& type<toy::Sector>() { static Type ty("Sector", type<mud::Complex>()); return ty; }
     template <> TOY_BLOCK_EXPORT Type& type<toy::TileBlock>() { static Type ty("TileBlock", type<mud::Complex>()); return ty; }
+    template <> TOY_BLOCK_EXPORT Type& type<toy::Earth>() { static Type ty("Earth", type<toy::Element>()); return ty; }
 }

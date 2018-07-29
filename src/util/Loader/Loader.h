@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <infra/Global.h>
 #include <proto/Proto.h>
 #include <obj/Indexer.h>
 #include <obj/Var.h>

@@ -307,13 +307,13 @@ void launch_build_sheet(Widget& parent, Star& star, uint32_t mode)
 
 	BuildQuery& query = self.state<BuildQuery>();
 
-	for(BuildingSchema& schema : BuildingDatabase::me().m_schemas)
+	for(BuildingSchema& schema : BuildingDatabase::me.m_schemas)
 	{
 		if(schema_row(table, schema, query.m_schema == &schema).activated())
 			query.m_schema = &schema;
 	}
 
-	for(ShipSchema& schema : ShipDatabase::me().m_schemas)
+	for(ShipSchema& schema : ShipDatabase::me.m_schemas)
 	{
 		if(schema_row(table, schema, query.m_schema == &schema).activated())
 			query.m_schema = &schema;

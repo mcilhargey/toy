@@ -79,7 +79,7 @@ using namespace mud; namespace toy
 		, m_size(size)
 		, m_chunks(BLOCK_SUBDIV)
 		, m_subblocks(2)
-		, m_scope(m_emitter.add_scope(WorldMedium::me(), Cube(m_size), CM_SOURCE))
+		, m_scope(m_emitter.add_scope(WorldMedium::me, Cube(m_size), CM_SOURCE))
 	{}
 
 	size_t Block::depth()
@@ -235,6 +235,6 @@ using namespace mud; namespace toy
 		for(size_t depth = 1; !parent->isa<Sector>(); parent = parent->m_parent)
 			++depth;
 
-		return parent->part<Sector>();
+		return parent->as<Sector>();
 	}
 }

@@ -6,6 +6,8 @@
 
 using namespace mud; namespace toy
 {
+	SolidMedium SolidMedium::me;
+
 	SolidMedium::SolidMedium()
 		: Medium("SolidMedium")
 	{

@@ -12,10 +12,11 @@
 
 using namespace mud; namespace toy
 {
-	class TOY_CORE_EXPORT AreaMedium : public Medium, public LazyGlobal<AreaMedium>
+	class TOY_CORE_EXPORT AreaMedium : public Medium
 	{
 	public:
-		AreaMedium();
+		constr_ AreaMedium();
+		attr_ static AreaMedium me;
 	};
 
 	class TOY_CORE_EXPORT Physic

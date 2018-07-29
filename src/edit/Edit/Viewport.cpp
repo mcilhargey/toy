@@ -25,7 +25,7 @@ using namespace mud; namespace toy
 	vec3 pick_terrain(Viewer& viewer, World& world, vec2 position)
 	{
 		Ray ray = viewer.m_camera.ray(position);
-		return world.part<PhysicWorld>().ground_point(ray);
+		return world.as<PhysicWorld>().ground_point(ray);
 	}
 
 	Viewer& scene_viewport(Widget& parent, VisuScene& scene, Camera& camera, Selection& selection)

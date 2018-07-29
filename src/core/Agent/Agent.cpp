@@ -31,10 +31,10 @@ using namespace mud; namespace toy
 {
 	Agent::Agent(Entity& entity, float radius, float height)
 		: m_entity(entity)
-		//, m_movable(entity.part<Movable>())
+		//, m_movable(entity.as<Movable>())
 #ifdef TOY_DISQS
-		, m_disq(entity, radius, height, SolidMedium::me(), CM_SOLID)
-		, m_avoidDisq(entity, radius * 3.f, height, SolidMedium::me(), CM_SOLID)
+		, m_disq(entity, radius, height, SolidMedium::me, CM_SOLID)
+		, m_avoidDisq(entity, radius * 3.f, height, SolidMedium::me, CM_SOLID)
 #endif
 		, m_radius(radius)
 		, m_height(height)
@@ -72,7 +72,7 @@ using namespace mud; namespace toy
 
 	void Agent::computePath(const vec3& destination)
 	{
-		Navmesh& navmesh = m_entity.m_world.part<Navmesh>();
+		Navmesh& navmesh = m_entity.m_world.as<Navmesh>();
 		if(!m_pathfinder)
 			m_pathfinder = make_unique<Pathfinder>(navmesh);
 

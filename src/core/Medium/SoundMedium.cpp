@@ -9,6 +9,8 @@
 
 using namespace mud; namespace toy
 {
+	SoundMedium SoundMedium::me;
+
 	SoundMedium::SoundMedium()
 		: Medium("SoundMedium")
 	{

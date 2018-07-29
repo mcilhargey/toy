@@ -80,7 +80,6 @@ namespace mud
                 { type<Human>(), member_address(&Human::m_agent), type<toy::Agent>(), "agent", Ref(type<toy::Agent>()), Member::Component, nullptr },
                 { type<Human>(), member_address(&Human::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component, nullptr },
                 { type<Human>(), member_address(&Human::m_receptor), type<toy::Receptor>(), "receptor", Ref(type<toy::Receptor>()), Member::Component, nullptr },
-                { type<Human>(), member_address(&Human::m_active), type<toy::Active>(), "active", Ref(type<toy::Active>()), Member::Component, nullptr },
                 { type<Human>(), member_address(&Human::m_actor), type<toy::Actor>(), "actor", Ref(type<toy::Actor>()), Member::Component, nullptr },
                 { type<Human>(), member_address(&Human::m_reactive), type<toy::Reactive>(), "reactive", Ref(type<toy::Reactive>()), Member::Component, nullptr },
                 { type<Human>(), member_address(&Human::m_first_name), type<std::string>(), "first_name", var(std::string()), Member::Value, nullptr },

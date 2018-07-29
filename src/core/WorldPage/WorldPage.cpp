@@ -22,6 +22,8 @@
 
 using namespace mud; namespace toy
 {
+	WorldMedium WorldMedium::me;
+
 	WorldMedium::WorldMedium()
 		: Medium("World", false)
 	{}
@@ -32,7 +34,7 @@ using namespace mud; namespace toy
 		, m_open(open)
 		, m_extents(extents)
 		, m_world(entity.m_world)
-		, m_scope(emitter.add_scope(WorldMedium::me(), Cube(m_extents / 2.f), CM_SOURCE))
+		, m_scope(emitter.add_scope(WorldMedium::me, Cube(m_extents / 2.f), CM_SOURCE))
     {
 		entity.m_world.add_task(this, short(Task::World)); // @todo in the long term this should be moved out of the entity's responsibility
 		m_entity.m_contents.observe(*this);
@@ -68,7 +70,7 @@ using namespace mud; namespace toy
 	void WorldPage::update_geometry()
 	{
 		for(Geometry& geom : m_chunks)
-			m_solids.push_back(make_object<Solid>(m_entity, *this, geom, SolidMedium::me(), CM_GROUND, true));
+			m_solids.push_back(make_object<Solid>(m_entity, *this, geom, SolidMedium::me, CM_GROUND, true));
 	}
 
 	void WorldPage::add_contact(Collider& object)
@@ -111,7 +113,7 @@ using namespace mud; namespace toy
 		}
 
 		Ray ray = { start, end, normalize(end - start), normalize(start - end) };
-		ground_point = m_world.part<PhysicWorld>().ground_point(ray) - m_entity.m_position;
+		ground_point = m_world.as<PhysicWorld>().ground_point(ray) - m_entity.m_position;
 
 		if(any(isnan(ground_point)) || any(isinf(ground_point)))
 			printf("ERROR: raycast ground point failed, position result invalid\n");
@@ -120,6 +122,6 @@ using namespace mud; namespace toy
 	void WorldPage::raycast_ground(const vec3& start, const vec3& end, vec3& ground_point)
 	{
 		Ray ray = { start, end, normalize(end - start), normalize(start - end) };
-		ground_point = m_world.part<PhysicWorld>().ground_point(ray);
+		ground_point = m_world.as<PhysicWorld>().ground_point(ray);
 	}
 }

@@ -110,7 +110,7 @@ using namespace mud; namespace toy
 
 		std::map<Element*, std::vector<ProcShape>> bodies;
 
-		std::vector<Element*> elements = { &Earth::me(), &Stone::me(), &Sand::me(), &Air::me(), &Gas::me(), &Minerals::me(), &Fungus::me(), &Water::me() };
+		std::vector<Element*> elements = { &Earth::me, &Stone::me, &Sand::me, &Air::me, &Gas::me, &Minerals::me, &Fungus::me, &Water::me };
 
 		size_t index = 0;
 		for(Element* element : block.m_chunks)
@@ -155,6 +155,6 @@ using namespace mud; namespace toy
 				block.sector().m_world_page.m_geometry_filter.push_back(identifier); // @kludge : find out a more intelligent way to filter world geometry
 			}
 
-		//block.sector().m_entity.part<WorldPage>().update_geometry();
+		//block.sector().m_entity.as<WorldPage>().update_geometry();
 	}
 }

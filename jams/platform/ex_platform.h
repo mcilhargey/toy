@@ -82,6 +82,14 @@ struct HumanController
 	vec3 m_torque = Zero3;
 };
 
+struct refl_ Stance
+{
+	constr_ Stance() : name(""), loop(false) {}
+	constr_ Stance(const std::string& name, bool loop) : name(name), loop(loop) {}
+	attr_ std::string name;
+	attr_ bool loop;
+};
+
 class refl_ _PLATFORM_EXPORT Human : public Complex, public Updatable, public ColliderObject
 {
 public:
@@ -92,7 +100,6 @@ public:
 	comp_ attr_ Movable m_movable;
 	comp_ attr_ Emitter m_emitter;
 	comp_ attr_ Receptor m_receptor;
-	comp_ attr_ Active m_active;
 	comp_ attr_ EntityScript m_script; // @todo ---->> ECS
 
 	Solid m_solid;
@@ -117,8 +124,7 @@ public:
 	attr_ vec3 m_dest = Zero3;
 	attr_ float m_cooldown = 0.f;
 
-	struct refl_ State { constr_ State(const std::string& name, bool loop) : name(name), loop(loop) {} attr_ std::string name; attr_ bool loop; };
-	attr_ State m_state = { "IdleAim", true };
+	attr_ Stance m_state = { "IdleAim", true };
 
 	std::vector<unique_ptr<Bullet>> m_bullets;
 

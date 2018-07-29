@@ -6,7 +6,6 @@
 
 #include <proto/Complex.h>
 #include <core/Store/Array.h>
-#include <infra/Global.h>
 #include <infra/Updatable.h>
 #include <math/Vec.h>
 #include <core/Forward.h>
@@ -20,10 +19,11 @@
 
 using namespace mud; namespace toy
 {
-	class refl_ TOY_CORE_EXPORT WorldMedium : public Medium, public LazyGlobal<WorldMedium>
+	class refl_ TOY_CORE_EXPORT WorldMedium : public Medium
 	{
 	public:
 		constr_ WorldMedium();
+		attr_ static WorldMedium me;
 	};
 
 	/* A WorldPage has : 

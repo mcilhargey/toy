@@ -4,15 +4,15 @@
 
 #pragma once
 
-#include <infra/Global.h>
 #include <core/Forward.h>
 #include <core/Physic/Medium.h>
 
 using namespace mud; namespace toy
 {
-	class TOY_CORE_EXPORT SolidMedium : public Medium, public LazyGlobal<SolidMedium>
+	class refl_ TOY_CORE_EXPORT SolidMedium : public Medium
 	{
 	public:
-		SolidMedium();
+		constr_ SolidMedium();
+		attr_ static SolidMedium me;
 	};
 }

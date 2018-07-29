@@ -329,7 +329,7 @@ void block_generator(GameShell& shell, VisualScript& script)
 
 	{
 		Var* sample = script.method(&Fract::render_grid, { &fract, &grid_subdiv_xz, &pattern, &block_subdiv_xz });
-		script.function(paint_block_height, { &blocks, sample, &script.reference((Element*) &Earth::me()) });
+		script.function(paint_block_height, { &blocks, sample, &script.reference((Element*) &Earth::me) });
 	}
 
 	script.method(&Block::commit, { &blocks });

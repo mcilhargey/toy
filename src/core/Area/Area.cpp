@@ -12,7 +12,7 @@
 using namespace mud; namespace toy
 {
 	Area::Area(Entity& entity, const CollisionShape& shape)
-		: m_collider(entity, *this, shape, AreaMedium::me(), CM_AREA)
+		: m_collider(entity, *this, shape, AreaMedium::me, CM_AREA)
 	{}
 
 	Area::~Area()

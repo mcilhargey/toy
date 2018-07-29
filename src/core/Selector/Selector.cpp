@@ -31,7 +31,7 @@ using namespace mud; namespace toy
 		for(Ref object : m_selection)
 		{
 			if(type(object).is<Entity>() && val<Entity>(object).isa<Actor>())
-				for(ProcedureType* action : val<Entity>(object).part<Actor>().m_actions.store())
+				for(ProcedureType* action : val<Entity>(object).as<Actor>().m_actions.store())
 					m_actions.safeAdd(*action);
 		}
 	}
@@ -48,7 +48,7 @@ using namespace mud; namespace toy
 	{
 		for(Ref object : m_selection)
 			if(type(object).is<Entity>() && val<Entity>(object).isa<Actor>())
-				val<Entity>(object).part<Actor>().execute(&m_user, action, val<Entity>(m_targets[0])); //@kludge we should create a different selector for actors
+				val<Entity>(object).as<Actor>().execute(&m_user, action, val<Entity>(m_targets[0])); //@kludge we should create a different selector for actors
 	}
 
 	void Selector::execute(ProcedureType& action, TargetDispatcher& dispatcher)
@@ -59,7 +59,7 @@ using namespace mud; namespace toy
 			if(type(object).is<Entity>() && val<Entity>(object).isa<Actor>())
 			{
 				Ref target = dispatcher.dispatchTarget(object);
-				val<Entity>(object).part<Actor>().queue(&m_user, action, val<Entity>(target));
+				val<Entity>(object).as<Actor>().queue(&m_user, action, val<Entity>(target));
 			}
 	}
 

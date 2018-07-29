@@ -82,7 +82,7 @@ using namespace mud; namespace toy
 	{
 		printf("BufferPage %u loaded\n", m_entity.m_id);
 		m_loaded = true;
-		ObjectLoader& loader = GlobalLoader::me().getLoader(type<Entity>());
+		ObjectLoader& loader = GlobalLoader::me.getLoader(type<Entity>());
 		loader.fill(Ref(&m_world_page.m_entity), m_world_page.m_entity.m_id);
 	}
 
@@ -90,19 +90,19 @@ using namespace mud; namespace toy
 	{
 		printf("BufferPage %u unloaded\n", m_entity.m_id);
 		m_loaded = false;
-		ObjectLoader& loader = GlobalLoader::me().getLoader(type<Entity>());
+		ObjectLoader& loader = GlobalLoader::me.getLoader(type<Entity>());
 		loader.save(Ref(&m_world_page.m_entity), m_world_page.m_entity.m_id);
 		this->clear();
 	}
 
 	void BufferPage::clear()
 	{
-		//m_world_page.m_entity.part<EntityPool>().clear();
+		//m_world_page.m_entity.as<EntityPool>().clear();
 	}
 
 	void BufferPage::fill()
 	{
-		ObjectLoader& loader = GlobalLoader::me().getLoader(type<Entity>());
+		ObjectLoader& loader = GlobalLoader::me.getLoader(type<Entity>());
 		loader.fill(Ref(&m_world_page.m_entity), m_world_page.m_entity.m_id);
 	}
 }

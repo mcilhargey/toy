@@ -34,6 +34,42 @@ namespace mud
     
     
     
+        
+    // Aim
+    {
+        static Meta meta = { type<Aim>(), &namspc({}), "Aim", sizeof(Aim), TypeClass::Struct };
+        static Class cls = { type<Aim>(),
+            // bases
+            {  },
+            {  },
+            // constructors
+            {
+            },
+            // copy constructor
+            {
+                { type<Aim>(), [](Ref ref, Ref other) { new(&val<Aim>(ref)) Aim(val<Aim>(other)); } }
+            },
+            // members
+            {
+                { type<Aim>(), member_address(&Aim::rotation), type<mud::quat>(), "rotation", var(mud::quat()), Member::Value, nullptr },
+                { type<Aim>(), member_address(&Aim::start), type<mud::vec3>(), "start", var(mud::vec3()), Member::Value, nullptr },
+                { type<Aim>(), member_address(&Aim::end), type<mud::vec3>(), "end", var(mud::vec3()), Member::Value, nullptr },
+                { type<Aim>(), member_address(&Aim::hit), type<toy::Entity>(), "hit", Ref(type<toy::Entity>()), Member::Flags(Member::Pointer|Member::Link), nullptr }
+            },
+            // methods
+            {
+            },
+            // static members
+            {
+            }
+        };
+        
+        
+        
+        
+        meta_class<Aim>();
+    }
+    
     
     
         
@@ -66,6 +102,44 @@ namespace mud
         
         meta_class<Player>();
     }
+    
+    
+        
+    // Stance
+    {
+        static Meta meta = { type<Stance>(), &namspc({}), "Stance", sizeof(Stance), TypeClass::Struct };
+        static Class cls = { type<Stance>(),
+            // bases
+            {  },
+            {  },
+            // constructors
+            {
+                { type<Stance>(), [](Ref ref, array<Var> args) { UNUSED(args);new(&val<Stance>(ref)) Stance(  ); }, {} },
+                { type<Stance>(), [](Ref ref, array<Var> args) { new(&val<Stance>(ref)) Stance( val<std::string>(args[0]), val<bool>(args[1]) ); }, { { "name", var(std::string()) }, { "loop", var(bool()) } } }
+            },
+            // copy constructor
+            {
+                { type<Stance>(), [](Ref ref, Ref other) { new(&val<Stance>(ref)) Stance(val<Stance>(other)); } }
+            },
+            // members
+            {
+                { type<Stance>(), member_address(&Stance::name), type<std::string>(), "name", var(std::string()), Member::Value, nullptr },
+                { type<Stance>(), member_address(&Stance::loop), type<bool>(), "loop", var(bool()), Member::Value, nullptr }
+            },
+            // methods
+            {
+            },
+            // static members
+            {
+            }
+        };
+        
+        
+        
+        
+        meta_class<Stance>();
+    }
+    
     
     
     
@@ -238,16 +312,25 @@ namespace mud
                 { type<Human>(), member_address(&Human::m_movable), type<toy::Movable>(), "movable", Ref(type<toy::Movable>()), Member::Component, nullptr },
                 { type<Human>(), member_address(&Human::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component, nullptr },
                 { type<Human>(), member_address(&Human::m_receptor), type<toy::Receptor>(), "receptor", Ref(type<toy::Receptor>()), Member::Component, nullptr },
-                { type<Human>(), member_address(&Human::m_active), type<toy::Active>(), "active", Ref(type<toy::Active>()), Member::Component, nullptr },
                 { type<Human>(), member_address(&Human::m_script), type<toy::EntityScript>(), "script", Ref(type<toy::EntityScript>()), Member::Component, nullptr },
                 { type<Human>(), member_address(&Human::m_faction), type<Faction>(), "faction", var(Faction()), Member::Value, nullptr },
                 { type<Human>(), member_address(&Human::m_life), type<float>(), "life", var(float(1.f)), Member::Value, nullptr },
                 { type<Human>(), member_address(&Human::m_energy), type<float>(), "energy", var(float(1.f)), Member::Value, nullptr },
+                { type<Human>(), member_address(&Human::m_discharge), type<float>(), "discharge", var(float(0.f)), Member::Value, nullptr },
                 { type<Human>(), member_address(&Human::m_headlight), type<bool>(), "headlight", var(bool(true)), Member::Value, nullptr },
-                { type<Human>(), member_address(&Human::m_shield), type<bool>(), "shield", var(bool(false)), Member::Value, nullptr }
+                { type<Human>(), member_address(&Human::m_shield), type<bool>(), "shield", var(bool(false)), Member::Value, nullptr },
+                { type<Human>(), member_address(&Human::m_walk), type<bool>(), "walk", var(bool(true)), Member::Value, nullptr },
+                { type<Human>(), member_address(&Human::m_target), type<Human>(), "target", Ref(type<Human>()), Member::Flags(Member::Pointer|Member::Link), nullptr },
+                { type<Human>(), member_address(&Human::m_dest), type<mud::vec3>(), "dest", var(mud::vec3()), Member::Value, nullptr },
+                { type<Human>(), member_address(&Human::m_cooldown), type<float>(), "cooldown", var(float(0.f)), Member::Value, nullptr },
+                { type<Human>(), member_address(&Human::m_state), type<Stance>(), "state", var(Stance()), Member::Value, nullptr }
             },
             // methods
             {
+                { type<Human>(), "sight", member_address(&Human::sight), [](Ref object, array<Var> args, Var& result) { val<mud::quat>(result) = val<Human>(object).sight(val<bool>(args[0])); }, { { "aiming", var(bool(true)), Param::Default } }, var(mud::quat()) },
+                { type<Human>(), "aim", member_address(&Human::aim), [](Ref object, array<Var> args, Var& result) { UNUSED(args);val<Aim>(result) = val<Human>(object).aim(); }, {}, var(Aim()) },
+                { type<Human>(), "shoot", member_address(&Human::shoot), [](Ref object, array<Var> args, Var& result) { UNUSED(result); UNUSED(args);val<Human>(object).shoot(); }, {}, Var() },
+                { type<Human>(), "stop", member_address(&Human::stop), [](Ref object, array<Var> args, Var& result) { UNUSED(result); UNUSED(args);val<Human>(object).stop(); }, {}, Var() }
             },
             // static members
             {
@@ -262,8 +345,10 @@ namespace mud
     
 
     
+        m.m_types.push_back(&type<Aim>());
         m.m_types.push_back(&type<Faction>());
         m.m_types.push_back(&type<Player>());
+        m.m_types.push_back(&type<Stance>());
         m.m_types.push_back(&type<Lamp>());
         m.m_types.push_back(&type<TileWorld>());
         m.m_types.push_back(&type<Bullet>());

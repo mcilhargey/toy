@@ -22,7 +22,6 @@ public:
 	comp_ attr_ Agent m_agent;
 	comp_ attr_ Emitter m_emitter = { m_entity };
 	comp_ attr_ Receptor m_receptor = { m_entity };
-	comp_ attr_ Active m_active = { m_entity };
 	comp_ attr_ Actor m_actor = { m_entity };
 	comp_ attr_ Reactive m_reactive = { m_entity };
 

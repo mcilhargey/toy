@@ -45,6 +45,7 @@
 namespace mud
 {
     // Exported types
+    export_ template <> TOY_SHELL_EXPORT Type& type<toy::GameMode>();
     
     export_ template <> TOY_SHELL_EXPORT Type& type<toy::GameShell>();
     

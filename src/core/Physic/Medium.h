@@ -19,14 +19,14 @@ using namespace mud; namespace toy
 
 	//@todo : cleanup, remove references to emitters and receptors since it's not supposed to be specific
 	//			make_unique masks stored in a map based on the group
-    class TOY_CORE_EXPORT Medium
+    class refl_ TOY_CORE_EXPORT Medium
 	{
 	public:
 		Medium(const string& name, bool occlusions = false);
 
-		string m_name;
-		bool m_occlusions;
-		bool m_solid;
+		attr_ string m_name;
+		attr_ bool m_occlusions;
+		attr_ bool m_solid;
 
 		std::map<CollisionGroup, short int> m_masks;
 

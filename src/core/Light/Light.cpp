@@ -22,7 +22,7 @@ using namespace mud; namespace toy
 	LightReflector::LightReflector(Entity& entity, Receptor& receptor)
 		: m_entity(entity)
 		, m_brightness(0.f)
-		, m_sphere(receptor.add_sphere(VisualMedium::me(), 0.1f, CM_LIGHTREFLECTOR))
+		, m_sphere(receptor.add_sphere(VisualMedium::me, 0.1f, CM_LIGHTREFLECTOR))
 	{
 		//entity.add_part(type<LightReflector>(), this);
 	}
@@ -30,7 +30,7 @@ using namespace mud; namespace toy
 	void LightReflector::handleMoved()
 	{
 		for(Entity* entity : m_sphere.m_scope.store())
-			entity->part<LightSource>().visualTransformUpdated(*this);
+			entity->as<LightSource>().visualTransformUpdated(*this);
 
 		//printf("VisualEmitter::updated, m_brightness = " << m_brightness.getValue() << std::endl;
 	}
@@ -42,7 +42,7 @@ using namespace mud; namespace toy
 		, m_intensity(intensity)
 		, m_colour(std::move(colour))
 		, m_shadows(shadows)
-		, m_sphere(emitter.add_sphere(VisualMedium::me(), range, CM_LIGHT))
+		, m_sphere(emitter.add_sphere(VisualMedium::me, range, CM_LIGHT))
     {
 		m_sphere.m_scope.observe(*this);
 	}
@@ -63,13 +63,13 @@ using namespace mud; namespace toy
 	void LightSource::handleMoved()
 	{
 		for(Entity* entity : m_sphere.m_scope.store())
-			visualTransformUpdated(entity->part<LightReflector>());
+			visualTransformUpdated(entity->as<LightReflector>());
 	}
 
 	void LightSource::handle_add(Entity& contact)
 	{
 		UNUSED(contact);
-		//LightReflector& reflector = contact.part<LightReflector>();
+		//LightReflector& reflector = contact.as<LightReflector>();
 		//float value = computeIntensity(0.f);
 		//reflector.brightness().setModifier(this, value);
 	}
@@ -77,7 +77,7 @@ using namespace mud; namespace toy
 	void LightSource::handle_remove(Entity& contact)
 	{
 		UNUSED(contact);
-		//LightReflector& reflector = contact.part<LightReflector>();
+		//LightReflector& reflector = contact.as<LightReflector>();
 		//reflector.brightness().removeModifier(this);
 	}
 

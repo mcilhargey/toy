@@ -48,6 +48,7 @@
     class Bullet;
     struct Aim;
     struct HumanController;
+    struct Stance;
     class Human;
     class Lamp;
     class Crate;
@@ -73,10 +74,12 @@ namespace glm {
     
 }
 
-namespace bx {
+namespace mud {
+namespace gfx {
 
     
     
+}
 }
 
 namespace json11 {
@@ -99,12 +102,10 @@ namespace detail {
 }
 }
 
-namespace mud {
-namespace gfx {
+namespace bgfx {
 
     
     
-}
 }
 
 namespace bimg {
@@ -119,7 +120,7 @@ namespace toy {
     
 }
 
-namespace bgfx {
+namespace bx {
 
     
     

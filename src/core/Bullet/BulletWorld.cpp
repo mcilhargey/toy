@@ -256,7 +256,7 @@ using namespace mud; namespace toy
 		callback.m_collisionFilterMask = mask;
 		callback.m_collisionFilterGroup = btBroadphaseProxy::AllFilter;
 
-		SubBulletWorld& subWorld = as<SubBulletWorld>(this->sub_world(SolidMedium::me()));
+		SubBulletWorld& subWorld = as<SubBulletWorld>(this->sub_world(SolidMedium::me));
 		subWorld.m_bullet_world->rayTest(to_btvec3(ray.m_start), to_btvec3(ray.m_end), callback);
 
 		if(callback.hasHit())

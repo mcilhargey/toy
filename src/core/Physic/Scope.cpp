@@ -62,6 +62,7 @@ using namespace mud; namespace toy
 
 	ReceptorSphere::ReceptorSphere(Entity& entity, Medium& medium, CollisionGroup group, float range)
 		: ReceptorScope(entity, medium, Sphere(range), group)
+		, m_radius(range)
 	{}
 
 	Emitter::Emitter(Entity& entity)

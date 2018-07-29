@@ -28,8 +28,8 @@ using namespace mud; namespace toy
 
 		m_sections[size_t(Task::Background)] = make_object<MonoSection>(short(Task::Background), true);
 
-		//Index::me().indexer(type<Entity>()).alloc();
-		//Index::me().indexer(type<Entity>()).alloc();
+		//indexer(type<Entity>()).alloc();
+		//indexer(type<Entity>()).alloc();
 		m_origin = make_object<Origin>(1, *this);
 		m_unworld = make_object<Origin>(2, *this);
 	}

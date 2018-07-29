@@ -21,7 +21,7 @@ using namespace mud; namespace toy
     {
     public:
 		MotionState(Entity& entity, const vec3& offset)
-			: m_entity(entity), m_movable(entity.isa<Movable>() ? &entity.part<Movable>() : nullptr)
+			: m_entity(entity), m_movable(entity.isa<Movable>() ? &entity.as<Movable>() : nullptr)
 			, m_offset(offset), m_last_updated(0)
 		{
 			if(m_movable)

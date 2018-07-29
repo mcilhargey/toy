@@ -100,10 +100,10 @@ using namespace mud; namespace toy
 		inline bool isa() { return m_complex.isa<T>(); }
 
 		template <class T>
-		inline T& part() { return m_complex.part<T>(); }
+		inline T& as() { return m_complex.as<T>(); }
 
 		template <class T>
-		inline T* try_part() { return m_complex.isa<T>() ? &m_complex.part<T>() : nullptr; }
+		inline T* try_as() { return m_complex.isa<T>() ? &m_complex.as<T>() : nullptr; }
 
 		template <class T, class... Types>
 		inline T& construct(Types&&... args) { return global_pool<T>().construct(0, *this, std::forward<Types>(args)...); }

@@ -15,12 +15,13 @@
 
 using namespace mud; namespace toy
 {
+	TOY_CORE_EXPORT func_ bool move_2d(Movable& movable, const vec3& target, float velocity, float time_step, float margin = 0.1f);
+	TOY_CORE_EXPORT func_ bool steer_2d(Movable& movable, const vec3& target, float velocity, float time_step, float margin = 0.1f);
+
 	TOY_CORE_EXPORT bool spin_2d(Entity& entity, const vec3& axis, const vec3& target, float velocity, float time_step, float margin = 0.1f);
 	TOY_CORE_EXPORT bool lookat_2d(Entity& entity, const vec3& axis, const vec3& target, float velocity, float time_step, float margin = 0.1f);
 	TOY_CORE_EXPORT bool move_2d(Entity& entity, const vec3& target, float velocity, float time_step, float margin = 0.1f);
-	TOY_CORE_EXPORT bool move_2d(Movable& movable, const vec3& target, float velocity, float time_step, float margin = 0.1f);
 	TOY_CORE_EXPORT bool steer_2d(Entity& entity, const vec3& target, float velocity, float time_step, float margin = 0.1f);
-	TOY_CORE_EXPORT bool steer_2d(Movable& movable, const vec3& target, float velocity, float time_step, float margin = 0.1f);
 	TOY_CORE_EXPORT bool stick_2d(Entity& entity, const vec3& target, float velocity, float time_step, float margin = 0.1f);
 	TOY_CORE_EXPORT bool track_2d(Entity& entity, const vec3& target, float velocity, float time_step, float margin = 0.1f);
 
@@ -34,14 +35,14 @@ using namespace mud; namespace toy
 
 		MotionState* m_motion_state = nullptr;
 
-		vec3 m_linear_velocity = Zero3;
-		vec3 m_angular_velocity = Zero3;
+		attr_ vec3 m_linear_velocity = Zero3;
+		attr_ vec3 m_angular_velocity = Zero3;
 
 		vec3 m_direction = -Z3;
 		vec3 m_acceleration = Zero3;
 
-		bool m_moving = false;
-		vec3 m_previous_position;
+		attr_ bool m_moving = false;
+		attr_ vec3 m_previous_position;
 
 		vec3 m_max_linear_velocity = Zero3;
 
@@ -51,11 +52,11 @@ using namespace mud; namespace toy
 
 		void set_movement(const vec3& position, const quat& rotation, const vec3& linear_velocity, const vec3& angular_velocity);
 
-        void set_linear_velocity(const vec3& velocity);
-		void modify_linear_velocity(const vec3& velocity);
+        meth_ void set_linear_velocity(const vec3& velocity);
+		meth_ void modify_linear_velocity(const vec3& velocity);
 
-        void set_angular_velocity(const vec3& velocity);
-		void modify_angular_velocity(const vec3& velocity);
+        meth_ void set_angular_velocity(const vec3& velocity);
+		meth_ void modify_angular_velocity(const vec3& velocity);
 
 		void set_acceleration(const vec3& acceleration, const vec3& maxLinVel);
 		void modify_acceleration(const vec3& acceleration); 

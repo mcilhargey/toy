@@ -9,6 +9,8 @@
 
 using namespace mud; namespace toy
 {
+	VisualMedium VisualMedium::me;
+
 	VisualMedium::VisualMedium()
 		: Medium("VisualMedium")
 	{	

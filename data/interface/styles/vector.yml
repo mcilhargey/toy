@@ -21,7 +21,7 @@
 "styles" :
 [
     {   
-        "selector" : "Label, Title, Tooltip, TextEdit, TypeLabel, TypeZone, SliderDisplay, RadioChoiceItem",
+        "selector" : "Label, Title, Message, Tooltip, TextEdit, TypeLabel, TypeZone, SliderDisplay, RadioChoiceItem",
         "text_colour" : "White",
         "skin_padding" : [4],
         "disabled" : {
@@ -37,7 +37,7 @@
         "skin_padding" : [4]
     },
     {   
-        "selector" : "Button, WrapButton, MultiButton, Toggle, ToolButton, TabHeader, DockToggle, RadioChoice, DropdownChoice, Slider, SliderKnob, ScrollerKnob, DragHandle, DropdownInput, DropdownInputCompact, TypedownInput, Menu, TypeIn, Input<string>",
+        "selector" : "Button, WrapButton, MultiButton, Toggle, ToolButton, TabHeader, DockToggle, RadioChoice, DropdownChoice, SliderKnob, ScrollerKnob, DragHandle, DropdownInput, DropdownInputCompact, TypedownInput, Menu, TypeIn, Input<string>, TreeNodeHeader",
         "copy_skin" : "Label",
         "border_colour" : "Grey204",
         "border_width" : [1],
@@ -164,6 +164,17 @@
         "selector" : "DropdownChoice",
         "background_colour" : "Transparent",
         "border_colour" : "Transparent"
+    },
+    {
+        "selector" : "TableRow, TableRowOdd, TableRowEven",
+        "hovered" : {
+            "border_colour" : "Grey312",
+            "border_width" : [1]
+        },
+        "selected" : {
+            "border_colour" : "ActiveBlue",
+            "border_width" : [1]
+        }
     },
     {   
         "selector" : "Tooltip, ToolButton, ExpandboxBody",

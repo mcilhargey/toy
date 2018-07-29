@@ -41,11 +41,11 @@ using namespace mud; namespace toy
 
 	void EventReceptor::handle_add(Entity& entity)
 	{
-		this->bind(entity.part<EventEmitter>());
+		this->bind(entity.as<EventEmitter>());
 	}
 
 	void EventReceptor::handle_remove(Entity& entity)
 	{
-		this->unbind(entity.part<EventEmitter>());
+		this->unbind(entity.as<EventEmitter>());
 	}
 }

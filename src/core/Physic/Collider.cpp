@@ -19,7 +19,7 @@ using namespace mud; namespace toy
 		, m_collision_shape(collision_shape)
 		, m_medium(medium)
 		, m_group(group)
-		, m_world(entity.m_world.part<PhysicWorld>().sub_world(m_medium))
+		, m_world(entity.m_world.as<PhysicWorld>().sub_world(m_medium))
 		, m_impl()
 		, m_motion_state(entity, collision_shape.m_center)
     {

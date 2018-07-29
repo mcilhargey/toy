@@ -494,11 +494,15 @@ void next_turn(Turn& turn)
 	turn_scans(turn);
 }
 
+BuildingDatabase BuildingDatabase::me;
+
 BuildingDatabase::BuildingDatabase()
 	: SchemaDatabase<BuildingSchema>()
 {
 	builtin_buildings(*this);
 }
+
+ShipDatabase ShipDatabase::me;
 
 ShipDatabase::ShipDatabase()
 	: SchemaDatabase<ShipSchema>()
@@ -567,7 +571,7 @@ Galaxy::Galaxy(Id id, Entity& parent, const vec3& position, const uvec2& size)
 	, m_entity(id, *this, parent, position, ZeroQuat)
 	, m_size(size)
 {
-	as<Universe>(m_entity.m_world.m_complex).m_galaxies.push_back(this);
+	mud::as<Universe>(m_entity.m_world.m_complex).m_galaxies.push_back(this);
 }
 
 uvec2 Galaxy::intersect_coord(Ray ray)
@@ -583,15 +587,14 @@ Quadrant::Quadrant(Id id, Entity& parent, const vec3& position, const uvec2& coo
 	, m_coord(coord)
 	, m_size(size)
 {
-	as<Galaxy>(m_entity.m_parent->m_complex).m_quadrants.push_back(this);
+	mud::as<Galaxy>(m_entity.m_parent->m_complex).m_quadrants.push_back(this);
 }
 
 static size_t star_count = 0;
 
 Star::Star(Id id, Entity& parent, const vec3& position, const uvec2& coord, const std::string& name)
-	: Complex(id, type<Star>(), m_active, *this)
+	: Complex(id, type<Star>(), *this)
 	, m_entity(id, *this, parent, position, ZeroQuat)
-	, m_active(m_entity)
 	, m_coord(coord)
 	, m_name(name)
 	, m_resources{}
@@ -607,7 +610,7 @@ Star::~Star()
 	m_entity.m_world.remove_task(this, short(Task::GameObject));
 }
 
-Galaxy& Star::galaxy() { return m_entity.m_parent->part<Galaxy>(); } // as<Galaxy>(*m_entity.m_parent->m_construct)
+Galaxy& Star::galaxy() { return m_entity.m_parent->as<Galaxy>(); } // as<Galaxy>(*m_entity.m_parent->m_construct)
 
 void Star::next_frame(size_t tick, size_t delta)
 {
@@ -639,7 +642,7 @@ void Star::set_buildings(BuildingSchema& schema, size_t number)
 
 void Star::set_buildings(const std::string& code, size_t number)
 {
-	this->set_buildings(BuildingDatabase::me().schema(code), number);
+	this->set_buildings(BuildingDatabase::me.schema(code), number);
 }
 
 void Star::add_buildings(BuildingSchema& schema, int number)
@@ -649,15 +652,14 @@ void Star::add_buildings(BuildingSchema& schema, int number)
 
 void Star::add_buildings(const std::string& code, int number)
 {
-	this->add_buildings(BuildingDatabase::me().schema(code), number);
+	this->add_buildings(BuildingDatabase::me.schema(code), number);
 }
 
 static size_t fleet_count = 0;
 
 Fleet::Fleet(Id id, Entity& parent, const vec3& position, Commander& commander, const uvec2& coord, const std::string& name)
-	: Complex(id, type<Fleet>(), m_active, *this)
+	: Complex(id, type<Fleet>(), *this)
 	, m_entity(id, *this, parent, position, ZeroQuat)
-	, m_active(m_entity)
 	, m_commander(&commander)
 	, m_coord(coord)
 	, m_name(name)
@@ -677,7 +679,7 @@ Fleet::~Fleet()
 	vector_remove(m_commander->m_fleets, this);
 }
 
-Galaxy& Fleet::galaxy() { return m_entity.m_parent->part<Galaxy>(); } // as<Galaxy>(*m_entity.m_parent->m_construct)
+Galaxy& Fleet::galaxy() { return m_entity.m_parent->as<Galaxy>(); } // as<Galaxy>(*m_entity.m_parent->m_construct)
 
 void update_visu_fleet(VisuFleet& visu, size_t tick, size_t delta)
 {
@@ -714,12 +716,12 @@ void Fleet::add_ships(ShipSchema& schema, int number)
 
 void Fleet::set_ships(const std::string& code, size_t number)
 {
-	this->set_ships(ShipDatabase::me().schema(code), number);
+	this->set_ships(ShipDatabase::me.schema(code), number);
 }
 
 void Fleet::add_ships(const std::string& code, int number)
 {
-	this->add_ships(ShipDatabase::me().schema(code), number);
+	this->add_ships(ShipDatabase::me.schema(code), number);
 }
 
 void Fleet::update_ships()
@@ -1032,7 +1034,7 @@ Viewer& ex_space_menu_viewport(Widget& parent, GameShell& app)
 	static VisuFleet fleet;
 	if(fleet.m_updated == 0)
 	{
-		auto set_ships = [&](const std::string& code, size_t number) { ships[&ShipDatabase::me().schema(code)] = number; };
+		auto set_ships = [&](const std::string& code, size_t number) { ships[&ShipDatabase::me.schema(code)] = number; };
 		set_ships("CHA", 80);
 		set_ships("COR", 10);
 

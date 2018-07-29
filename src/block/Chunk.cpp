@@ -29,7 +29,7 @@ using namespace mud; namespace toy
 		for(size_t depth = 1; !parent->isa<WorldPage>(); parent = parent->m_parent)
 			++depth;
 
-		return parent->part<Sector>();
+		return parent->as<Sector>();
 	}
 
 	Chunk* Chunk::neighbour(Side side)

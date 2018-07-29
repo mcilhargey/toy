@@ -83,7 +83,7 @@ using namespace mud; namespace toy
 		if(!entity.isa<Receptor>())
 			return;
 
-		ReceptorScope* scope = entity.part<Receptor>().scope(m_medium);
+		ReceptorScope* scope = entity.as<Receptor>().scope(m_medium);
 		if(scope)
 			scope->m_scope.observe(m_store);
 			
@@ -94,7 +94,7 @@ using namespace mud; namespace toy
 		if(!entity.isa<Receptor>())
 			return;
 
-		ReceptorScope* scope = entity.part<Receptor>().scope(m_medium);
+		ReceptorScope* scope = entity.as<Receptor>().scope(m_medium);
 		if(scope)
 			scope->m_scope.unobserve(m_store);
 	}

@@ -91,7 +91,7 @@ using namespace mud; namespace toy
 		, m_receptor(m_entity)
 		, m_camera(m_entity, lensDistance, nearClipDistance, farClipDistance)
 	{
-		m_receptor.add_sphere(WorldMedium::me(), 0.1f, CM_RECEPTOR);
+		m_receptor.add_sphere(WorldMedium::me, 0.1f, CM_RECEPTOR);
 	}
 
 	void jump_camera_to(Camera& camera, const vec3& target, float distance, float rotation)

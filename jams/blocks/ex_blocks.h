@@ -113,7 +113,6 @@ public:
 	comp_ attr_ Movable m_movable;
 	comp_ attr_ Emitter m_emitter;
 	comp_ attr_ Receptor m_receptor;
-	comp_ attr_ Active m_active;
 
 	Faction& m_faction;
 

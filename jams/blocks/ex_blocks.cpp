@@ -73,7 +73,7 @@ Shield::Shield(Id id, Entity& parent, const vec3& position, Faction& faction, fl
 	, m_radius(radius)
 	, m_charge(1.f)
 	, m_discharge(0.f)
-	, m_solid(m_entity, *this, Sphere(radius), SolidMedium::me(), CollisionGroup(CM_ENERGY), false, 0.f)
+	, m_solid(m_entity, *this, Sphere(radius), SolidMedium::me, CollisionGroup(CM_ENERGY), false, 0.f)
 {
 	m_entity.m_world.add_task(this, short(Task::State)); // TASK_GAMEOBJECT
 }
@@ -100,8 +100,8 @@ Slug::Slug(Entity& parent, const vec3& source, const quat& rotation, const vec3&
 	, m_entity(0, *this, parent, source, rotation)
 	, m_source(source)
 	, m_velocity(velocity)
-	//, m_solid(m_entity, *this, Sphere(0.1f), SolidMedium::me(), CollisionGroup(CM_ENERGY), false, 1.f)
-	, m_collider(m_entity, *this, Sphere(0.1f), SolidMedium::me(), CollisionGroup(CM_ENERGY))
+	//, m_solid(m_entity, *this, Sphere(0.1f), SolidMedium::me, CollisionGroup(CM_ENERGY), false, 1.f)
+	, m_collider(m_entity, *this, Sphere(0.1f), SolidMedium::me, CollisionGroup(CM_ENERGY))
 {}
 
 Slug::~Slug()
@@ -125,23 +125,23 @@ void Slug::update()
 			m_impacted = true;
 			m_impact = collision.m_hit_point;
 
-			hit->part<Tank>().m_control = false;
-			hit->part<Tank>().m_hitpoints -= 25.f;
+			hit->as<Tank>().m_control = false;
+			hit->as<Tank>().m_hitpoints -= 25.f;
 
-			if(hit->part<Tank>().m_hitpoints < 0.f)
-				hit->part<Tank>().m_solid.m_impl->impulse(Y3 * 100.f, Zero3);
+			if(hit->as<Tank>().m_hitpoints < 0.f)
+				hit->as<Tank>().m_solid.m_impl->impulse(Y3 * 100.f, Zero3);
 			else
-				hit->part<Tank>().m_solid.m_impl->impulse(m_velocity * 10.f, Zero3);
+				hit->as<Tank>().m_solid.m_impl->impulse(m_velocity * 10.f, Zero3);
 		}
 
 		if(hit->isa<Shield>())
 		{
 			auto reflect = [](const vec3& I, const vec3& N) { return I - 2.f * dot(N, I) * N; };
 
-			vec3 N = normalize(collision.m_hit_point - hit->part<Shield>().m_entity.m_position);
+			vec3 N = normalize(collision.m_hit_point - hit->as<Shield>().m_entity.m_position);
 			m_velocity = reflect(m_velocity, N);
 
-			hit->part<Shield>().m_discharge += 1.0f;
+			hit->as<Shield>().m_discharge += 1.0f;
 		}
 	}
 
@@ -153,19 +153,18 @@ void Slug::update()
 }
 
 Tank::Tank(Id id, Entity& parent, const vec3& position, Faction& faction)
-	: Complex(id, type<Tank>(), m_movable, m_emitter, m_active, *this)
+	: Complex(id, type<Tank>(), m_movable, m_emitter, *this)
 	, m_entity(id, *this, parent, position, ZeroQuat)
 	, m_movable(m_entity)
 	, m_emitter(m_entity)
 	, m_receptor(m_entity)
-	, m_active(m_entity)
 	, m_faction(faction)
-	, m_solid(m_entity, *this, CollisionShape(Cube(vec3(2.0f, 1.1f, 3.2f)), Y3 * 1.1f), SolidMedium::me(), CM_SOLID, false, 4.f)
+	, m_solid(m_entity, *this, CollisionShape(Cube(vec3(2.0f, 1.1f, 3.2f)), Y3 * 1.1f), SolidMedium::me, CM_SOLID, false, 4.f)
 {
 	m_entity.m_world.add_task(this, short(Task::State)); // TASK_GAMEOBJECT
 
-	m_emitter.add_sphere(VisualMedium::me(), 0.1f);
-	m_receptor.add_sphere(VisualMedium::me(), 100.f);
+	m_emitter.add_sphere(VisualMedium::me, 0.1f);
+	m_receptor.add_sphere(VisualMedium::me, 100.f);
 }
 
 Tank::~Tank()
@@ -201,9 +200,9 @@ void Tank::next_frame(size_t tick, size_t delta)
 	{
 		m_target = nullptr;
 
-		ReceptorScope* vision = m_receptor.scope(VisualMedium::me());
+		ReceptorScope* vision = m_receptor.scope(VisualMedium::me);
 		for(Entity* entity : vision->m_scope.store())
-			if(Tank* tank = entity->try_part<Tank>())
+			if(Tank* tank = entity->try_as<Tank>())
 				if(&tank->m_faction != &m_faction && !tank->m_stealth)
 				{
 					m_target = tank;
@@ -761,7 +760,7 @@ void ex_blocks_start(GameShell& app, Game& game)
 	global_pool<Block>();
 	global_pool<OCamera>();
 	
-	SolidMedium::me().m_masks[CollisionGroup(CM_ENERGY)] = CM_SOLID | CM_GROUND | CM_ENERGY;
+	SolidMedium::me.m_masks[CollisionGroup(CM_ENERGY)] = CM_SOLID | CM_GROUND | CM_ENERGY;
 
 	BlockWorld& world = global_pool<BlockWorld>().construct("Arcadia");
 	game.m_world = &world.m_world;
@@ -794,7 +793,7 @@ void ex_blocks_scene(GameShell& app, GameScene& scene)
 	static PhysicDebugDraw physic_draw = { *scene.m_scene.m_immediate };
 
 	scene.painter("PhysicsDebug", [&](size_t index, VisuScene& visu_scene, Gnode& parent) {
-		//physic_draw.draw_physics(parent, *scene.m_game.m_world, SolidMedium::me());
+		//physic_draw.draw_physics(parent, *scene.m_game.m_world, SolidMedium::me);
 	});
 }
 

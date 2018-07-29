@@ -14,7 +14,7 @@ using namespace mud; namespace toy
 	CameraController::CameraController(Viewer& viewer, Camera& camera)
 		: m_viewer(viewer)
 		, m_camera(camera)
-		, m_movable(camera.m_entity.part<Movable>())
+		, m_movable(camera.m_entity.as<Movable>())
 		, m_velocity(50.f)
 		, m_angular_velocity(2.f)
 	{

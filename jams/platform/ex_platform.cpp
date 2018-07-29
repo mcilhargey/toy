@@ -123,8 +123,8 @@ Bullet::Bullet(Entity& parent, const vec3& source, const quat& rotation, float v
 	, m_entity(0, *this, parent, source, rotation)
 	, m_source(source)
 	, m_velocity(rotate(rotation, -Z3) * velocity)
-	//, m_solid(m_entity, *this, Sphere(0.1f), SolidMedium::me(), CollisionGroup(energy), false, 1.f)
-	, m_collider(m_entity, *this, Sphere(0.1f), SolidMedium::me(), CM_SOLID)
+	//, m_solid(m_entity, *this, Sphere(0.1f), SolidMedium::me, CollisionGroup(energy), false, 1.f)
+	, m_collider(m_entity, *this, Sphere(0.1f), SolidMedium::me, CM_SOLID)
 {}
 
 Bullet::~Bullet()
@@ -140,7 +140,7 @@ void Bullet::update()
 
 	if(hit != nullptr && hit->isa<Human>())
 	{
-		Human& shot = hit->part<Human>();
+		Human& shot = hit->as<Human>();
 		if(shot.m_shield && shot.m_energy > 0.f)
 		{
 			auto reflect = [](const vec3& I, const vec3& N) { return I - 2.f * dot(N, I) * N; };
@@ -173,21 +173,20 @@ float Human::headlight_angle = 40.f;
 //float Human::headlight_angle = 20.f;
 
 Human::Human(Id id, Entity& parent, const vec3& position, Faction faction)
-	: Complex(id, type<Human>(), m_movable, m_emitter, m_receptor, m_active, m_script, *this)
+	: Complex(id, type<Human>(), m_movable, m_emitter, m_receptor, m_script, *this)
 	, m_entity(id, *this, parent, position, ZeroQuat)
 	, m_movable(m_entity)
 	, m_emitter(m_entity)
 	, m_receptor(m_entity)
-	, m_active(m_entity)
 	, m_script(m_entity)
 	, m_faction(faction)
 	, m_walk(false)
-	, m_solid(m_entity, *this, CollisionShape(Capsule(0.35f, 1.1f), Y3 * 0.9f), SolidMedium::me(), CM_SOLID, false, 1.f)
+	, m_solid(m_entity, *this, CollisionShape(Capsule(0.35f, 1.1f), Y3 * 0.9f), SolidMedium::me, CM_SOLID, false, 1.f)
 {
 	m_entity.m_world.add_task(this, short(Task::State)); // TASK_GAMEOBJECT
 
-	m_emitter.add_sphere(VisualMedium::me(), 0.1f);
-	m_receptor.add_sphere(VisualMedium::me(), 30.f);
+	m_emitter.add_sphere(VisualMedium::me, 0.1f);
+	m_receptor.add_sphere(VisualMedium::me, 30.f);
 }
 
 Human::~Human()
@@ -213,6 +212,7 @@ void Human::next_frame(size_t tick, size_t delta)
 	m_discharge = max(0.f, m_discharge - delta * 0.05f);
 
 	bool ia = m_faction == Faction::Ennemy;
+	ia = false;
 	if(ia)
 	{
 		if(m_life <= 0.f)
@@ -233,9 +233,9 @@ void Human::next_frame(size_t tick, size_t delta)
 
 		if(m_target == nullptr)
 		{
-			ReceptorScope* vision = m_receptor.scope(VisualMedium::me());
+			ReceptorScope* vision = m_receptor.scope(VisualMedium::me);
 			for(Entity* entity : vision->m_scope.store())
-				if(Human* human = entity->try_part<Human>())
+				if(Human* human = entity->try_as<Human>())
 				{
 					if(human->m_faction != m_faction)
 					{
@@ -251,18 +251,10 @@ void Human::next_frame(size_t tick, size_t delta)
 				}
 		}
 
-		auto stop = [&]
-		{
-			m_state = { "IdleAim", true };
-			m_movable.m_linear_velocity = Zero3;
-			m_dest = Zero3;
-		};
-
-
 		m_cooldown = max(0.f, m_cooldown - float(delta) * 0.05f);
 		if(m_target)
 		{
-			stop();
+			this->stop();
 
 			auto x0z = [](const vec3& v) -> vec3 { return{ v.x, 0.f, v.z }; };
 			m_entity.set_rotation(look_at(x0z(m_entity.m_position), x0z(m_target->m_entity.m_position)));
@@ -275,7 +267,7 @@ void Human::next_frame(size_t tick, size_t delta)
 		}
 		else
 		{
-			auto is_walkable = [&](const vec3& pos) { return m_entity.m_world.part<PhysicWorld>().ground_point(to_ray(pos, -Y3)) != Zero3; };
+			auto is_walkable = [&](const vec3& pos) { return m_entity.m_world.as<PhysicWorld>().ground_point(to_ray(pos, -Y3)) != Zero3; };
 
 			if(m_dest == Zero3)
 			{
@@ -289,7 +281,7 @@ void Human::next_frame(size_t tick, size_t delta)
 			{
 				if(steer_2d(m_movable, m_dest, 3.f, float(delta) * float(c_tick_interval), 1.f))
 				{
-					stop();
+					this->stop();
 				}
 				else
 				{
@@ -306,13 +298,20 @@ quat Human::sight(bool aiming)
 	return aiming ? rotate(m_entity.m_rotation, X3, m_vangle) : m_entity.m_rotation;
 }
 
+void Human::stop()
+{
+	m_state = { "IdleAim", true };
+	m_movable.m_linear_velocity = Zero3;
+	m_dest = Zero3;
+}
+
 Aim Human::aim()
 {
 	quat rotation = this->sight(m_aiming);
 	vec3 muzzle = m_entity.m_position + rotate(m_entity.m_rotation, Human::muzzle_offset);
 	vec3 end = muzzle + rotate(rotation, -Z3) * 1000.f;
 
-	Collision hit = m_entity.m_world.part<PhysicWorld>().raycast({ muzzle, end }, CM_GROUND | CM_SOLID);
+	Collision hit = m_entity.m_world.as<PhysicWorld>().raycast({ muzzle, end }, CM_GROUND | CM_SOLID);
 	return { rotation, muzzle, hit.m_second ? hit.m_hit_point : end, hit.m_second ? &hit.m_second->m_entity : nullptr };
 }
 
@@ -346,7 +345,7 @@ Crate::Crate(Id id, Entity& parent, const vec3& position, const vec3& extents)
 	, m_entity(id, *this, parent, position, ZeroQuat)
 	, m_movable(m_entity)
 	, m_extents(extents)
-	, m_solid(m_entity, *this, Cube(extents), SolidMedium::me(), CM_SOLID, false, 10.f)
+	, m_solid(m_entity, *this, Cube(extents), SolidMedium::me, CM_SOLID, false, 10.f)
 {}
 
 Player::Player(TileWorld& world)
@@ -554,7 +553,7 @@ void physic_painter(GameScene& scene)
 	static PhysicDebugDraw physic_draw = { *scene.m_scene.m_immediate };
 
 	scene.painter("PhysicsDebug", [&](size_t index, VisuScene& visu_scene, Gnode& parent) {
-		UNUSED(index); UNUSED(visu_scene); physic_draw.draw_physics(parent, *scene.m_game.m_world, VisualMedium::me());
+		UNUSED(index); UNUSED(visu_scene); physic_draw.draw_physics(parent, *scene.m_game.m_world, VisualMedium::me);
 	});
 }
 
@@ -568,7 +567,7 @@ inline void range_entity_painter(VisuScene& scene, Entity& reference, float rang
 		{
 			float dist2 = distance2(entity->m_position, reference.m_position);
 			if(dist2 < range2 && entity->isa<T>())
-				paint_func(scene.entity_node(parent, *entity, index), entity->part<T>());
+				paint_func(scene.entity_node(parent, *entity, index), entity->as<T>());
 		}
 	};
 	scene.m_painters.emplace_back(make_unique<VisuPainter>(name, scene.m_painters.size(), paint));
@@ -740,7 +739,8 @@ void ex_platform_game_ui(Widget& parent, Game& game, GameScene& scene)
 
 	if(viewer.key_event(KC_ESCAPE, EventType::Stroked))
 	{
-		game.m_mode == GameMode::Play;
+		game.m_shell->m_editor.m_run_game = false;
+		game.m_mode = GameMode::Play;
 	}
 
 	paint_viewer(viewer);

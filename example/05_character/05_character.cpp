@@ -3,17 +3,17 @@
 #include <meta/05_character/Module.h>
 
 Human::Human(Id id, Entity& parent, const vec3& position, float radius, float height, const std::string& first_name, const std::string& last_name)
-	: Complex(id, type<Human>(), m_movable, m_agent, m_emitter, m_receptor, m_active, m_actor, m_reactive, *this)
+	: Complex(id, type<Human>(), m_movable, m_agent, m_emitter, m_receptor, m_actor, m_reactive, *this)
 	, m_entity(id, *this, parent, position, ZeroQuat)
 	, m_agent(m_entity, radius, height)
 	, m_first_name(first_name)
 	, m_last_name(last_name)
 	, m_next_change(5.f)
-	//, m_solid(make_unique<Solid>(m_entity, *this, CollisionShape(Cylinder(0.35f, 2.f), Y3 * 1.f), SolidMedium::me(), CM_SOLID, false, 1.f))
+	//, m_solid(make_unique<Solid>(m_entity, *this, CollisionShape(Cylinder(0.35f, 2.f), Y3 * 1.f), SolidMedium::me, CM_SOLID, false, 1.f))
 {
 	m_entity.m_world.add_task(this, 3); // TASK_GAMEOBJECT
 
-	m_entity.part<Active>().addState("idle", 1, 0.5f);
+	m_entity.as<Active>().addState("idle", 1, 0.5f);
 
 	m_states.push_back({ "Idle", 1.f });
 }
@@ -23,7 +23,7 @@ Human::~Human()
 	m_entity.m_world.remove_task(this, 3);
 }
 
-inline const std::vector<Ref>& indexed_objects(Type& type) { return Index::me().indexer(type).m_objects; }
+inline const std::vector<Ref>& indexed_objects(Type& type) { return indexer(type).m_objects; }
 
 void Human::pumpSecond()
 {}
@@ -46,7 +46,7 @@ bool Walk::checkTarget(const Entity& target) { return target.m_hooked; }
 
 Walk::Walk(toy::User* user, Entity& agent, Entity& target)
 	: TypedAction(user, agent, target)
-	, m_agent2(agent.part<Agent>())
+	, m_agent2(agent.as<Agent>())
 	, m_range(0.02f)
 {
 	m_agent2.computePath(m_target.absolute_position());
@@ -54,7 +54,7 @@ Walk::Walk(toy::User* user, Entity& agent, Entity& target)
 
 void Walk::begin()
 {
-	m_agent.part<Active>().addState("walk", 1, 0.5f);
+	m_agent.as<Active>().addState("walk", 1, 0.5f);
 
 	float dist = distance2(m_agent.m_position, m_target.m_position);
 	if(dist < m_range)
@@ -74,14 +74,14 @@ void Walk::update(size_t tick, double time_step)
 	UNUSED(tick);
 	vec3 target = m_agent2.m_waypoint;
 	//bool done = steer_2d(m_agent, target, 1.f, float(time_step));
-	bool done = steer_2d(m_agent.part<Movable>(), target, 1.f, float(time_step));
+	bool done = steer_2d(m_agent.as<Movable>(), target, 1.f, float(time_step));
 	if(done)
 		this->nextWaypoint();
 }
 
 void Walk::abort()
 {
-	m_agent.part<Active>().removeState("walk");
+	m_agent.as<Active>().removeState("walk");
 }
 
 void paint_human(Gnode& parent, Human& human)

@@ -10,7 +10,7 @@ Bullet::Bullet(Entity& parent, const vec3& source, const quat& rotation, float v
 	, m_entity(0, *this, parent, source, rotation)
 	, m_source(source)
 	, m_velocity(rotate(rotation, -Z3) * velocity)
-	, m_collider(m_entity, *this, Sphere(0.1f), SolidMedium::me(), CM_SOLID)
+	, m_collider(m_entity, *this, Sphere(0.1f), SolidMedium::me, CM_SOLID)
 {}
 
 Bullet::~Bullet()
@@ -26,7 +26,7 @@ void Bullet::update()
 
 	if(hit != nullptr && hit->isa<Human>())
 	{
-		Human& shot = hit->part<Human>();
+		Human& shot = hit->as<Human>();
 		m_impacted = true;
 		m_impact = collision.m_hit_point;
 	}
@@ -42,12 +42,11 @@ const vec3 Human::muzzle_offset = { 0.f, 1.6f, -1.f };
 float Human::headlight_angle = 40.f;
 
 Human::Human(Id id, Entity& parent, const vec3& position)
-	: Complex(id, type<Human>(), m_movable, m_active, *this)
+	: Complex(id, type<Human>(), m_movable, *this)
 	, m_entity(id, *this, parent, position, ZeroQuat)
 	, m_movable(m_entity)
-	, m_active(m_entity)
 	, m_walk(false)
-	, m_solid(m_entity, *this, CollisionShape(Capsule(0.35f, 1.1f), Y3 * 0.9f), SolidMedium::me(), CM_SOLID, false, 1.f)
+	, m_solid(m_entity, *this, CollisionShape(Capsule(0.35f, 1.1f), Y3 * 0.9f), SolidMedium::me, CM_SOLID, false, 1.f)
 {
 	m_entity.m_world.add_task(this, short(Task::State)); // TASK_GAMEOBJECT
 }
@@ -95,7 +94,7 @@ Crate::Crate(Id id, Entity& parent, const vec3& position, const vec3& extents)
 	, m_entity(id, *this, parent, position, ZeroQuat)
 	, m_movable(m_entity)
 	, m_extents(extents)
-	, m_solid(m_entity, *this, Cube(extents), SolidMedium::me(), CM_SOLID, false, 10.f)
+	, m_solid(m_entity, *this, Cube(extents), SolidMedium::me, CM_SOLID, false, 10.f)
 {}
 
 Player::Player(World& world)
@@ -275,9 +274,6 @@ void ex_minimal_start(GameShell& app, Game& game)
 
 void ex_minimal_pump(GameShell& app, Game& game, Widget& parent, Dockbar* dockbar = nullptr)
 {
-	if(!game.m_world)
-		ex_minimal_start(app, game);
-
 	static GameScene& scene = app.add_scene();
 	scene.next_frame();
 

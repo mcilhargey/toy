@@ -22,7 +22,7 @@ using namespace mud; namespace toy
 	SoundSource::SoundSource(Entity& entity)
 #endif
 		: m_entity(entity)
-		, m_active(entity.part<Active>())
+		, m_active(entity.as<Active>())
 #ifdef TOY_SOUND
 		, m_soundManager(soundManager)
 #endif

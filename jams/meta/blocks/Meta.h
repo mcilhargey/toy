@@ -268,8 +268,7 @@ namespace mud
                 { type<Tank>(), member_address(&Tank::m_entity), type<toy::Entity>(), "entity", Ref(type<toy::Entity>()), Member::Component, nullptr },
                 { type<Tank>(), member_address(&Tank::m_movable), type<toy::Movable>(), "movable", Ref(type<toy::Movable>()), Member::Component, nullptr },
                 { type<Tank>(), member_address(&Tank::m_emitter), type<toy::Emitter>(), "emitter", Ref(type<toy::Emitter>()), Member::Component, nullptr },
-                { type<Tank>(), member_address(&Tank::m_receptor), type<toy::Receptor>(), "receptor", Ref(type<toy::Receptor>()), Member::Component, nullptr },
-                { type<Tank>(), member_address(&Tank::m_active), type<toy::Active>(), "active", Ref(type<toy::Active>()), Member::Component, nullptr }
+                { type<Tank>(), member_address(&Tank::m_receptor), type<toy::Receptor>(), "receptor", Ref(type<toy::Receptor>()), Member::Component, nullptr }
             },
             // methods
             {

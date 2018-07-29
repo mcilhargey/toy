@@ -10,6 +10,7 @@
 #include <meta/proto/Module.h>
 #include <meta/math/Module.h>
 #include <meta/geom/Module.h>
+#include <meta/lang/Module.h>
 #include <meta/util/Module.h>
 #endif
         

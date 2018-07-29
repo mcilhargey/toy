@@ -24,7 +24,7 @@ using namespace mud; namespace toy
 	void GroundMotion::hooked()
 	{
 		//m_pathfinder = &m_entity.m_parent->plug<Pathfinder>();
-		m_world_page = &m_entity.m_parent->part<WorldPage>();
+		m_world_page = &m_entity.m_parent->as<WorldPage>();
 
 		m_active = true;
 	}

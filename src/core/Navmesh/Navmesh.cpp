@@ -158,7 +158,7 @@ using namespace mud; namespace toy
 	{
 		NavmeshShapeDeclaration()
 		{
-			declare_shape<NavmeshShape>(DispatchDrawProcShape::me());
+			declare_shape<NavmeshShape>(DispatchDrawProcShape::me);
 		}
 	};
 
