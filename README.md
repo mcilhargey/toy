@@ -1,3 +1,4 @@
+![toy](media/toybanner.png)
 # toy
 toy is a **small, simple, code oriented, modular** *c++ game engine*.  
 
