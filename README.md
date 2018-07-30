@@ -1,4 +1,5 @@
-![toy](media/toybanner.png)
+<p align="center"><img src="https://github.com/hugoam/toy/blob/master/media/toyengine.png" /></p>
+
 # toy
 toy is a **small, simple, code oriented, modular** *c++ game engine*.  
 
