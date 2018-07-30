@@ -13,8 +13,7 @@ As a collection of game programming **building blocks**, it also aims to foster 
 
 On top of these fundamentals, toy adds plenty of game programming systems such as physics, a navigation system, procedural generation algorithms, many tools, and more.
 
-# overview
-overarching principles:
+### principles
 - **simple and lightweight**, simplicity is the ultimate aim and philosophy behind toy. the codebase is about one-tenth the size of competing engines, and toy is so light, the whole editor runs flawlessly in your browser !
 - **modular**, each functionality is enclosed in a small, simple, easy to understand code building block. most of these blocks lie in the underlying mud library.
 - **extensible**, as a collection of modules, toy is a perfect fit to build your own game technology, keeping full control over the components you use, the application design and the control flow.
@@ -24,7 +23,7 @@ overarching principles:
 - **educative**, toy aims to provide simplest technical solutions to typical game programming problems, to be easily studied and understood, hoping to be a driver of education on game development topics.
 - **fast iteration**, coupling seamless bindings of both built-in systems and game code to various scripting languages, hot-reload of native code, and immediate UI and rendering, toy provides fast iteration speeds.
 
-features:
+### features
 - **mud** is the low-level library providing most of the base features behind **toy**, in separate modules
   - reflection
   - scripting
@@ -34,7 +33,7 @@ features:
 - physics
 - navigation
 
-# examples
+### examples
 here are 3 live toy demo games: a [strategic space sim game](), a [tanks real time strategy game](), and a [procedural platformer]() game.
 
 they were designed to showcase toy strongest features, and aspects that are notably hard to achieve using other engines:
@@ -46,7 +45,7 @@ they were designed to showcase toy strongest features, and aspects that are nota
 
 each of these examples is written in less than a hundred lines of code and the source is fully available: reading these examples is the first place to start learning how to write a game with toy.
 
-# how to build
+### how to build
 
 on linux :
 
