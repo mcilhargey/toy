@@ -1,5 +1,6 @@
 //  Copyright (c) 2018 Hugo Amiard hugo.amiard@laposte.net
-//  This software is provided 'as-is' under the zlib License, see the LICENSE.txt file.
+//  This software is licensed  under the terms of the GNU General Public License v3.0.
+//  See the attached LICENSE.txt file or https://www.gnu.org/licenses/gpl-3.0.en.html.
 //  This notice and the license may not be removed or altered from any source distribution.
 
 #pragma once
@@ -57,6 +58,8 @@ using namespace mud; namespace toy
 		std::function<void(TileBlock&)> m_on_setup;
 
 		virtual void next_frame(size_t frame, size_t delta) final;
+
+		bool contains(const vec3& position);
 	};
 
 	TOY_BLOCK_EXPORT func_ TileBlock& generate_block(GfxSystem& gfx_system, WaveTileset& tileset, Entity& origin, const ivec2& coord, const uvec3& block_subdiv, const vec3& tile_scale, bool from_file = true);

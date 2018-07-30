@@ -223,7 +223,7 @@ void paint_fleet_orders(Gnode& parent, Fleet& fleet, const Colour& colour)
 	if(fleet.m_jump.m_state == Jump::Ordered)
 	{
 		vec3 start = fleet.m_jump.m_start_pos;
-		vec3 end = fleet.m_jump.m_dest_pos;
+		vec3 end = to_xz(vec2(fleet.m_jump.m_dest)) + 0.5f + Y3;
 		vec3 middle = (end + start) / 2.f + Y3 * 0.2f * length(end - start);
 		gfx::shape(parent, ArcLine(-start, start, middle, end), Symbol(colour));
 	}

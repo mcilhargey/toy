@@ -387,18 +387,17 @@ for(size_t i = 0; i < data.m_vertices.size(); ++i)
 ## textures
 A Texture in toy is an image file that has been uploaded to the GPU, ready to be used for rendering.
 toy uses the bimg library to load textures, which supports the following formats:
-- BMP
-- DDS
-- EXR
-- GIF
-- HDR
-- ICO
-- JPG
-- PNG
-- PSD
-- RAW
-- TARGA
-- TIFF
+- `.bmp`: input (Windows Bitmap)
+- `.dds`: input, output (Direct Draw Surface)
+- `.exr`: input, output (OpenEXR)
+- `.gif`: input (Graphics Interchange Format)
+- `.jpg`: input (JPEG Interchange Format)
+- `.hdr`: input, output (Radiance RGBE)
+- `.ktx`: input, output (Khronos Texture)
+- `.png`: input, output (Portable Network Graphics)
+- `.psd`: input (Photoshop Document)
+- `.pvr`: input (PowerVR)
+- `.tga`: input (Targa)
 
 A Texture is loaded explicitly with the following code:
 ```cpp

@@ -356,7 +356,7 @@ void generate_camps(BlockWorld& world)
 
 	for(size_t i = 0; i < 3; ++i)
 	{
-		Faction& faction = *world.m_factions[i];
+		Faction& faction = g_factions[i];
 
 		vec3 camp_position = offset + to_xz(vec2(corners[i])) * world.m_world_size + to_xz(margins[i]) * camp_radius;
 		Colour colour = hsl_to_rgb(random_scalar(0.f, 1.f), 1.f, random_scalar(0.5f, 0.7f));
@@ -367,7 +367,7 @@ void generate_camps(BlockWorld& world)
 		std::vector<vec3> tank_positions = distribute_poisson(vec2(camp_radius), 15.f);
 		for(const vec3& tank_position : tank_positions)
 		{
-			world.m_world.origin().construct<Tank>(camp_position + tank_position + Y3 * 20.f, faction);
+			world.m_world.origin().construct<Tank>(camp_position + tank_position + Y3 * 10.f, faction);
 		}
 	}
 }

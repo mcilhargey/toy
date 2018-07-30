@@ -210,9 +210,13 @@ void Human::next_frame(size_t tick, size_t delta)
 
 	m_energy = min(1.f, m_energy + delta * 0.01f);
 	m_discharge = max(0.f, m_discharge - delta * 0.05f);
+	
+	// @kludge in case that weird bug where we go through the scene geometry happens... put us back up
+	if(m_entity.m_position.y < -10.f)
+		m_entity.m_position.y = 10.f;
 
-	bool ia = m_faction == Faction::Ennemy;
-	ia = false;
+	bool ia = m_faction == Faction::Enemy;
+	//ia = false;
 	if(ia)
 	{
 		if(m_life <= 0.f)
@@ -509,9 +513,9 @@ void paint_human(Gnode& parent, Human& human)
 	}
 }
 
-void paint_block(Gnode& parent, TileBlock& block)
+void paint_world_block(Gnode& parent, TileBlock& block, const uvec3* exclude = nullptr)
 {
-	paint_tileblock(parent, Ref(&block.m_entity), block.m_wfc_block);
+	paint_tileblock(parent, Ref(&block.m_entity), block.m_wfc_block, uvec3(UINT_MAX), exclude);
 	if(!block.m_world_page.m_build_geometry)
 		block.m_world_page.m_build_geometry = [&](WorldPage& page) { build_block_geometry(*parent.m_scene, page, block); };
 }
@@ -557,43 +561,6 @@ void physic_painter(GameScene& scene)
 	});
 }
 
-template <class T, class T_Store>
-inline void range_entity_painter(VisuScene& scene, Entity& reference, float range, cstring name, T_Store& entities, void(*paint_func)(Gnode&, T&))
-{
-	auto paint = [&scene, &reference, range, &entities, paint_func](size_t index, VisuScene&, Gnode& parent)
-	{
-		float range2 = range*range;
-		for(Entity* entity : entities.store())
-		{
-			float dist2 = distance2(entity->m_position, reference.m_position);
-			if(dist2 < range2 && entity->isa<T>())
-				paint_func(scene.entity_node(parent, *entity, index), entity->as<T>());
-		}
-	};
-	scene.m_painters.emplace_back(make_unique<VisuPainter>(name, scene.m_painters.size(), paint));
-}
-
-void ex_platform_scene(GameShell& app, GameScene& scene)
-{
-	static OmniVision vision = { *scene.m_game.m_world };
-	//scene.m_camera.m_entity.set_position(Zero3);
-
-	//scene_painters(scene, vision.m_store);
-	scene.painter("World", [&](size_t index, VisuScene& scene, Gnode& parent) {
-		UNUSED(scene); paint_scene(parent.subi((void*)index));
-	});
-	
-	Entity& reference = val<Player>(scene.m_player).m_human->m_entity;
-	
-	range_entity_painter<Lamp>(scene, reference, 100.f, "Lamps", vision.m_store, paint_lamp);
-	range_entity_painter<Human>(scene, reference, 100.f, "Humans", vision.m_store, paint_human);
-	range_entity_painter<Crate>(scene, reference, 100.f, "Crates", vision.m_store, paint_crate);
-	range_entity_painter<TileBlock>(scene, reference, 200.f, "Tileblocks", vision.m_store, paint_block);
-	range_entity_painter<Bullet>(scene, reference, 100.f, "Bullets", vision.m_store, paint_bullet);
-
-	//physic_painter(scene);
-}
-
 vec3 find_fitting_player_location(WfcBlock& tileblock)
 {
 	vec3 center = vec3(tileblock.m_size) * 0.5f;
@@ -617,8 +584,28 @@ Style& menu_style()
 Style& button_style()
 {
 	static Style style = { "GameButton", styles().button, [](Layout& l) {},
-													  [](InkStyle& s) { s.m_empty = false; s.m_text_colour = Colour::AlphaWhite; s.m_text_size = 24.f; },
-													  [](Style& s) { s.decline_skin(HOVERED).m_text_colour = Colour::White; } };
+														  [](InkStyle& s) { s.m_empty = false; s.m_text_colour = Colour::AlphaWhite; s.m_text_size = 24.f; },
+														  [](Style& s) { s.decline_skin(HOVERED).m_text_colour = Colour::White; } };
+	return style;
+}
+
+Style& health_bar_style()
+{
+	static Style style = { "HealthBar", styles().filler, [](Layout& l) { l.m_space = { READING, WRAP, FIXED }; l.m_size = { 0.f, 10.f }; },
+														 [](InkStyle& s) { s.m_empty = false; s.m_background_colour = Colour::Red; } };
+	return style;
+}
+
+Style& energy_bar_style()
+{
+	static Style style = { "EnergyBar", styles().filler, [](Layout& l) { l.m_space = { READING, WRAP, FIXED }; l.m_size = { 0.f, 10.f }; },
+														 [](InkStyle& s) { s.m_empty = false; s.m_background_colour = Colour::Blue; } };
+	return style;
+}
+
+Style& row_bar_style()
+{
+	static Style style = { "RowBar", styles().row, [](Layout& l) { l.m_spacing = vec2(20.f); } };
 	return style;
 }
 
@@ -630,10 +617,10 @@ Style& screen_style()
 
 Style& left_panel_style(UiWindow& ui_window)
 {
-	static ImageSkin skin = { *ui_window.find_image("graphic/blue_on"), 46, 28, 38, 30 };
+	//static ImageSkin skin = { *ui_window.find_image("graphic/blue_on"), 46, 28, 38, 30 };
 	
-	static Style style = { "GameMenu", styles().wedge, [](Layout& l) { l.m_space = UNIT; l.m_align = { LEFT, CENTER }; l.m_padding = vec4(30.f); l.m_spacing = vec2(30.f); },
-													   [](InkStyle& s) { s.m_empty = false; s.m_image_skin = skin; } };
+	static Style style = { "LeftPanel", styles().wedge, [](Layout& l) { l.m_space = { PARAGRAPH, WRAP, FIXED }; l.m_size = { 450.f, 0.f }; l.m_align = { LEFT, CENTER }; l.m_padding = vec4(30.f); l.m_spacing = vec2(30.f); } };
+													   //[](InkStyle& s) { s.m_empty = false; s.m_image_skin = skin; } };
 	return style;
 }
 
@@ -675,7 +662,7 @@ void ex_platform_game_hud(Viewer& viewer, GameScene& scene, Human& human)
 	//Widget& screen = ui::screen(viewer);
 	Widget& screen = ui::widget(viewer, style_screen);
 
-	ui::OrbitMode mode = ui::OrbitMode::ThirdPerson;
+	ui::OrbitMode mode = val<Player>(scene.m_player).m_mode;
 	OrbitController& orbit = ui::hybrid_controller(viewer, mode, human.m_entity, human.m_aiming, human.m_vangle);
 
 	Widget& board = ui::board(screen);
@@ -710,7 +697,16 @@ void ex_platform_game_hud(Viewer& viewer, GameScene& scene, Human& human)
 		if(viewer.key_event(KC_LCONTROL, EventType::Pressed))
 			human.m_shield = !human.m_shield;
 
-		ui::fill_bar(left_panel, human.m_life);
+		auto bar = [](Widget& parent, Style& style, cstring icon, float ratio)
+		{
+			Widget& row = ui::widget(parent, row_bar_style());// row(parent);
+			ui::icon(row, icon);
+			ui::widget(row, style);
+			//ui::fill_bar(row, ratio);
+		};
+
+		bar(left_panel, health_bar_style(), "(health64)", human.m_life);
+		bar(left_panel, energy_bar_style(), "(energy64)", human.m_energy);
 	}
 
 	if(human.m_life <= 0.f)
@@ -786,9 +782,22 @@ void ex_platform_menu(Widget& parent, Game& game)
 
 	ui::icon(menu, "(toy)");
 
-	if(ui::button(menu, button_style(), "Start game").activated())
+	if(ui::button(menu, button_style(), "Start (Isometric)").activated())
 	{
 		ex_platform_start(*game.m_shell, game);
+		val<Player>(game.m_player).m_mode = ui::OrbitMode::Isometric;
+	}
+
+	if(ui::button(menu, button_style(), "Start (3rd Person)").activated())
+	{
+		ex_platform_start(*game.m_shell, game);
+		val<Player>(game.m_player).m_mode = ui::OrbitMode::ThirdPerson;
+	}
+
+	if(ui::button(menu, button_style(), "Start (Pseudo Isometric)").activated())
+	{
+		ex_platform_start(*game.m_shell, game);
+		val<Player>(game.m_player).m_mode = ui::OrbitMode::PseudoIsometric;
 	}
 
 	ui::button(menu, button_style(), "Continue game");
@@ -838,6 +847,7 @@ void ex_platform_init(GameShell& app, Game& game)
 	app.m_gfx_system->add_resource_path("examples/05_character/");
 	app.m_gfx_system->add_resource_path("examples/17_wfc/");
 
+#ifdef SCRIPTED_IA
 	LocatedFile location = app.m_gfx_system->locate_file("scripts/enemy_ai.lua");
 
 	if(location.m_name != nullptr)
@@ -845,6 +855,7 @@ void ex_platform_init(GameShell& app, Game& game)
 		LuaScript& script = app.m_editor.m_script_editor.create_script("enemy_ai");
 		script.m_script = read_text_file(std::string(location.m_location) + location.m_name);
 	}
+#endif
 }
 
 void ex_platform_start(GameShell& app, Game& game)
@@ -864,6 +875,63 @@ void ex_platform_start(GameShell& app, Game& game)
 	game.m_player = Ref(&player);
 
 	tileworld.generate_block(*app.m_gfx_system, ivec2(0));
+}
+
+template <class T, class T_Store, class T_PaintFunc>
+inline void range_entity_painter(VisuScene& scene, Entity& reference, float range, cstring name, T_Store& entities, T_PaintFunc paint_func)
+{
+	auto paint = [&scene, &reference, range, &entities, paint_func](size_t index, VisuScene&, Gnode& parent)
+	{
+		float range2 = range*range;
+		for(Entity* entity : entities.store())
+		{
+			float dist2 = distance2(entity->m_position, reference.m_position);
+			if(dist2 < range2 && entity->isa<T>())
+				paint_func(scene.entity_node(parent, *entity, index), entity->as<T>());
+		}
+	};
+	scene.m_painters.emplace_back(make_unique<VisuPainter>(name, scene.m_painters.size(), paint));
+}
+
+void ex_platform_scene(GameShell& app, GameScene& scene)
+{
+	static OmniVision vision = { *scene.m_game.m_world };
+	//scene.m_camera.m_entity.set_position(Zero3);
+
+	//scene_painters(scene, vision.m_store);
+	scene.painter("World", [&](size_t index, VisuScene& scene, Gnode& parent) {
+		UNUSED(scene); paint_scene(parent.subi((void*)index));
+	});
+
+	Player& player = val<Player>(scene.m_player);
+	Entity& reference = player.m_human->m_entity;
+
+	auto paint_hole_block = [&](Gnode& parent, TileBlock& block)
+	{
+#ifndef MUD_PLATFORM_EMSCRIPTEN
+		if(block.contains(player.m_human->m_entity.m_position))
+		{
+			// cut a hole of 6x6 tiles above the character
+			uvec3 coord = block.m_wfc_block.to_coord(player.m_human->m_entity.m_position);
+			uvec3 y = uvec3(0, 1, 0);
+			uvec3 lohi[2] = { { coord + y - min(uvec3(6, 0, 6), coord) },
+							  { coord + y + uvec3(6, 0, 6)} };
+			paint_world_block(parent, block, lohi);
+		}
+		else
+#endif
+		{
+			paint_world_block(parent, block);
+		}
+	};
+
+	range_entity_painter<Lamp>(scene, reference, 100.f, "Lamps", vision.m_store, paint_lamp);
+	range_entity_painter<Human>(scene, reference, 100.f, "Humans", vision.m_store, paint_human);
+	range_entity_painter<Crate>(scene, reference, 100.f, "Crates", vision.m_store, paint_crate);
+	range_entity_painter<TileBlock>(scene, reference, 200.f, "Tileblocks", vision.m_store, paint_hole_block);
+	range_entity_painter<Bullet>(scene, reference, 100.f, "Bullets", vision.m_store, paint_bullet);
+
+	//physic_painter(scene);
 }
 
 void ex_platform_pump(GameShell& app, Game& game, Widget& parent, Dockbar* dockbar = nullptr)

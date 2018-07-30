@@ -40,6 +40,8 @@ Faction::~Faction()
 	unindex(type<Faction>(), m_id);
 }
 
+std::vector<Faction> g_factions;
+
 Well::Well(Id id, Entity& parent, const vec3& position)
 	: Complex(id, type<Tank>(), m_emitter, *this)
 	, m_entity(id, *this, parent, position, ZeroQuat)
@@ -95,11 +97,12 @@ void Shield::next_frame(size_t tick, size_t delta)
 	m_charge = min(1.f, m_charge + 0.01f);
 }
 
-Slug::Slug(Entity& parent, const vec3& source, const quat& rotation, const vec3& velocity)
+Slug::Slug(Entity& parent, const vec3& source, const quat& rotation, const vec3& velocity, float power)
 	: Complex(0, type<Slug>(), *this)
 	, m_entity(0, *this, parent, source, rotation)
 	, m_source(source)
 	, m_velocity(velocity)
+	, m_power(power)
 	//, m_solid(m_entity, *this, Sphere(0.1f), SolidMedium::me, CollisionGroup(CM_ENERGY), false, 1.f)
 	, m_collider(m_entity, *this, Sphere(0.1f), SolidMedium::me, CollisionGroup(CM_ENERGY))
 {}
@@ -125,13 +128,15 @@ void Slug::update()
 			m_impacted = true;
 			m_impact = collision.m_hit_point;
 
-			hit->as<Tank>().m_control = false;
+			hit->as<Tank>().m_shock += 1.f;
 			hit->as<Tank>().m_hitpoints -= 25.f;
 
+			vec3 location = Zero3;//rotate(inverse(m_entity.m_rotation), m_impact - m_entity.m_position);
+
 			if(hit->as<Tank>().m_hitpoints < 0.f)
-				hit->as<Tank>().m_solid.m_impl->impulse(Y3 * 100.f, Zero3);
+				hit->as<Tank>().m_solid.m_impl->impulse(Y3 * 100.f * m_power, location);
 			else
-				hit->as<Tank>().m_solid.m_impl->impulse(m_velocity * 10.f, Zero3);
+				hit->as<Tank>().m_solid.m_impl->impulse((m_velocity + Y3 * 10.f) * m_power, location);
 		}
 
 		if(hit->isa<Shield>())
@@ -165,6 +170,8 @@ Tank::Tank(Id id, Entity& parent, const vec3& position, Faction& faction)
 
 	m_emitter.add_sphere(VisualMedium::me, 0.1f);
 	m_receptor.add_sphere(VisualMedium::me, 100.f);
+	
+	m_shock = 1.f;
 }
 
 Tank::~Tank()
@@ -176,13 +183,8 @@ void Tank::next_frame(size_t tick, size_t delta)
 {
 	UNUSED(tick);
 
-	vec3 linvel = m_solid.m_impl->linear_velocity();
-	bool moving = any(greater(linvel, vec3(0.01f)));
-	if(!m_control && !moving)
-		m_control = true;
-
-	//m_solid.m_impl->set_force(rotate(m_entity.m_rotation, m_force));
-	//m_solid.m_impl->set_torque(m_torque);
+	m_shock = max(0.f, m_shock - 0.01f * float(delta));
+	bool control = m_shock == 0.f;
 
 	m_energy = min(100.f, m_energy + delta * .1f);
 
@@ -196,7 +198,7 @@ void Tank::next_frame(size_t tick, size_t delta)
 	if(!m_ia)
 		return;
 
-	if(m_control && m_hitpoints > 0.f)
+	if(control && m_hitpoints > 0.f)
 	{
 		m_target = nullptr;
 
@@ -229,21 +231,23 @@ void Tank::next_frame(size_t tick, size_t delta)
 		Tank* leader = m_faction.m_leader;
 		if(leader && !m_target && distance(leader->m_entity.m_position, m_entity.m_position) > 50.f)
 			m_dest = leader->m_entity.m_position;
-
+		
 		if(m_dest != Zero3)
 		{
-			if(steer_2d(m_movable, m_dest, 15.f, float(delta) * float(c_tick_interval), m_range))
+			if(!steer_2d(m_movable, m_dest, 15.f, float(delta) * float(c_tick_interval), m_range))
+				m_movable.set_linear_velocity(m_movable.m_linear_velocity - Y3 * 1.f);
+			else
 				m_dest = Zero3;
 		}
 	}
 	else
 	{
-		m_movable.m_linear_velocity = Zero3;
+		//m_movable.set_linear_velocity(-Y3 * 1.f);
 		m_dest = Zero3;
 	}
 }
 
-void Tank::shoot()
+void Tank::shoot(bool critical)
 {
 	static const vec3 tank_muzzle = { 0.f, 1.75f, -3.7f };
 
@@ -255,7 +259,7 @@ void Tank::shoot()
 	vec3 velocity = this->turret_direction() * 5.f;
 	quat rotation = this->turret_rotation();
 
-	m_slugs.emplace_back(make_object<Slug>(m_entity, m_entity.m_position + rotate(rotation, tank_muzzle), rotation, velocity));
+	m_slugs.emplace_back(make_object<Slug>(m_entity, m_entity.m_position + rotate(rotation, tank_muzzle), rotation, velocity, critical ? 10.f : 1.f));
 }
 
 BlockWorld::BlockWorld(const std::string& name)
@@ -268,12 +272,7 @@ BlockWorld::BlockWorld(const std::string& name)
 	, m_tile_scale(10.f, 4.f, 10.f)
 	, m_block_size(vec3(m_block_subdiv) * m_tile_scale)
 	, m_world_size(m_block_size)
-{
-	TPool<Faction>& pool = global_pool<Faction>();
-	m_factions.push_back(&pool.construct(0, Colour::Red));
-	m_factions.push_back(&pool.construct(0, Colour::Pink));
-	m_factions.push_back(&pool.construct(0, Colour::Cyan));
-}
+{}
 
 BlockWorld::~BlockWorld()
 {
@@ -297,7 +296,7 @@ void BlockWorld::generate_block(GfxSystem& gfx_system, const ivec2& coord)
 
 Player::Player(BlockWorld& world)
 	: m_world(&world)
-	, m_tank(0, world.m_world.origin(), Y3 * 20.f, *world.m_factions[0])
+	, m_tank(0, world.m_world.origin(), Y3 * 20.f, g_factions[0])
 {
 	m_tank.m_faction.m_leader = &m_tank;
 	m_tank.m_ia = false;
@@ -498,7 +497,8 @@ void paint_block_wire(Gnode& parent, Block& block)
 
 void paint_block(Gnode& parent, TileBlock& block)
 {
-	paint_tileblock(parent, Ref(&block.m_entity), block.m_wfc_block);
+	if(block.m_wfc_block.m_wave.m_solved)
+		paint_tileblock(parent, Ref(&block.m_entity), block.m_wfc_block);
 }
 
 void paint_scene(Gnode& parent, bool radiance)
@@ -599,6 +599,15 @@ Style& menu_style()
 	return style;
 }
 
+#if 1
+Style& button_style(UiWindow& ui_window)
+{
+	static Style style = { "GameButton", styles().button, [](Layout& l) {},
+														  [](InkStyle& s) { s.m_empty = false; s.m_text_colour = Colour::AlphaWhite; s.m_text_size = 24.f; },
+														  [](Style& s) { s.decline_skin(HOVERED).m_text_colour = Colour::White; } };
+	return style;
+}
+#else
 Style& button_style(UiWindow& ui_window)
 {
 	static ImageSkin skin = { *ui_window.find_image("graphic/red_off"), 46, 28, 38, 30 };
@@ -609,6 +618,7 @@ Style& button_style(UiWindow& ui_window)
 														  [](Style& s) { s.decline_skin(HOVERED).m_text_colour = Colour::White; s.decline_skin(HOVERED).m_image_skin = skin_focused; } };
 	return style;
 }
+#endif
 
 Style& label_style()
 {
@@ -629,7 +639,7 @@ void ex_blocks_game_ui(Widget& parent, GameScene& scene)
 	orbit.set_target(player.m_tank.m_entity.m_position);
 
 #ifdef TOY_SOUND
-	scene.m_snd_manager.m_listener.setTransform(viewer.m_camera.m_node.m_position, viewer.m_camera.m_node.m_rotation);
+	scene.m_snd_manager.m_listener.setTransform(viewer.m_camera.m_eye, look_at(viewer.m_camera.m_eye, viewer.m_camera.m_target));
 #endif
 
 	Ray ray = viewer.mouse_ray();
@@ -642,10 +652,10 @@ void ex_blocks_game_ui(Widget& parent, GameScene& scene)
 	if(KeyEvent key_event = viewer.key_event(KC_LCONTROL))
 		player.m_tank.m_stealth = !player.m_tank.m_stealth;
 
-	if(MouseEvent mouse_event = viewer.mouse_event(DeviceType::MouseLeft, EventType::Stroked))
+	if(MouseEvent mouse_event = viewer.mouse_event(DeviceType::MouseLeft, EventType::Stroked, InputModifier::Any))
 	{
 		viewer.take_focus();
-		player.m_tank.shoot();
+		player.m_tank.shoot(viewer.root_sheet().m_keyboard.m_shift);
 	}
 
 	static vec3 destination = Zero3;
@@ -696,17 +706,31 @@ Viewer& ex_blocks_menu_viewport(Widget& parent, GameShell& app)
 	paint_viewer(viewer);
 	paint_scene(scene, false);
 
-	static Model& tank_base = *viewer.m_scene->m_gfx_system.models().file("scifi_tank_base");
-	static Model& tank_turret = *viewer.m_scene->m_gfx_system.models().file("scifi_tank_turret");
-
 	static Clock clock;
 
-	Gnode& node = gfx::node(scene, {}, -Y3 * 0.2f + X3 * 0.3f, angle_axis(fmod(clock.read() / 2.f, 2.f * c_pi), Y3), Unit3 * 0.2f);
-	//gfx::shape(node, Cube(), Symbol());
-	gfx::item(node, tank_base);
-	gfx::item(node, tank_turret);
-	
-	//toy::sound(node, "complexambient", true);
+	viewer.m_camera.m_target = vec3(5.f, 0.f, -2.5f);
+	viewer.m_camera.m_eye = viewer.m_camera.m_target + vec3(-1.5f, 1.0f, -0.5f) * (10.f + sinf(float(clock.read()) * 0.1f));
+
+	static DefaultWorld world = { "" };
+	static Origin root = { 0, world.m_world };
+
+	static Tank tank0 = { 0, root.m_entity, Zero3, g_factions[0] };
+	static Tank tank1 = { 0, root.m_entity, X3 * 10.f, g_factions[1] };
+	static Tank tank2 = { 0, root.m_entity, Z3 * 10.f, g_factions[2] };
+
+	static bool once = false;
+	if(!once)
+	{
+		tank0.m_entity.rotate(Y3, c_pi * 0.25f);
+		tank1.m_entity.rotate(Y3, c_pi * 0.25f);
+		tank2.m_entity.rotate(Y3, c_pi * 0.25f);
+		once = true;
+	}
+
+	auto paint = [&](Tank& tank) { Gnode& node = gfx::node(scene, {}, tank.m_entity.m_position, tank.m_entity.m_rotation); paint_tank(node, tank); };
+	paint(tank0);
+	paint(tank1);
+	paint(tank2);
 
 	return viewer;
 }
@@ -746,6 +770,10 @@ void ex_blocks_init(GameShell& app, Game& game)
 {
 	UNUSED(game);
 	app.m_gfx_system->add_resource_path("examples/ex_blocks/");
+
+	g_factions.emplace_back(0, Colour::Red);
+	g_factions.emplace_back(0, Colour::Pink);
+	g_factions.emplace_back(0, Colour::Cyan);
 }
 
 void ex_blocks_start(GameShell& app, Game& game)

@@ -65,7 +65,7 @@ public:
 enum class refl_ Faction
 {
 	Ally,
-	Ennemy
+	Enemy
 };
 
 struct refl_ Aim
@@ -170,4 +170,5 @@ public:
 	
 	TileWorld* m_world;
 	Human* m_human = nullptr;
+	ui::OrbitMode m_mode = ui::OrbitMode::ThirdPerson;
 };

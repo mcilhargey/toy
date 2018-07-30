@@ -112,17 +112,12 @@ bool select_parsec(Widget& parent, Viewer& viewer, Galaxy& galaxy, uvec2& hover,
 	return false;
 }
 
-void jump_action(Fleet& fleet, vec2 coord, FleetStance stance)
-{
-	fleet.order_jump(coord, stance);
-}
-
 struct JumpQuery : public NodeState
 {
 	JumpQuery() {}
 	size_t m_step = 0;
-	uvec2 m_hover = uvec2(0);
-	uvec2 m_coord = uvec2(0);
+	uvec2 m_hover = uvec2(UINT_MAX);
+	uvec2 m_coord = uvec2(UINT_MAX);
 	FleetStance m_stance = FleetStance::Movement;
 };
 
@@ -156,6 +151,9 @@ void jump_query(Widget& parent, Viewer& viewer, Fleet& fleet, uint32_t mode)
 	Widget& modal = ui::popup(self, styles().modal, ui::PopupFlags::None);
 	JumpQuery& query = self.state<JumpQuery>();
 
+	if(&modal == parent.root_sheet().m_hovered)
+		query.m_hover = uvec2(UINT_MAX);
+
 	ui::label(modal, "Jump");
 	ui::label(modal, ("to [" + to_string(query.m_coord) + "]").c_str());
 
@@ -171,7 +169,11 @@ void jump_query(Widget& parent, Viewer& viewer, Fleet& fleet, uint32_t mode)
 	if(ui::button(modal, "Done").activated())	
 		parent.m_switch &= ~mode;
 
-	draw_jump_hover(viewer.m_scene->m_graph, fleet.m_entity.m_position, query.m_hover, fleet.m_commander->m_colour);
+	if(query.m_hover != uvec2(UINT_MAX))
+	{
+		uint16_t magic = 16; // @kludge: we probably have less than 16 painters, so safe
+		draw_jump_hover(viewer.m_scene->m_graph.subx(magic), fleet.m_entity.m_position, query.m_hover, fleet.m_commander->m_colour);
+	}
 }
 
 void split_query(Widget& parent, Fleet& fleet, uint32_t mode)
@@ -472,13 +474,18 @@ void technology_sheet(Widget& parent, Commander& commander)
 	}
 }
 
+void turn_report_stage_events(Widget& parent, Turn& turn, Commander& commander, TurnStage stage)
+{
+	for(const TurnEvents::Item& item : turn.m_events[&commander].m_items[size_t(stage)])
+	{
+		ui::item(parent, event_style(), item.m_summary.c_str());
+	}
+}
+
 void turn_report_stage(Widget& parent, Turn& turn, Commander& commander, TurnStage stage)
 {
 	Widget& self = sheet(parent, "Events");
-	for(const TurnEvents::Item& item : turn.m_events[&commander].m_items[size_t(stage)])
-	{
-		ui::item(self, event_style(), item.m_summary.c_str());
-	}
+	turn_report_stage_events(self, turn, commander, stage);
 }
 
 void turn_report_divisions(Widget& parent, Turn& turn)
@@ -649,13 +656,28 @@ void turn_report_planetary_combats(Widget& parent, GameScene& scene, Turn& turn)
 	else
 	{
 		turn.next_stage();
+		turn.next_stage();
+		turn.next_stage();
+		turn.next_stage();
+		turn.next_stage();
 	}
 }
 
-void turn_report_constructions(Widget& parent, Player& player, Turn& turn)
+void turn_report_systems(Widget& parent, Player& player, Turn& turn)
 {
-	sheet(parent, "Constructions");
-	turn_report_stage(parent, turn, *player.m_commander, TurnStage::Constructions);
+	//sheet(parent, "Systems");
+
+	Widget& self = sheet(parent, "Events");
+	turn_report_stage_events(self, turn, *player.m_commander, TurnStage::Systems);
+	turn_report_stage_events(self, turn, *player.m_commander, TurnStage::Constructions);
+	turn_report_stage_events(self, turn, *player.m_commander, TurnStage::Fleets);
+	turn_report_stage_events(self, turn, *player.m_commander, TurnStage::Technology);
+	turn_report_stage_events(self, turn, *player.m_commander, TurnStage::Scans);
+
+	if(ui::button(parent, "Next Turn").activated())
+	{
+		player.m_mode = GameStage::Empire;
+	}
 }
 
 void turn_report_sheet(Widget& parent, GameScene& scene, Player& player, Turn& turn, Commander& commander)
@@ -673,14 +695,14 @@ void turn_report_sheet(Widget& parent, GameScene& scene, Player& player, Turn& t
 		turn_report_spatial_combats(parent, scene, turn);
 	else if(turn.m_stage == TurnStage::PlanetaryCombats)
 		turn_report_planetary_combats(parent, scene, turn);
-	else if(turn.m_stage == TurnStage::Systems)
-		turn_report_stage(parent, turn, *player.m_commander, TurnStage::Systems);
-	else if(turn.m_stage == TurnStage::Constructions)
-		turn_report_constructions(parent, player, turn);
-	//else if(turn.m_state == TurnStage::Revolts)
+	else if(turn.m_stage >= TurnStage::Systems)
+		turn_report_systems(parent, player, turn);
+	//else if(turn.m_stage == TurnStage::Constructions)
+	//	turn_report_constructions(parent, player, turn);
+	//else if(turn.m_stage == TurnStage::Fleets)
 	//	turn_report_divisions(parent, *player.m_galaxy, turn);
-	else if(turn.m_stage == TurnStage::Technology)
-		turn_report_stage(parent, turn, *player.m_commander, TurnStage::Technology);
+	//else if(turn.m_stage == TurnStage::Technology)
+	//	turn_report_stage(parent, turn, *player.m_commander, TurnStage::Technology);
 	//else if(turn.m_state == TurnStage::Payments)
 	//	turn_report_divisions(parent, *player.m_galaxy, turn);
 
@@ -693,7 +715,7 @@ static void game_actions(Widget& parent, Player& player)
 {
 	Widget& self = sheet(parent, "Actions");
 
-	if(ui::button(self, "Next Turn").activated())
+	if(ui::button(self, "End Turn").activated())
 	{
 		player.m_last_turn = { *player.m_galaxy };
 		player.m_turn_replay = { *player.m_galaxy };
@@ -725,8 +747,12 @@ static void game_viewer_ui(Viewer& viewer, GameScene& scene, Player& player)
 	Widget& self = ui::screen(viewer);
 
 	Widget& header = ui::header(self);
+	GameStage mode = player.m_mode;
 	shrink_switch(header, carray<cstring, 3>{ "Empire", "Tactics", "Turn Report" }, (size_t&) player.m_mode);
 	
+	if(mode == GameStage::TurnReport || (player.m_mode == GameStage::TurnReport && mode != player.m_mode))
+		player.m_mode = mode;
+
 	struct Divs
 	{
 		Divs(Widget& parent)

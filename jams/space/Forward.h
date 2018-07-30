@@ -40,6 +40,7 @@
 #define _SPACE_EXPORT MUD_IMPORT
 #endif
 
+#include <cstddef>
 
     enum class GameStage : size_t;
     enum class Race : unsigned int;

@@ -557,11 +557,7 @@ public:
 struct refl_ _SPACE_EXPORT Jump
 {
 	Jump() : m_state(None) {}
-	Jump(Fleet& fleet, uvec2 start, uvec2 dest, FleetStance stance, size_t tick)
-		: m_fleet(&fleet), m_start(start), m_dest(dest), m_stance(stance), m_state(Ordered), m_state_updated(tick)
-		, m_start_pos(to_xz(vec2(start)) + 0.5f + Y3)
-		, m_dest_pos(to_xz(vec2(dest)) + 0.5f + Y3)
-	{}
+	Jump(Fleet& fleet, uvec2 start, uvec2 dest, FleetStance stance, size_t tick);
 
 	enum State : unsigned int
 	{

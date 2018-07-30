@@ -22,9 +22,9 @@ namespace mud
         static Meta meta = { type<Faction>(), &namspc({}), "Faction", sizeof(Faction), TypeClass::Enum };
         static Enum enu = { type<Faction>(),
             true,
-            { "Ally", "Ennemy" },
+            { "Ally", "Enemy" },
             { 0, 1 },
-            { var(Faction::Ally), var(Faction::Ennemy) }
+            { var(Faction::Ally), var(Faction::Enemy) }
         };
         meta_enum<Faction>();
     }

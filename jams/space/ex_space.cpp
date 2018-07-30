@@ -349,7 +349,7 @@ void update_stability(Turn& turn, Commander& commander, Star& star)
 
 void sustain_fleet(Turn& turn, Commander& commander, Fleet& fleet)
 {
-	float upkeep_factor = (100.f + eco_energy(commander.level(Technology::EcoEnergy)) / 100.f);
+	float upkeep_factor = (100.f + eco_energy(commander.level(Technology::EcoEnergy))) / 100.f;
 	float upkeep = fleet.m_upkeep * upkeep_factor;
 	commander.m_centaures -= upkeep;
 	turn.add_item(TurnStage::Fleets, commander, "Fleet " + fleet.m_name + " sustenance cost " + truncate_number(to_string(upkeep)) + "C");
@@ -756,6 +756,12 @@ static inline Jump::State jump_end(Fleet& fleet, float elapsed) { UNUSED(fleet);
 using StateFunc = Jump::State(*)(Fleet&, float);
 static constexpr StateFunc s_fleet_states[5] = { jump_none, jump_ordered, jump_start, jump_warp, jump_end };
 
+Jump::Jump(Fleet& fleet, uvec2 start, uvec2 dest, FleetStance stance, size_t tick)
+	: m_fleet(&fleet), m_start(start), m_dest(dest), m_stance(stance), m_state(Ordered), m_state_updated(tick)
+	, m_start_pos(fleet.m_entity.m_position)
+	, m_dest_pos(to_xz(vec2(dest)) + 0.5f + Y3)
+{}
+
 void Jump::update(Fleet& fleet, size_t tick)
 {
 	float elapsed = float((tick - m_state_updated) * c_tick_interval);
@@ -1007,6 +1013,15 @@ Style& menu_style()
 	return style;
 }
 
+#if 1
+Style& button_style(UiWindow& ui_window)
+{
+	static Style style = { "GameButton", styles().button, [](Layout& l) {},
+														  [](InkStyle& s) { s.m_empty = false; s.m_text_colour = Colour::AlphaWhite; s.m_text_size = 24.f; },
+														  [](Style& s) { s.decline_skin(HOVERED).m_text_colour = Colour::White; } };
+	return style;
+}
+#else
 Style& button_style(UiWindow& ui_window)
 {
 	static ImageSkin skin = { *ui_window.find_image("graphic/blue_off"), 46, 28, 38, 30 };
@@ -1017,6 +1032,7 @@ Style& button_style(UiWindow& ui_window)
 														  [](Style& s) { s.decline_skin(HOVERED).m_text_colour = Colour::White; s.decline_skin(HOVERED).m_image_skin = skin_focused; } };
 	return style;
 }
+#endif
 
 Viewer& ex_space_menu_viewport(Widget& parent, GameShell& app)
 {

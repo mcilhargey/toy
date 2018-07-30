@@ -52,6 +52,8 @@ public:
 	static const size_t s_max_factions = 10U;
 };
 
+export_ extern _BLOCKS_EXPORT std::vector<Faction> g_factions;
+
 class refl_ _BLOCKS_EXPORT Camp : public Complex
 {
 public:
@@ -85,13 +87,14 @@ public:
 class refl_ _BLOCKS_EXPORT Slug : public Complex, public ColliderObject
 {
 public:
-	Slug(Entity& parent, const vec3& source, const quat& rotation, const vec3& velocity);
+	Slug(Entity& parent, const vec3& source, const quat& rotation, const vec3& velocity, float power = 1.f);
 	~Slug();
 
 	comp_ attr_ Entity m_entity;
 
 	attr_ vec3 m_source;
 	attr_ vec3 m_velocity;
+	attr_ float m_power = 1.f;
 
 	bool m_impacted = false;
 	bool m_destroy = false;
@@ -129,7 +132,7 @@ public:
 	float m_range = 50.f;
 
 	bool m_stealth = false;
-	bool m_control = true;
+	float m_shock = 0.f;
 
 	Tank* m_target = nullptr;
 	vec3 m_dest = Zero3;
@@ -140,7 +143,7 @@ public:
 
 	void next_frame(size_t tick, size_t delta);
 
-	void shoot();
+	void shoot(bool critical = false);
 
 	inline quat turret_rotation() { return m_turret_angle; } //quat(vec3(0.f, m_turret_angle, 0.f)); }
 	inline vec3 turret_direction() { return rotate(turret_rotation(), -Z3); }
@@ -162,8 +165,6 @@ public:
 
 	attr_ vec3 m_world_size;
 	
-	std::vector<Faction*> m_factions;
-
 	std::map<ivec2, TileBlock*> m_blocks;
 	TileBlock* m_center_block = nullptr;
 

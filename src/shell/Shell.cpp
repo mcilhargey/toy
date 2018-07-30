@@ -191,7 +191,7 @@ using namespace mud; namespace toy
 	void GameShell::run_game(GameModule& module, size_t iterations)
 	{
 		this->load(module);
-		this->start_game();
+		//this->start_game();
 		m_pump = [&]() { this->pump_game(); };
 		this->run(iterations);
 	}
@@ -207,7 +207,7 @@ using namespace mud; namespace toy
 	void GameShell::run_game(const string& module_name, size_t iterations)
 	{
 		this->load(module_name);
-		this->start_game();
+		//this->start_game();
 		m_pump = [&]() { this->pump_game(); };
 		this->run(iterations);
 	}
