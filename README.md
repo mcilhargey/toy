@@ -13,18 +13,6 @@ As a collection of game programming **building blocks**, it also aims to foster 
 
 On top of these fundamentals, toy adds plenty of game programming systems such as physics, a navigation system, procedural generation algorithms, many tools, and more.
 
-# examples
-here are 3 live toy demo games: a [strategic space sim game](), a [tanks real time strategy game](), and a [procedural platformer]() game.
-
-they were designed to showcase toy strongest features, and aspects that are notably hard to achieve using other engines:
-- real-time procedural generation of world geometry
-- complex user interfaces intertwined with game logic
-- code-based dynamic rendering of thousands of instances
-- custom rendering paths and custom shaders
-- physics based game logic
-
-each of these examples is written in less than a hundred lines of code and the source is fully available: reading these examples is the first place to start learning how to write a game with toy.
-
 # overview
 overarching principles:
 - **simple and lightweight**, simplicity is the ultimate aim and philosophy behind toy. the codebase is about one-tenth the size of competing engines, and toy is so light, the whole editor runs flawlessly in your browser !
@@ -45,6 +33,18 @@ features:
 - entity
 - physics
 - navigation
+
+# examples
+here are 3 live toy demo games: a [strategic space sim game](), a [tanks real time strategy game](), and a [procedural platformer]() game.
+
+they were designed to showcase toy strongest features, and aspects that are notably hard to achieve using other engines:
+- real-time procedural generation of world geometry
+- complex user interfaces intertwined with game logic
+- code-based dynamic rendering of thousands of instances
+- custom rendering paths and custom shaders
+- physics based game logic
+
+each of these examples is written in less than a hundred lines of code and the source is fully available: reading these examples is the first place to start learning how to write a game with toy.
 
 # how to build
 
