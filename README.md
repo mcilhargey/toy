@@ -27,15 +27,14 @@ each of these examples is written in less than a hundred lines of code and the s
 
 # overview
 overarching principles:
-- **simple and lightweight**, simplicity is the ultimate aim and philosophy behind toy, and toy is so lightweight, even the engine editor can be run on the web
-- **modular**, each functionality is enclosed in a small, simple, easy to understand code building block
-- **extensible**, as a collection of modules, toy can be used to build your own game technology out of a subset of components fitting your use case, complemented by your own functionalities
-- **game code first**, toy is first and foremost meant to write games in native c++ code, directly, effortlessly, in direct contact with the fundamental systems
-- **versatile**, typical engines are often biased towards specific kinds of games (platformers, shooters), toy on the other hand has been designed from the start with unconventional or complex games in mind, such as *real time strategy games* or *role playing games*. this is mostly enabled by its emphasis on native game code, and the powerful user interface and rendering systems.
-- **tools second**, reflection automatically extends your game core code for seamless scripting, editing, inspection of your game objects, types and procedures in the built-in tools/editor. 
-- **custom tools**, the modularity coupled with the beauty of the reflection and ui system, makes writing your own tools one of the strikingly easy things enabled by toy
-- **educative**, toy is meant to be taken apart and studied, each technical solution aims to be a "most common denominator", a potential example of a minimal solution to a given problem
-- **fast iteration**, providing seamless bindings of both built-in systems and game code to various scripting languages, as well as an experimental hot-reload of native code, the aim is to bring iteration speed to the maximum possible
+- **simple and lightweight**, simplicity is the ultimate aim and philosophy behind toy. the codebase is about one-tenth the size of competing engines, and toy is so light, the whole editor runs flawlessly in your browser !
+- **modular**, each functionality is enclosed in a small, simple, easy to understand code building block. most of these blocks lie in the underlying mud library.
+- **extensible**, as a collection of modules, toy is a perfect fit to build your own game technology, keeping full control over the components you use, the application design and the control flow.
+- **game code first**, toy is first and foremost meant to build games in native c++ code, in direct contact with the core systems. this allows for much greater control than typical scripting in-engine.
+- **versatile**, toy is designed from the start with complex games in mind, such as strategy or role playing games, by giving full control over its powerful user interface and rendering systems.
+- **zero-cost tools**, reflection automatically extends your game core code for seamless scripting, editing, inspection of your game objects, types and procedures in the built-in tools/editor.
+- **educative**, toy aims to provide simplest technical solutions to typical game programming problems, to be easily studied and understood, hoping to be a driver of education on game development topics.
+- **fast iteration**, coupling seamless bindings of both built-in systems and game code to various scripting languages, hot-reload of native code, and immediate UI and rendering, toy provides fast iteration speeds.
 
 features:
 - **mud** is the low-level library providing most of the base features behind **toy**, in separate modules
