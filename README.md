@@ -38,16 +38,14 @@ On top of these fundamentals, toy adds plenty of game programming systems such a
 - navigation
 
 ### examples
-here are 3 live toy demo games: a [strategic space sim game](), a [tanks real time strategy game](), and a [procedural platformer]() game.
 
-they were designed to showcase toy strongest features, and aspects that are notably hard to achieve using other engines:
-- real-time procedural generation of world geometry
-- complex user interfaces intertwined with game logic
-- code-based dynamic rendering of thousands of instances
-- custom rendering paths and custom shaders
-- physics based game logic
+| Platform Example        | RTS Example             |
+| ----------------------- | ----------------------- |
+| ![](media/platform.png) | ![](media/rts.png)      |
 
-each of these examples is written in less than a hundred lines of code and the source is fully available: reading these examples is the first place to start learning how to write a game with toy.
+| Editor Example        | Space Example         |
+| --------------------- | --------------------- |
+| ![](media/editor.png) | ![](media/space.png)  |
 
 ### how to build
 
