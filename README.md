@@ -50,13 +50,11 @@ If you want to get started, you can start by having a look at the extensive [man
 
 | Platform Example        | RTS Example             |
 | ----------------------- | ----------------------- |
-| [![](media/platform.png)](https://hugoam.github.io/toy-io/examples/ex_platform.html) |
-  [![](media/rts.png)](https://hugoam.github.io/toy-io/examples/ex_blocks.html)      |
+| [![](media/platform.png)](https://hugoam.github.io/toy-io/examples/ex_platform.html) | [![](media/rts.png)](https://hugoam.github.io/toy-io/examples/ex_blocks.html)      |
 
 | Editor Example        | Space Example         |
 | --------------------- | --------------------- |
-| [![](media/editor.png)](https://hugoam.github.io/toy-io/examples/ex_editor.html) |
-  [![](media/space.png)](https://hugoam.github.io/toy-io/examples/ex_space.html)  |
+| [![](media/editor.png)](https://hugoam.github.io/toy-io/examples/ex_editor.html) | [![](media/space.png)](https://hugoam.github.io/toy-io/examples/ex_space.html)  |
 
 ### how to build
 
