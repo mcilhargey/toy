@@ -277,7 +277,7 @@ using namespace mud; namespace toy
 		//current_brush_edit(self, editor); // dockid { 0, 0 }
 		//ui_edit(self, editor.m_selection); // dockid { 0, 2 }
 
-		editor.m_screen = ui::dockitem(dockspace, "Screen", carray<uint16_t, 2>{ 0U, 1U });
+		editor.m_screen = ui::dockitem(dockspace, "Screen", carray<uint16_t, 2>{ 0U, 1U }, 4.f);
 		
 		//if(editor.m_editedScene)
 		{

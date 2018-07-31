@@ -6,6 +6,7 @@
 #include <meta/platform/Module.h>
 
 //#define _PLATFORM_TOOLS
+//#define SCRIPTED_IA
 
 float omni_attenuation(vec3 ray, float range, float attenuation_factor, float lower_bound)
 {
@@ -515,6 +516,7 @@ void paint_human(Gnode& parent, Human& human)
 
 void paint_world_block(Gnode& parent, TileBlock& block, const uvec3* exclude = nullptr)
 {
+	if(!block.m_wfc_block.m_wave.m_solved) return;
 	paint_tileblock(parent, Ref(&block.m_entity), block.m_wfc_block, uvec3(UINT_MAX), exclude);
 	if(!block.m_world_page.m_build_geometry)
 		block.m_world_page.m_build_geometry = [&](WorldPage& page) { build_block_geometry(*parent.m_scene, page, block); };
@@ -705,8 +707,11 @@ void ex_platform_game_hud(Viewer& viewer, GameScene& scene, Human& human)
 			//ui::fill_bar(row, ratio);
 		};
 
-		bar(left_panel, health_bar_style(), "(health64)", human.m_life);
-		bar(left_panel, energy_bar_style(), "(energy64)", human.m_energy);
+		if(false)
+		{
+			bar(left_panel, health_bar_style(), "(health64)", human.m_life);
+			bar(left_panel, energy_bar_style(), "(energy64)", human.m_energy);
+		}
 	}
 
 	if(human.m_life <= 0.f)
@@ -733,17 +738,19 @@ void ex_platform_game_ui(Widget& parent, Game& game, GameScene& scene)
 	else if(game.m_mode == GameMode::PlayEditor && viewer.modal())
 		viewer.yield_modal();
 
-	if(viewer.key_event(KC_ESCAPE, EventType::Stroked))
-	{
-		game.m_shell->m_editor.m_run_game = false;
-		game.m_mode = GameMode::Play;
-	}
-
 	paint_viewer(viewer);
 	
 	Player& player = val<Player>(game.m_player);
 	if(player.m_human)
 		ex_platform_game_hud(viewer, scene, *player.m_human);
+
+	if(viewer.key_event(KC_ESCAPE, EventType::Stroked))
+	{
+		game.m_shell->m_editor.m_run_game = false;
+		viewer.yield_modal();
+		if(game.m_shell->m_context->m_mouse_lock)
+			game.m_shell->m_context->lock_mouse(false);
+	}
 }
 
 Viewer& ex_platform_menu_viewport(Widget& parent, GameShell& app)
@@ -869,8 +876,6 @@ void ex_platform_start(GameShell& app, Game& game)
 	TileWorld& tileworld = global_pool<TileWorld>().construct("Arcadia");
 	game.m_world = &tileworld.m_world;
 
-	//app.m_context->lock_mouse(true);
-
 	static Player player = { tileworld };
 	game.m_player = Ref(&player);
 
@@ -908,7 +913,7 @@ void ex_platform_scene(GameShell& app, GameScene& scene)
 
 	auto paint_hole_block = [&](Gnode& parent, TileBlock& block)
 	{
-#ifndef MUD_PLATFORM_EMSCRIPTEN
+#if 0 //ndef MUD_PLATFORM_EMSCRIPTEN
 		if(block.contains(player.m_human->m_entity.m_position))
 		{
 			// cut a hole of 6x6 tiles above the character
@@ -959,10 +964,7 @@ void ex_platform_pump(GameShell& app, Game& game)
 #ifdef _EX_PLATFORM_EXE
 int main(int argc, char *argv[])
 {
-	cstring example_path = TOY_RESOURCE_PATH "examples/ex_platform/";
-	cstring human_path = TOY_RESOURCE_PATH "examples/05_character/";
-	cstring wfc_path = TOY_RESOURCE_PATH "examples/17_wfc/";
-	GameShell app(carray<cstring, 4>{ TOY_RESOURCE_PATH, example_path, human_path, wfc_path }, argc, argv);
+	GameShell app(carray<cstring, 1>{ TOY_RESOURCE_PATH }, argc, argv);
 	
 	GameModule module = { _platform::m(), &ex_platform_init, &ex_platform_start, &ex_platform_pump, &ex_platform_scene };
 	//app.run_game(module);

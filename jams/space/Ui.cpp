@@ -164,7 +164,8 @@ void jump_query(Widget& parent, Viewer& viewer, Fleet& fleet, uint32_t mode)
 		fleet.order_jump(query.m_coord, query.m_stance);
 
 	if(ui::enum_input<FleetStance>(row, query.m_stance))
-		fleet.order_jump(query.m_coord, query.m_stance);
+		if(query.m_coord != uvec2(UINT_MAX))
+			fleet.order_jump(query.m_coord, query.m_stance);
 
 	if(ui::button(modal, "Done").activated())	
 		parent.m_switch &= ~mode;

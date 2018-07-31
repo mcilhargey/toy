@@ -376,7 +376,7 @@ void turn_divisions(Turn& turn)
 {
 	for(Commander* commander : turn.m_commanders)
 		for(Fleet* fleet : commander->m_fleets)
-			if(fleet->m_split.m_state == Jump::Ordered)
+			if(fleet->m_split.m_state == Split::Ordered)
 			{
 				turn.m_divisions.push_back(&fleet->m_split);
 			}
@@ -577,8 +577,9 @@ Galaxy::Galaxy(Id id, Entity& parent, const vec3& position, const uvec2& size)
 uvec2 Galaxy::intersect_coord(Ray ray)
 {
 	vec3 intersect = plane_segment_intersection(m_plane, { ray.m_start, ray.m_end });
-	uvec3 coord = floor(intersect); // / m_period;
-	return{ coord.x, coord.z };
+	ivec3 icoord = ivec3(floor(intersect));
+	uvec3 coord = uvec3(icoord); // / m_period;
+	return { coord.x, coord.z };
 }
 
 Quadrant::Quadrant(Id id, Entity& parent, const vec3& position, const uvec2& coord, float size)
