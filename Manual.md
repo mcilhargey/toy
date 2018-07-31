@@ -114,10 +114,9 @@ toy_shell("game", { game })
     -- add any "game" project specific configuration here
 ```
 
-First we declare the module itself, passing its main namespace `nil`, its name `"game"`, base path `ROOT_PATH`, subpath `"game"`, three declaration functions `nil, nil, nil`, and finally the list of dependencies `toy.all`.
-In this case, we select all toy modules as dependencies. We could pass a specific set of dependencies like so: `{ mud.infra, mud.math, toy.core }` for example.
+- First we declare the module itself, passing its main namespace `nil`, its name `"game"`, base path `ROOT_PATH`, subpath `"game"`, three declaration functions `nil, nil, nil`, and finally the list of dependencies `toy.all`.  In this case, we select all toy modules as dependencies. We could pass a specific set of dependencies like so: `{ mud.infra, mud.math, toy.core }` for example.
 
-Second, we declare the project itself that will be built, which consists of one module. This allows to have a finer granularity of modules on one hand, and projects composed of modules on the other hand.
+- Second, we declare the project itself that will be built, which consists of one module. This allows to have a finer granularity of modules on one hand, and projects composed of modules on the other hand.
 
 This script will be processed when using the [GENie](https://github.com/bkaradzic/GENie) project generator, which is the main supported build system for toy. They are used for all build-related tasks, specifically:
 - precompiling modules to their reflection files
@@ -126,9 +125,9 @@ This script will be processed when using the [GENie](https://github.com/bkaradzi
 Now our basic project is setup, we can start writing the code.
 
 Once the script is written, we can bootstrap the project, and regenerate project files, reflection, with the three following commands, `<platform>` being one of `win`, `linux`, `darwin`:
--`mud\bin\<plaftorm>\genie bootstrap`
--`mud\bin\<plaftorm>\genie <generator>` with a generator one of `gmake`, `vs2015`, `vs2017` depending on the target build system
--`mud\bin\<plaftorm>\genie reflect`
+- `mud\bin\<plaftorm>\genie bootstrap`
+- `mud\bin\<plaftorm>\genie <generator>` with a generator one of `gmake`, `vs2015`, `vs2017` depending on the target build system
+- `mud\bin\<plaftorm>\genie reflect`
 
 # minimal game code
 ```cpp
