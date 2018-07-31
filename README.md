@@ -9,7 +9,7 @@ toy is a **thin and modular c++ game engine**. it aims to provide the **thinnest
 
 toy simplicity and modularity makes it deeply **hackable**, **extensible** and **versatile**. toy is perfect to build games with **atypical constraint**: complex user interface and rendering schemes, procedural generation, etc. it provides a **fully programmable 3d renderer**, with full control over *shaders, materials and render paths*, as well as higher level primitives and systems such as **entities**, **physics**, **navmesh generation and navigation**, and **procedural generation** helpers.
 
-As a collection of game programming **building blocks**, toy aims to foster an ecosystem of *simple minimal reusable components* suited for **building your own game technology**.
+As a collection of game programming **building blocks**, toy aims to foster an ecosystem of **simple minimal reusable components** suited for **building your own game technology**.
 
 ### principles
 - **simple and lightweight**, simplicity is the core aim and philosophy behind toy. the codebase is about one-tenth the size of competing engines, and toy is so light, the whole editor runs in your browser !
