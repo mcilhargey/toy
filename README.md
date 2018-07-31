@@ -5,17 +5,11 @@
 [![Build Status](https://travis-ci.org/hugoam/toy.svg?branch=master)](https://travis-ci.org/hugoam/toy) [![Build status](https://ci.appveyor.com/api/projects/status/4a77n3scl71ybcgj?svg=true)](https://ci.appveyor.com/project/hugoam/toy) | [![Community](https://img.shields.io/discourse/https/discourse.toyengine.io/posts.svg)](https://discourse.toyengine.io) [![Gitter](https://badges.gitter.im/hugoam/mud.svg)](https://gitter.im/hugoam/mud) | [![Patreon](https://img.shields.io/badge/donate-patreon-orange.svg)](https://www.patreon.com/bePatron?u=11301355)
 
 # toy
-toy is a **small, simple, code oriented, modular** *c++ game engine*.  
+toy is a **thin and modular c++ game engine**. it aims to provide the **thinnest and simplest stack of technology** for making games **directly from C++**. toy offers **simple expressive C++ idioms** for [user interface](), [rendering](), [audio](),  and the seamless extension of your game code with **zero-cost** [tools](), [editors]() and [scripting](), to design full featured 2d or 3d games in **fast iterations**.
 
-toy puts the emphasis on games made of **simple, expressive native c++ code** extended through **tools, editors and scripting**, to design full featured 2d or 3d games in **fast iterations**.
+toy simplicity and modularity makes it deeply **hackable**, **extensible** and **versatile**. toy is perfect to build games with **atypical constraint**: complex user interface and rendering schemes, procedural generation, etc. it provides a **fully programmable 3d renderer**, with full control over *shaders, materials and render paths*, as well as higher level primitives and systems such as **entities**, **physics**, **navmesh generation and navigation**, and **procedural generation** helpers.
 
-Focused on **versatility** at the core, it gives full control over its **expressive rendering and user interface systems**, making it suitable to build **any kind of game**.
-
-Designed for **quick iterations** and experimentation, it is deeply **hackable**, entirely **scriptable**, and provides a **fully programmable 3d renderer**, giving you direct access to *shaders, materials and render paths*.
-
-As a collection of game programming **building blocks**, it also aims to foster an ecosystem of *simple minimal reusable components* for everyone, and it is suited for **building your own game technology**.
-
-On top of these fundamentals, toy adds plenty of game programming systems such as physics, a navigation system, procedural generation algorithms, many tools, and more.
+As a collection of game programming **building blocks**, toy aims to foster an ecosystem of *simple minimal reusable components* suited for **building your own game technology**.
 
 ### principles
 - **simple and lightweight**, simplicity is the core aim and philosophy behind toy. the codebase is about one-tenth the size of competing engines, and toy is so light, the whole editor runs in your browser !
@@ -36,6 +30,18 @@ On top of these fundamentals, toy adds plenty of game programming systems such a
 - entity
 - physics
 - navigation
+
+### roadmap
+toy is mostly feature complete in terms of the basic features we wanted for a minimal viable engine.
+but there are many things to improve.
+by supporting mud you will help us implement the following features:
+- **tool applications**: implement minimal tooling apps, including: a model painter, an animation editor, a particle editor, a prefab/scene editor. most of these features are partly implemented, but a set of standalone apps would be a great addition.
+- **scripting languages**: implement support for Wren, Javascript, and C# scripting.
+- **clustered rendering**: implement state-of-the-art clustered rendering techniques, along with a deferred rendering pipeline.
+- **real-time global illumnation**: investigate state-of-the-art global illumination techniques and implement the best real-time compromise currently feasible.
+- **node-based shader language**: the mud node editor is a perfect tool to start playing with node-based shader and render pipeline definitions.
+- **multi-threading**: implement efficient job/fibers system and parallelize everything that can be.
+- **performance-focused ECS**: implement an ECS skeleton focused towards heavily parallelized performance, to implement typical scenarios such as the boid example.
 
 ### examples
 
