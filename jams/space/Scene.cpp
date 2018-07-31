@@ -243,7 +243,9 @@ void paint_fleet_warp(Gnode& parent, VisuFleet& visu)
 void paint_fleet_stationary(Gnode& parent, Fleet& fleet, VisuFleet& visu, const Colour& colour)
 {
 	float size = c_fleet_visu_sizes[size_t(fleet.estimated_size())];
-	gfx::shape(parent, Triangle({ 0.4f * size, 0.6f * size }), Symbol(colour, Colour::Invisible), ITEM_BILLBOARD | ITEM_SELECTABLE);
+	vec2 triangle = { 0.4f * size, 0.6f * size };
+	gfx::shape(parent, Triangle(triangle), Symbol(colour), ITEM_BILLBOARD);
+	gfx::shape(parent, Triangle(triangle * 1.2f), Symbol(Colour::None, Colour::Invisible), ITEM_BILLBOARD | ITEM_SELECTABLE);
 	paint_fleet_ships(parent, visu, 0.4f * size * 2.f, 0.01f);
 }
 

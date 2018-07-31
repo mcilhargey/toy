@@ -1047,6 +1047,8 @@ Viewer& ex_space_menu_viewport(Widget& parent, GameShell& app)
 	paint_viewer(viewer);
 	paint_scene(scene);
 
+	viewer.m_camera.m_eye = Z3;
+
 	static std::map<ShipSchema*, size_t> ships;
 	static VisuFleet fleet;
 	if(fleet.m_updated == 0)
@@ -1066,8 +1068,8 @@ Viewer& ex_space_menu_viewport(Widget& parent, GameShell& app)
 
 	update_visu_fleet(fleet, tick, delta);
 
-	float angle = fmod(float(clock.read()) / 20.f, 2.f * c_pi);
-	Gnode& node = gfx::node(scene, {}, Zero3 + X3 * 0.4f, angle_axis(angle, Y3), Unit3);
+	float angle = fmod(float(clock.read()) / 50.f, 2.f * c_pi);
+	Gnode& node = gfx::node(scene, {}, Zero3, angle_axis(angle, Y3), Unit3);
 	paint_fleet_ships(node, fleet, 1.f, 0.1f);
 	
 	//toy::sound(node, "complexambient", true);
