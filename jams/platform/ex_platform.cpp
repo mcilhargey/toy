@@ -506,11 +506,11 @@ void paint_human(Gnode& parent, Human& human)
 		light.m_spot_attenuation = 0.9f;
 	}
 
-	if(human.m_faction == Faction::Ally)
+	if(false)//human.m_faction == Faction::Ally)
 	{
-		Gnode& headlight = gfx::node(parent.subx(Visor), Ref(&human), human.m_entity.m_position + rotate(human.m_entity.m_rotation, Human::muzzle_offset), human.sight(human.m_aiming));
-		//gfx::shape(headlight, Line(-Z3 * 4.f, -Z3 * 8.f), Symbol(Colour(0.2f, 0.8f, 2.4f) * 4.f, Colour::None, true));
-		gfx::shape(headlight, Circle(-Z3 * 8.f, 0.2f, Axis::Z), Symbol(Colour(0.2f, 0.8f, 2.4f) * 4.f, Colour::None, true));
+		Gnode& visor = gfx::node(parent.subx(Visor), Ref(&human), human.m_entity.m_position + rotate(human.m_entity.m_rotation, Human::muzzle_offset), human.sight(human.m_aiming));
+		//gfx::shape(visor, Line(-Z3 * 4.f, -Z3 * 8.f), Symbol(Colour(0.2f, 0.8f, 2.4f) * 4.f, Colour::None, true));
+		gfx::shape(visor, Circle(-Z3 * 8.f, 0.2f, Axis::Z), Symbol(Colour(0.2f, 0.8f, 2.4f) * 4.f, Colour::None, true));
 	}
 }
 
@@ -559,7 +559,9 @@ void physic_painter(GameScene& scene)
 	static PhysicDebugDraw physic_draw = { *scene.m_scene.m_immediate };
 
 	scene.painter("PhysicsDebug", [&](size_t index, VisuScene& visu_scene, Gnode& parent) {
-		UNUSED(index); UNUSED(visu_scene); physic_draw.draw_physics(parent, *scene.m_game.m_world, VisualMedium::me);
+		UNUSED(index); UNUSED(visu_scene);
+		//physic_draw.draw_physics(parent, *scene.m_game.m_world, VisualMedium::me);
+		physic_draw.draw_physics(parent, *scene.m_game.m_world, SolidMedium::me);
 	});
 }
 
@@ -936,7 +938,7 @@ void ex_platform_scene(GameShell& app, GameScene& scene)
 	range_entity_painter<TileBlock>(scene, reference, 200.f, "Tileblocks", vision.m_store, paint_hole_block);
 	range_entity_painter<Bullet>(scene, reference, 100.f, "Bullets", vision.m_store, paint_bullet);
 
-	//physic_painter(scene);
+	physic_painter(scene);
 }
 
 void ex_platform_pump(GameShell& app, Game& game, Widget& parent, Dockbar* dockbar = nullptr)
