@@ -92,57 +92,45 @@
 # toy engine manual
 
 # project setup
-## modules
-a [module](modules.md) in mud is a group of c++ files located in the same directory and signaled by a `module.py` definition file.  
-all the c++ files in one module must be able to be compiled together : they cannot contradict.  
-that means, for example, you can't have duplicate definitions of the same function or class.
 
-## a simple module
-the simplest mud [module](modules.md) is one `.cpp` file, one `.h`, and a `module.py` definition. let's create our first module :
+## simple game module
+
+A Module in mud is a group of c++ files located in the same directory and signaled by a `.lua` project file, and meant to be compiled together.  
+
+The simplest Module is one `.cpp` file, one `.h`, and a `.lua` definition. let's create our first module :
 ```
-+-- MyModule
-    +-- MyModule.h
-    +-- MyModule.cpp
-    +-- module.py
++-- game
+    +-- Game.h
+    +-- Game.cpp
++-- scripts
+    +-- Game.lua
 ```
 
-a `module.py` definition file in its simplest form looks like this :
-```python
-name = 'MyModule'
-namespace = ''
-dependencies = ['obj', 'math', 'ui', 'uio', 'gfx', 'edit', 'shell']
-```
-these are the parameters needed by the [reflection generator](reflection.md#generator) to correctly [precompile](#precompiling) your module.  
-it simply states its `name`, an optional enclosing `namespace`, and the set of `modules` it depends on.  
-in this case, the dependencies : [obj](meta.md), [math](math.md), [ui](ui.md), [uio](uio.md), [gfx](gfx.md), [edit](edit.md), [shell](shell.md) are all mud built-in modules.
-
-the next step is to setup a build : a mud project can be built with the compiler and build system of your choice.  
-mud comes with scripts for the [GENie](https://github.com/bkaradzic/GENie) project generator, which is what we will use : it's the quickest way to bootstrap a mud project, and manage both [project files](#generate-a-project) generation and [precompiling](#precompiling) the reflection files from one script
-
-## generate a project
-let's define a [GENie](https://github.com/bkaradzic/GENie) script, through which all build actions can be performed :
+A module `.lua` project definition file in its simplest form looks like this :
 ```lua
-project "MyModule"
-    kind "ConsoleApp"
+game = mud_module(nil, "game", ROOT_PATH, "game",  nil, nil, nil, toy.all)
 
-    mud_module("MyModule", ROOT_DIR, "MyModule")
-    mud_binary()
-```
-the first few lines consist of [GENie functions](https://github.com/bkaradzic/GENie/blob/master/docs/scripting-reference.md) : create a [project](https://github.com/bkaradzic/GENie/blob/master/docs/scripting-reference.md#projectname) named `MyModule`, of [kind](https://github.com/bkaradzic/GENie/blob/master/docs/scripting-reference.md#kindkind) `ConsoleApp` (= a binary).  
-the key part is the `mud_module` call, which is a shortcut for doing the following :
-- add the root folder as an [include](https://github.com/bkaradzic/GENie/blob/master/docs/scripting-reference.md#includedirspaths) directory 
-- add all the `.cpp` and `.h` files under this path as compile targets 
-- add the `module.py` file to the list of reflected modules
-
-[GENie](https://github.com/bkaradzic/GENie) is then invoked with different `actions` :
-- `[generator]` for the build system/IDE of your choice : `vs201x`, `xcode`, `gmake`
-- `reflect` which calls the reflection generator
-```
-genie [options] action
+toy_shell("game", { game })
+    -- add any "game" project specific configuration here
 ```
 
+First we declare the module itself, passing its main namespace `nil`, its name `"game"`, base path `ROOT_PATH`, subpath `"game"`, three declaration functions `nil, nil, nil`, and finally the list of dependencies `toy.all`.
+In this case, we select all toy modules as dependencies. We could pass a specific set of dependencies like so: `{ mud.infra, mud.math, toy.core }` for example.
 
-# simple app
+Second, we declare the project itself that will be built, which consists of one module. This allows to have a finer granularity of modules on one hand, and projects composed of modules on the other hand.
+
+This script will be processed when using the [GENie](https://github.com/bkaradzic/GENie) project generator, which is the main supported build system for toy. They are used for all build-related tasks, specifically:
+- precompiling modules to their reflection files
+- generating project files/makefiles to build it
+
+Now our basic project is setup, we can start writing the code.
+
+Once the script is written, we can bootstrap the project, and regenerate project files, reflection, with the three following commands, `<platform>` being one of `win`, `linux`, `darwin`:
+-`mud\bin\<plaftorm>\genie bootstrap`
+-`mud\bin\<plaftorm>\genie <generator>` with a generator one of `gmake`, `vs2015`, `vs2017` depending on the target build system
+-`mud\bin\<plaftorm>\genie reflect`
+
+# minimal game code
 ```cpp
 class MyGame : public GameModule
 {
@@ -165,6 +153,14 @@ int main()
 }
 ```
 
+That's it for the minimal toy game : we have a running app, with a black screen :)
+The `GameModule` interface provides four main hooks for writing your game logic:
+- `init()` is called when initializing the game
+- `start()` is called when the game session is started
+- `pump()` is called on each frame
+- `scene()` is called everytime a scene is created
+
+Note: `GameModule` and `GameShell` are merely helper class: you aren't in any way constrained to use them. If you want complete control over your application flow, you can borrow the setup logic from the [`Shell.cpp`](src/shell/Shell.cpp) file, and setup a working application in a couple dozen lines of code.
 
 # entities
 In toy we separate the game entities and the rendered objects (models, meshes, particles).
