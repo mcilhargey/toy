@@ -41,6 +41,7 @@ by supporting mud you will help us implement the following features:
 - **node-based shader language**: the mud node editor is a perfect tool to start playing with node-based shader and render pipeline definitions.
 - **multi-threading**: implement efficient job/fibers system and parallelize everything that can be.
 - **performance-focused ECS**: implement an ECS skeleton focused towards heavily parallelized performance, to implement typical scenarios such as the boid example.
+- **networking**: investigate how a networking solution can be integrated with reflection, how to automatically expose objects procedures and fields through a networking API, to provide seamless basic multiplayer support, then implement it.
 
 ### manuals
 If you want to get started, you can start by having a look at the extensive [manual]().
@@ -49,11 +50,13 @@ If you want to get started, you can start by having a look at the extensive [man
 
 | Platform Example        | RTS Example             |
 | ----------------------- | ----------------------- |
-| ![](media/platform.png) | ![](media/rts.png)      |
+| [![](media/platform.png)](https://hugoam.github.io/toy-io/examples/ex_platform.html) |
+  [![](media/rts.png)](https://hugoam.github.io/toy-io/examples/ex_blocks.html)      |
 
 | Editor Example        | Space Example         |
 | --------------------- | --------------------- |
-| ![](media/editor.png) | ![](media/space.png)  |
+| [![](media/editor.png)](https://hugoam.github.io/toy-io/examples/ex_editor.html) |
+  [![](media/space.png)](https://hugoam.github.io/toy-io/examples/ex_space.html)  |
 
 ### how to build
 
