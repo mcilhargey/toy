@@ -198,7 +198,7 @@ void ex_05_character_pump(GameShell& shell, Game& game, Widget& parent, Dockbar&
 	//orbit.set_target(character.m_entity.m_position);
 }
 
-#ifdef _05_CHARACTER_EXE
+#ifdef __05_CHARACTER_EXE
 void pump(GameShell& app, Game& game)
 {
 	//edit_context(app.m_ui->begin(), app.m_editor, true);

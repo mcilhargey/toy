@@ -506,7 +506,7 @@ void paint_human(Gnode& parent, Human& human)
 		light.m_spot_attenuation = 0.9f;
 	}
 
-	if(false)//human.m_faction == Faction::Ally)
+	if(human.m_faction == Faction::Ally)
 	{
 		Gnode& visor = gfx::node(parent.subx(Visor), Ref(&human), human.m_entity.m_position + rotate(human.m_entity.m_rotation, Human::muzzle_offset), human.sight(human.m_aiming));
 		//gfx::shape(visor, Line(-Z3 * 4.f, -Z3 * 8.f), Symbol(Colour(0.2f, 0.8f, 2.4f) * 4.f, Colour::None, true));
@@ -938,7 +938,7 @@ void ex_platform_scene(GameShell& app, GameScene& scene)
 	range_entity_painter<TileBlock>(scene, reference, 200.f, "Tileblocks", vision.m_store, paint_hole_block);
 	range_entity_painter<Bullet>(scene, reference, 100.f, "Bullets", vision.m_store, paint_bullet);
 
-	physic_painter(scene);
+	//physic_painter(scene);
 }
 
 void ex_platform_pump(GameShell& app, Game& game, Widget& parent, Dockbar* dockbar = nullptr)

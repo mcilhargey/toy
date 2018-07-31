@@ -32,6 +32,9 @@ using namespace mud; namespace toy
 		inline const std::vector<T*>& store() const { return m_store; }
 		inline std::vector<T*>& store() { return m_store; }
 
+		using StoreBase<Array<T>, T>::has;
+		using StoreBase<Array<T>, T>::remove;
+		using StoreBase<Array<T>, T>::add;
 
 		void safeAdd(T& object)
 		{
