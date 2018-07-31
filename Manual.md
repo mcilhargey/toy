@@ -1,9 +1,11 @@
 # toy engine manual
 
-- [project setup](#project-setup)
-
-- [simple app](#simple-app)
-- [entities](#entities)
+- [quickstart](#quickstart)
+  - [simple game module](#simple-game-module)
+  - [minimal game code](#minimal-game-code)
+  - [rendering a cube](#rendering-a-cube)
+  - [defining an entity type](#defining-an-entity-type)
+  - [drawing entities](#drawing-entities)
 
 - [reflection](#reflection)
   - [annotating code](#annotating-code)
@@ -91,30 +93,38 @@
 
 # toy engine manual
 
-# project setup
+# quickstart
 
 ## simple game module
 
-A Module in mud is a group of c++ files located in the same directory and signaled by a `.lua` project file, and meant to be compiled together.  
+A Module is a group of c++ files located in the same directory, and meant to be compiled together.
+A Project is a library or an executable, compose of a set of Modules. Modules and Projects are declared inside a `.lua` project file.  
 
-The simplest Module is one `.cpp` file, one `.h`, and a `.lua` definition. let's create our first module :
+The simplest toy project is composed one `.cpp` file, one `.h`, and a `genie.lua` project definition. let's create our first project :
 ```
 +-- game
     +-- Game.h
     +-- Game.cpp
 +-- scripts
+    +-- genie.lua
     +-- Game.lua
++-- toy
+    +-- ...
 ```
 
 A module `.lua` project definition file in its simplest form looks like this :
 ```lua
+-- module declaration
 game = mud_module(nil, "game", ROOT_PATH, "game",  nil, nil, nil, toy.all)
 
+-- project declaration
 toy_shell("game", { game })
     -- add any "game" project specific configuration here
 ```
 
-- First we declare the module itself, passing its main namespace `nil`, its name `"game"`, base path `ROOT_PATH`, subpath `"game"`, three declaration functions `nil, nil, nil`, and finally the list of dependencies `toy.all`.  In this case, we select all toy modules as dependencies. We could pass a specific set of dependencies like so: `{ mud.infra, mud.math, toy.core }` for example.
+- First we declare the module itself, passing its main namespace `nil`, its name `"game"`, base path `ROOT_PATH`, subpath `"game"`, three declaration functions `nil, nil, nil`, and finally the list of dependencies `toy.all`.
+
+  In this case, we select all toy modules as dependencies. We could pass a specific set of dependencies like so: `{ mud.infra, mud.math, toy.core }` for example.
 
 - Second, we declare the project itself that will be built, which consists of one module. This allows to have a finer granularity of modules on one hand, and projects composed of modules on the other hand.
 
@@ -125,11 +135,11 @@ This script will be processed when using the [GENie](https://github.com/bkaradzi
 Now our basic project is setup, we can start writing the code.
 
 Once the script is written, we can bootstrap the project, and regenerate project files, reflection, with the three following commands, `<platform>` being one of `win`, `linux`, `darwin`:
-- `mud\bin\<plaftorm>\genie bootstrap`
-- `mud\bin\<plaftorm>\genie <generator>` with a generator one of `gmake`, `vs2015`, `vs2017` depending on the target build system
-- `mud\bin\<plaftorm>\genie reflect`
+- `toy\mud\bin\<plaftorm>\genie bootstrap`
+- `toy\mud\bin\<plaftorm>\genie <generator>` with a generator one of `gmake`, `vs2015`, `vs2017` depending on the target build system
+- `toy\mud\bin\<plaftorm>\genie reflect`
 
-# minimal game code
+## minimal game code
 ```cpp
 class MyGame : public GameModule
 {
@@ -161,7 +171,22 @@ The `GameModule` interface provides four main hooks for writing your game logic:
 
 Note: `GameModule` and `GameShell` are merely helper class: you aren't in any way constrained to use them. If you want complete control over your application flow, you can borrow the setup logic from the [`Shell.cpp`](src/shell/Shell.cpp) file, and setup a working application in a couple dozen lines of code.
 
-# entities
+## rendering a cube
+
+```cpp
+class MyGame : public GameModule
+{
+public:
+    virtual void pump(GameShell& app, Game& game)
+    {
+        Viewer& viewer = ui::scene_viewer(parent);
+        Gnode& scene = scene.m_graph.begin();
+        gfx::shape(scene, Cube(1.f), Symbol(Colour::Pink));
+    }
+};
+```
+
+## defining an entity type
 In toy we separate the game entities and the rendered objects (models, meshes, particles).
 Entities represent objects on the game logic side, localized in space, aggregating an array of components of your choice.
 
@@ -170,10 +195,10 @@ A very simple example of an entity could look like this :
 class Human : public Complex
 {
 public:
-	Human(Id id, Entity& parent, const vec3& position);
+    Human(Id id, Entity& parent, const vec3& position);
 
-	Entity m_entity;
-	Movable m_movable;
+    Entity m_entity;
+    Movable m_movable;
 };
 ```
 
@@ -186,6 +211,25 @@ To move an entity, you can directly modify the `position`, `rotation` members, o
 
 The Movable component is used for objects that move in space over time.
 It holds a linear velocity and an angular velocity.
+
+## drawing entities
+
+```cpp
+void paint_monster(Gnode& parent, Monster& monster)
+{
+	gfx::shape(parent, Cube(1.f), Symbol(Colour::Pink));
+}
+
+class MyGame : public GameModule
+{
+public:
+    virtual void scene(GameShell& app, GameScene& scene)
+    {
+        static OmniVision vision = { *scene.m_game.m_world };
+        scene.entity_painter("Monsters", vision.m_store, paint_monster);
+    }
+};
+```
 
 # reflection
 
