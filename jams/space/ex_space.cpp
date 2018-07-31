@@ -951,61 +951,7 @@ void ex_space_lua_check(GameShell& shell, Galaxy& galaxy)
 
 void ex_space_scene(GameShell& app, GameScene& scene, Player& player)
 {
-	UNUSED(app);
-	scene.painter("Galaxy", [&](size_t, VisuScene&, Gnode& parent) {
-		paint_galaxy(parent, *player.m_galaxy);
-		paint_scene(parent);
-	});
-	scene.object_painter<Star>("Stars", player.m_galaxy->m_stars, paint_star);
-	scene.object_painter<Star>("Stars", player.m_commander->m_stars, paint_scan_star);
-	scene.object_painter<Star>("Stars", player.m_commander->m_scans.m_stars, paint_scan_star);
-	scene.object_painter<Fleet>("Fleets", player.m_commander->m_fleets, paint_scan_fleet);
-	scene.object_painter<Fleet>("Fleets", player.m_commander->m_scans.m_fleets, paint_scan_fleet);
 	
-	scene.painter("Combat", [&](size_t, VisuScene&, Gnode& parent) {
-		if(player.m_turn_replay.spatial_combat())
-			paint_combat(parent, *player.m_turn_replay.spatial_combat());
-		//if(player.m_turn_replay.planetary_combat())
-		//	paint_combat(parent, *player.m_turn_replay.planetary_combat());
-	});
-
-	player.m_camera->m_entity.m_position = player.m_commander->m_capital->m_entity.m_position;
-}
-
-void ex_space_scene(GameShell& app, GameScene& scene)
-{
-	Player& player = val<Player>(scene.m_player);
-	ex_space_scene(app, scene, player);
-}
-
-void ex_space_init(GameShell& app, Game& game)
-{
-	app.m_gfx_system->add_resource_path("examples/ex_space/");
-	game.m_editor.m_custom_brushes.emplace_back(make_unique<CommanderBrush>(game.m_editor.m_tool_context));
-}
-
-void ex_space_start(GameShell& app, Game& game)
-{
-	global_pool<Universe>();
-	global_pool<Galaxy>();
-	global_pool<Star>();
-	global_pool<Commander>();
-	global_pool<Fleet>();
-	global_pool<OCamera>();
-
-	Universe& universe = global_pool<Universe>().construct("Arcadia");
-	game.m_world = &universe.m_world;
-
-	VisualScript& generator = space_generator(app);
-	generator(carray<Var, 2>{ Ref(game.m_world), Ref(&game.m_world->origin()) });
-
-	Galaxy& galaxy = *universe.m_galaxies[0];
-
-	static Player player = { &galaxy, galaxy.m_commanders[0] };
-	game.m_player = Ref(&player);
-
-	for(Commander* commander : galaxy.m_commanders)
-		commander->update_scans();
 }
 
 Style& menu_style()
@@ -1093,36 +1039,94 @@ void ex_space_menu(Widget& parent, Game& game)
 
 	if(ui::button(menu, style_button, "Start game").activated())
 	{
-		ex_space_start(*game.m_shell, game);
+		game.m_module->start(*game.m_shell, game);
 	}
 
 	ui::button(menu, style_button, "Continue game");
 	ui::button(menu, style_button, "Quit");
 }
 
-void ex_space_pump(GameShell& app, Game& game, Widget& parent, Dockbar* dockbar = nullptr)
+class ExSpaceModule : public GameModule
 {
-	UNUSED(dockbar);
-	if(!game.m_player)
-	{
-		ex_space_menu(parent, game);
-	}
-	else
-	{
-		static GameScene& scene = app.add_scene();
-		scene.next_frame();
+	ExSpaceModule(Module& module) : GameModule(module) {}
 
-		ex_space_ui(parent, scene);
+	virtual void scene(GameShell& app, GameScene& scene) final
+	{
+		UNUSED(app);
+		Player& player = val<Player>(scene.m_player);
+
+		scene.painter("Galaxy", [&](size_t, VisuScene&, Gnode& parent) {
+			paint_galaxy(parent, *player.m_galaxy);
+			paint_scene(parent);
+		});
+		scene.object_painter<Star>("Stars", player.m_galaxy->m_stars, paint_star);
+		scene.object_painter<Star>("Stars", player.m_commander->m_stars, paint_scan_star);
+		scene.object_painter<Star>("Stars", player.m_commander->m_scans.m_stars, paint_scan_star);
+		scene.object_painter<Fleet>("Fleets", player.m_commander->m_fleets, paint_scan_fleet);
+		scene.object_painter<Fleet>("Fleets", player.m_commander->m_scans.m_fleets, paint_scan_fleet);
+
+		scene.painter("Combat", [&](size_t, VisuScene&, Gnode& parent) {
+			if(player.m_turn_replay.spatial_combat())
+				paint_combat(parent, *player.m_turn_replay.spatial_combat());
+			//if(player.m_turn_replay.planetary_combat())
+			//	paint_combat(parent, *player.m_turn_replay.planetary_combat());
+		});
+
+		player.m_camera->m_entity.m_position = player.m_commander->m_capital->m_entity.m_position;
 	}
+
+virtual void init(GameShell& app, Game& game) final
+{
+	app.m_gfx_system->add_resource_path("examples/ex_space/");
+	game.m_editor.m_custom_brushes.emplace_back(make_unique<CommanderBrush>(game.m_editor.m_tool_context));
 }
 
-void ex_space_pump(GameShell& app, Game& game)
+virtual void start(GameShell& app, Game& game) final
 {
+	global_pool<Universe>();
+	global_pool<Galaxy>();
+	global_pool<Star>();
+	global_pool<Commander>();
+	global_pool<Fleet>();
+	global_pool<OCamera>();
+
+	Universe& universe = global_pool<Universe>().construct("Arcadia");
+	game.m_world = &universe.m_world;
+
+	VisualScript& generator = space_generator(app);
+	generator(carray<Var, 2>{ Ref(game.m_world), Ref(&game.m_world->origin()) });
+
+	Galaxy& galaxy = *universe.m_galaxies[0];
+
+	static Player player = { &galaxy, galaxy.m_commanders[0] };
+	game.m_player = Ref(&player);
+
+	for(Commander* commander : galaxy.m_commanders)
+		commander->update_scans();
+}
+
+virtual void pump(GameShell& app, Game& game) final
+{
+	auto pump = [&](Widget& parent, Dockbar* dockbar = nullptr)
+	{
+		UNUSED(dockbar);
+		if(!game.m_player)
+		{
+			ex_space_menu(parent, game);
+		}
+		else
+		{
+			static GameScene& scene = app.add_scene();
+			scene.next_frame();
+			ex_space_ui(parent, scene);
+		}
+	};
+
 #ifdef _SPACE_TOOLS
 	edit_context(app.m_ui->begin(), app.m_editor, true);
-	ex_space_pump(app, game, *app.m_editor.m_screen, *app.m_editor.m_dockbar);
+	pump(*app.m_editor.m_screen, *app.m_editor.m_dockbar);
 #else
-	ex_space_pump(app, game, game.m_screen ? *game.m_screen : app.m_ui->begin());
+	pump(game.m_screen ? *game.m_screen : app.m_ui->begin());
 #endif
 }
 
@@ -1132,7 +1136,7 @@ int main(int argc, char *argv[])
 	cstring example_path = TOY_RESOURCE_PATH "examples/ex_space/";
 	GameShell app(carray<cstring, 2>{ TOY_RESOURCE_PATH, example_path }, argc, argv);
 
-	GameModule module = { _space::m(), &ex_space_init, &ex_space_start, &ex_space_pump, &ex_space_scene };
+	ExSpaceModule module = { _space::m() };
 	app.run_game(module);
 }
 #endif

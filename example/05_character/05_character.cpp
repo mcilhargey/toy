@@ -13,7 +13,7 @@ Human::Human(Id id, Entity& parent, const vec3& position, float radius, float he
 {
 	m_entity.m_world.add_task(this, 3); // TASK_GAMEOBJECT
 
-	m_entity.as<Active>().addState("idle", 1, 0.5f);
+	//m_entity.as<Active>().addState("idle", 1, 0.5f);
 
 	m_states.push_back({ "Idle", 1.f });
 }
@@ -54,7 +54,7 @@ Walk::Walk(toy::User* user, Entity& agent, Entity& target)
 
 void Walk::begin()
 {
-	m_agent.as<Active>().addState("walk", 1, 0.5f);
+	//m_agent.as<Active>().addState("walk", 1, 0.5f);
 
 	float dist = distance2(m_agent.m_position, m_target.m_position);
 	if(dist < m_range)
@@ -81,14 +81,14 @@ void Walk::update(size_t tick, double time_step)
 
 void Walk::abort()
 {
-	m_agent.as<Active>().removeState("walk");
+	//m_agent.as<Active>().removeState("walk");
 }
 
 void paint_human(Gnode& parent, Human& human)
 {
 	Gnode& self = gfx::node(parent, Ref(&human), human.m_entity.m_position, human.m_entity.m_rotation);
 	gfx::shape(self, Circle(0.35f), Symbol(), ITEM_SELECTABLE);
-	Item* item = gfx::model(self, "human_0", ITEM_SELECTABLE);
+	Item* item = gfx::model(self, "human00", ITEM_SELECTABLE);
 	Animated& animated = gfx::animated(self, *item);
 
 	Human::State& state = human.m_states.back();
@@ -162,49 +162,58 @@ void human_controller_3rdperson(Viewer& viewer, Human& human)
 	human_velocity_controller(viewer, human);
 }
 
-void ex_05_character_init(GameShell& shell, Game& game)
+class Ex05Character : public GameModule
 {
-	UNUSED(shell); UNUSED(game);
-}
+public:
+	Ex05Character(Module& module) : GameModule(module) {}
 
-void ex_05_character_start(GameShell& shell, Game& game)
-{
-	UNUSED(shell);
-	game.m_world = &global_pool<DefaultWorld>().construct("Arcadia").m_world;
-}
+	virtual void init(GameShell& shell, Game& game) final
+	{
+		UNUSED(shell); UNUSED(game);
+	}
 
-void ex_05_character_pump(GameShell& shell, Game& game, Widget& parent, Dockbar& dockbar)
-{
-	UNUSED(parent); UNUSED(dockbar);
-	Widget& uroot = shell.m_ui->begin();
-	Widget& umain = ui::board(uroot);
+	virtual void start(GameShell& shell, Game& game) final
+	{
+		UNUSED(shell);
+		game.m_world = &global_pool<DefaultWorld>().construct("Arcadia").m_world;
+	}
 
-	SceneViewer& viewer = ui::scene_viewer(umain);
-	ui::orbit_controller(viewer);
+	virtual void pump(GameShell& app, Game& game) final
+	{
+		if(!game.m_world)
+			this->start(app, game);
 
-	Gnode& groot = viewer.m_scene->begin();
+		auto pump = [&](Widget& parent, Dockbar* dockbar = nullptr)
+		{
+			UNUSED(parent); UNUSED(dockbar);
+			Widget& uroot = app.m_ui->begin();
+			Widget& umain = ui::board(uroot);
 
-	Material& material = milky_white(viewer.m_gfx_system);
+			SceneViewer& viewer = ui::scene_viewer(umain);
+			ui::orbit_controller(viewer);
 
-	gfx::shape(groot, Rect(vec2{ -50.f, -50.f }, vec2{ 100.f }), Symbol(Colour::None, Colour::White), 0U, &material);
+			Gnode& groot = viewer.m_scene->begin();
 
-	gfx::directional_light_node(groot);
-	gfx::radiance(groot, "radiance/tiber_1_1k.hdr", BackgroundMode::None);
+			Material& material = milky_white(viewer.m_gfx_system);
 
-	static Human& character = game.m_world->origin().construct<Human>(Zero3, 0.35f, 2.f, "Robert", "Citrus");
-	paint_human(groot, character);
+			gfx::shape(groot, Rect(vec2{ -50.f, -50.f }, vec2{ 100.f }), Symbol(Colour::None, Colour::White), 0U, &material);
 
-	human_controller_3rdperson(viewer, character);
-	//orbit.set_target(character.m_entity.m_position);
-}
+			gfx::directional_light_node(groot);
+			gfx::radiance(groot, "radiance/tiber_1_1k.hdr", BackgroundMode::None);
+
+			static Human& character = game.m_world->origin().construct<Human>(Zero3, 0.35f, 2.f, "Robert", "Citrus");
+			paint_human(groot, character);
+
+			human_controller_3rdperson(viewer, character);
+			//orbit.set_target(character.m_entity.m_position);
+		};
+		//edit_context(app.m_ui->begin(), app.m_editor, true);
+		pump(*app.m_editor.m_screen, app.m_editor.m_dockbar);
+	}
+
+};
 
 #ifdef __05_CHARACTER_EXE
-void pump(GameShell& app, Game& game)
-{
-	//edit_context(app.m_ui->begin(), app.m_editor, true);
-	ex_05_character_pump(app, game, *app.m_editor.m_screen, *app.m_editor.m_dockbar);
-}
-
 int main(int argc, char *argv[])
 {
 	cstring example_path = TOY_RESOURCE_PATH "examples/ex_blocks/";
@@ -213,7 +222,7 @@ int main(int argc, char *argv[])
 	
 	system().load_module(_05_character::m());
 
-	GameModule module = { _05_character::m(), &ex_05_character_init, &ex_05_character_start, &pump };
-	app.run(module);
+	Ex05Character module = { _05_character::m() };
+	app.run_game(module);
 }
 #endif

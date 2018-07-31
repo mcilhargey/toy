@@ -751,7 +751,7 @@ void ex_blocks_menu(Widget& parent, Game& game)
 
 	if(ui::button(menu, style_button, "Start game").activated())
 	{
-		ex_blocks_start(*game.m_shell, game);
+		game.m_module->start(*game.m_shell, game);
 	}
 
 	ui::button(menu, style_button, "Continue game");
@@ -766,86 +766,88 @@ void ex_blocks_pump_game(GameShell& app, Game& game, Widget& parent)
 	ex_blocks_game_ui(parent, scene);
 }
 
-void ex_blocks_init(GameShell& app, Game& game)
+class ExBlocksModule : public GameModule
 {
-	UNUSED(game);
-	app.m_gfx_system->add_resource_path("examples/ex_blocks/");
+public:
+	ExBlocksModule(Module& module) : GameModule(module) {}
 
-	g_factions.emplace_back(0, Colour::Red);
-	g_factions.emplace_back(0, Colour::Pink);
-	g_factions.emplace_back(0, Colour::Cyan);
-}
-
-void ex_blocks_start(GameShell& app, Game& game)
-{
-	global_pool<BlockWorld>();
-	global_pool<Well>();
-	global_pool<Camp>();
-	global_pool<Shield>();
-	global_pool<Tank>();
-	global_pool<Fract>();
-	global_pool<Sector>();
-	global_pool<Block>();
-	global_pool<OCamera>();
-	
-	SolidMedium::me.m_masks[CollisionGroup(CM_ENERGY)] = CM_SOLID | CM_GROUND | CM_ENERGY;
-
-	BlockWorld& world = global_pool<BlockWorld>().construct("Arcadia");
-	game.m_world = &world.m_world;
-
-	//app.m_core->section(0).add_task(game.m_world);
-
-	static Player player = { world };
-	game.m_player = Ref(&player);
-
-	world.generate_block(*app.m_gfx_system, ivec2(0));
-	generate_camps(world);
-}
-
-void ex_blocks_scene(GameShell& app, GameScene& scene)
-{
-	static OmniVision vision = { *scene.m_game.m_world };
-	
-	scene_painters(scene, vision.m_store);
-	
-	scene.painter("World", [&](size_t index, VisuScene& scene, Gnode& parent) {
-		UNUSED(scene); paint_scene(parent.subi((void*)index), true);
-	});
-	scene.entity_painter<Shield>("Shields", vision.m_store, paint_shield);
-	scene.entity_painter<Well>("Well", vision.m_store, paint_well);
-	scene.entity_painter<Tank>("Tanks", vision.m_store, paint_tank);
-	scene.entity_painter<Slug>("Slugs", vision.m_store, paint_shell);
-
-	scene.entity_painter<TileBlock>("Tileblocks", vision.m_store, paint_block);
-
-	static PhysicDebugDraw physic_draw = { *scene.m_scene.m_immediate };
-
-	scene.painter("PhysicsDebug", [&](size_t index, VisuScene& visu_scene, Gnode& parent) {
-		//physic_draw.draw_physics(parent, *scene.m_game.m_world, SolidMedium::me);
-	});
-}
-
-void ex_blocks_pump(GameShell& app, Game& game, Widget& parent, Dockbar* dockbar = nullptr)
-{
-	if(!game.m_player)
+	virtual void init(GameShell& app, Game& game) final
 	{
-		ex_blocks_menu(parent, game);
-	}
-	else
-	{
-		ex_blocks_pump_game(app, game, parent);
-	}
-}
+		UNUSED(game);
+		app.m_gfx_system->add_resource_path("examples/ex_blocks/");
 
-void ex_blocks_pump(GameShell& app, Game& game)
-{
+		g_factions.emplace_back(0, Colour::Red);
+		g_factions.emplace_back(0, Colour::Pink);
+		g_factions.emplace_back(0, Colour::Cyan);
+	}
+
+	virtual void start(GameShell& app, Game& game) final
+	{
+		global_pool<BlockWorld>();
+		global_pool<Well>();
+		global_pool<Camp>();
+		global_pool<Shield>();
+		global_pool<Tank>();
+		global_pool<Fract>();
+		global_pool<Sector>();
+		global_pool<Block>();
+		global_pool<OCamera>();
+
+		SolidMedium::me.m_masks[CollisionGroup(CM_ENERGY)] = CM_SOLID | CM_GROUND | CM_ENERGY;
+
+		BlockWorld& world = global_pool<BlockWorld>().construct("Arcadia");
+		game.m_world = &world.m_world;
+
+		//app.m_core->section(0).add_task(game.m_world);
+
+		static Player player = { world };
+		game.m_player = Ref(&player);
+
+		world.generate_block(*app.m_gfx_system, ivec2(0));
+		generate_camps(world);
+	}
+
+	virtual void scene(GameShell& app, GameScene& scene) final
+	{
+		static OmniVision vision = { *scene.m_game.m_world };
+
+		scene_painters(scene, vision.m_store);
+
+		scene.painter("World", [&](size_t index, VisuScene& scene, Gnode& parent) {
+			UNUSED(scene); paint_scene(parent.subi((void*)index), true);
+		});
+		scene.entity_painter<Shield>("Shields", vision.m_store, paint_shield);
+		scene.entity_painter<Well>("Well", vision.m_store, paint_well);
+		scene.entity_painter<Tank>("Tanks", vision.m_store, paint_tank);
+		scene.entity_painter<Slug>("Slugs", vision.m_store, paint_shell);
+
+		scene.entity_painter<TileBlock>("Tileblocks", vision.m_store, paint_block);
+
+		static PhysicDebugDraw physic_draw = { *scene.m_scene.m_immediate };
+
+		scene.painter("PhysicsDebug", [&](size_t index, VisuScene& visu_scene, Gnode& parent) {
+			//physic_draw.draw_physics(parent, *scene.m_game.m_world, SolidMedium::me);
+		});
+	}
+
+	virtual void pump(GameShell& app, Game& game) final
+	{
+		auto pump = [&](Widget& parent, Dockbar* dockbar = nullptr)
+		{
+			if(!game.m_player)
+				ex_blocks_menu(parent, game);
+			else
+				ex_blocks_pump_game(app, game, parent);
+		};
+
 #ifdef _BLOCKS_TOOLS
-	edit_context(app.m_ui->begin(), app.m_editor, true);
-	ex_blocks_pump(app, game, *app.m_editor.m_screen, app.m_editor.m_dockbar);
+		edit_context(app.m_ui->begin(), app.m_editor, true);
+		pump(*app.m_editor.m_screen, app.m_editor.m_dockbar);
 #else
-	ex_blocks_pump(app, game, game.m_screen ? *game.m_screen : app.m_ui->begin());
+		pump(game.m_screen ? *game.m_screen : app.m_ui->begin());
 #endif
-}
+	}
+};
 
 #ifdef _EX_BLOCKS_EXE
 int main(int argc, char *argv[])
@@ -853,7 +855,7 @@ int main(int argc, char *argv[])
 	cstring example_path = TOY_RESOURCE_PATH "examples/ex_blocks/";
 	GameShell app(carray<cstring, 2>{ TOY_RESOURCE_PATH, example_path }, argc, argv);
 	
-	GameModule module = { _blocks::m(), &ex_blocks_init, &ex_blocks_start, &ex_blocks_pump, &ex_blocks_scene };
+	ExBlocksModule module = { _blocks::m() };
 	app.run_game(module);
 }
 #endif

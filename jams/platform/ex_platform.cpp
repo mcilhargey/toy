@@ -791,21 +791,21 @@ void ex_platform_menu(Widget& parent, Game& game)
 
 	ui::icon(menu, "(toy)");
 
-	if(ui::button(menu, button_style(), "Start (Isometric)").activated())
-	{
-		ex_platform_start(*game.m_shell, game);
-		val<Player>(game.m_player).m_mode = ui::OrbitMode::Isometric;
-	}
-
 	if(ui::button(menu, button_style(), "Start (3rd Person)").activated())
 	{
-		ex_platform_start(*game.m_shell, game);
+		game.m_module->start(*game.m_shell, game);
 		val<Player>(game.m_player).m_mode = ui::OrbitMode::ThirdPerson;
+	}
+
+	if(ui::button(menu, button_style(), "Start (Isometric)").activated())
+	{
+		game.m_module->start(*game.m_shell, game);
+		val<Player>(game.m_player).m_mode = ui::OrbitMode::Isometric;
 	}
 
 	if(ui::button(menu, button_style(), "Start (Pseudo Isometric)").activated())
 	{
-		ex_platform_start(*game.m_shell, game);
+		game.m_module->start(*game.m_shell, game);
 		val<Player>(game.m_player).m_mode = ui::OrbitMode::PseudoIsometric;
 	}
 
@@ -849,41 +849,6 @@ void ex_platform_pump_game(GameShell& app, Game& game, Widget& parent)
 	}
 }
 
-void ex_platform_init(GameShell& app, Game& game)
-{
-	UNUSED(game);
-	app.m_gfx_system->add_resource_path("examples/ex_platform/");
-	app.m_gfx_system->add_resource_path("examples/05_character/");
-	app.m_gfx_system->add_resource_path("examples/17_wfc/");
-
-#ifdef SCRIPTED_IA
-	LocatedFile location = app.m_gfx_system->locate_file("scripts/enemy_ai.lua");
-
-	if(location.m_name != nullptr)
-	{
-		LuaScript& script = app.m_editor.m_script_editor.create_script("enemy_ai");
-		script.m_script = read_text_file(std::string(location.m_location) + location.m_name);
-	}
-#endif
-}
-
-void ex_platform_start(GameShell& app, Game& game)
-{
-	global_pool<TileBlock>();
-	global_pool<TileWorld>();
-	global_pool<Human>();
-	global_pool<Crate>();
-	global_pool<OCamera>();
-
-	TileWorld& tileworld = global_pool<TileWorld>().construct("Arcadia");
-	game.m_world = &tileworld.m_world;
-
-	static Player player = { tileworld };
-	game.m_player = Ref(&player);
-
-	tileworld.generate_block(*app.m_gfx_system, ivec2(0));
-}
-
 template <class T, class T_Store, class T_PaintFunc>
 inline void range_entity_painter(VisuScene& scene, Entity& reference, float range, cstring name, T_Store& entities, T_PaintFunc paint_func)
 {
@@ -900,75 +865,112 @@ inline void range_entity_painter(VisuScene& scene, Entity& reference, float rang
 	scene.m_painters.emplace_back(make_unique<VisuPainter>(name, scene.m_painters.size(), paint));
 }
 
-void ex_platform_scene(GameShell& app, GameScene& scene)
+class PlatformModule : public GameModule
 {
-	static OmniVision vision = { *scene.m_game.m_world };
-	//scene.m_camera.m_entity.set_position(Zero3);
+public:
+	PlatformModule(Module& module) : GameModule(module) {}
 
-	//scene_painters(scene, vision.m_store);
-	scene.painter("World", [&](size_t index, VisuScene& scene, Gnode& parent) {
-		UNUSED(scene); paint_scene(parent.subi((void*)index));
-	});
-
-	Player& player = val<Player>(scene.m_player);
-	Entity& reference = player.m_human->m_entity;
-
-	auto paint_hole_block = [&](Gnode& parent, TileBlock& block)
+	virtual void init(GameShell& app, Game& game) final
 	{
+		UNUSED(game);
+		app.m_gfx_system->add_resource_path("examples/ex_platform/");
+		app.m_gfx_system->add_resource_path("examples/05_character/");
+		app.m_gfx_system->add_resource_path("examples/17_wfc/");
+
+#ifdef SCRIPTED_IA
+		LocatedFile location = app.m_gfx_system->locate_file("scripts/enemy_ai.lua");
+
+		if(location.m_name != nullptr)
+		{
+			LuaScript& script = app.m_editor.m_script_editor.create_script("enemy_ai");
+			script.m_script = read_text_file(std::string(location.m_location) + location.m_name);
+		}
+#endif
+	}
+
+	virtual void start(GameShell& app, Game& game) final
+	{
+		global_pool<TileBlock>();
+		global_pool<TileWorld>();
+		global_pool<Human>();
+		global_pool<Crate>();
+		global_pool<OCamera>();
+
+		TileWorld& tileworld = global_pool<TileWorld>().construct("Arcadia");
+		game.m_world = &tileworld.m_world;
+
+		static Player player = { tileworld };
+		game.m_player = Ref(&player);
+
+		tileworld.generate_block(*app.m_gfx_system, ivec2(0));
+	}
+
+	virtual void scene(GameShell& app, GameScene& scene) final
+	{
+		static OmniVision vision = { *scene.m_game.m_world };
+		//scene.m_camera.m_entity.set_position(Zero3);
+
+		//scene_painters(scene, vision.m_store);
+		scene.painter("World", [&](size_t index, VisuScene& scene, Gnode& parent) {
+			UNUSED(scene); paint_scene(parent.subi((void*)index));
+		});
+
+		Player& player = val<Player>(scene.m_player);
+		Entity& reference = player.m_human->m_entity;
+
+		auto paint_hole_block = [&](Gnode& parent, TileBlock& block)
+		{
 #if 0 //ndef MUD_PLATFORM_EMSCRIPTEN
-		if(block.contains(player.m_human->m_entity.m_position))
-		{
-			// cut a hole of 6x6 tiles above the character
-			uvec3 coord = block.m_wfc_block.to_coord(player.m_human->m_entity.m_position);
-			uvec3 y = uvec3(0, 1, 0);
-			uvec3 lohi[2] = { { coord + y - min(uvec3(6, 0, 6), coord) },
-							  { coord + y + uvec3(6, 0, 6)} };
-			paint_world_block(parent, block, lohi);
-		}
-		else
+			if(block.contains(player.m_human->m_entity.m_position))
+			{
+				// cut a hole of 6x6 tiles above the character
+				uvec3 coord = block.m_wfc_block.to_coord(player.m_human->m_entity.m_position);
+				uvec3 y = uvec3(0, 1, 0);
+				uvec3 lohi[2] = { { coord + y - min(uvec3(6, 0, 6), coord) },
+								  { coord + y + uvec3(6, 0, 6)} };
+				paint_world_block(parent, block, lohi);
+			}
+			else
 #endif
+			{
+				paint_world_block(parent, block);
+			}
+		};
+
+		range_entity_painter<Lamp>(scene, reference, 100.f, "Lamps", vision.m_store, paint_lamp);
+		range_entity_painter<Human>(scene, reference, 100.f, "Humans", vision.m_store, paint_human);
+		range_entity_painter<Crate>(scene, reference, 100.f, "Crates", vision.m_store, paint_crate);
+		range_entity_painter<TileBlock>(scene, reference, 200.f, "Tileblocks", vision.m_store, paint_hole_block);
+		range_entity_painter<Bullet>(scene, reference, 100.f, "Bullets", vision.m_store, paint_bullet);
+
+		//physic_painter(scene);
+	}
+
+	virtual void pump(GameShell& app, Game& game) final
+	{
+		auto pump = [&](Widget& parent, Dockbar* dockbar = nullptr)
 		{
-			paint_world_block(parent, block);
-		}
-	};
+			if(!game.m_player)
+				ex_platform_menu(parent, game);
+			else
+				ex_platform_pump_game(app, game, parent);
+		};
 
-	range_entity_painter<Lamp>(scene, reference, 100.f, "Lamps", vision.m_store, paint_lamp);
-	range_entity_painter<Human>(scene, reference, 100.f, "Humans", vision.m_store, paint_human);
-	range_entity_painter<Crate>(scene, reference, 100.f, "Crates", vision.m_store, paint_crate);
-	range_entity_painter<TileBlock>(scene, reference, 200.f, "Tileblocks", vision.m_store, paint_hole_block);
-	range_entity_painter<Bullet>(scene, reference, 100.f, "Bullets", vision.m_store, paint_bullet);
-
-	//physic_painter(scene);
-}
-
-void ex_platform_pump(GameShell& app, Game& game, Widget& parent, Dockbar* dockbar = nullptr)
-{
-	if(!game.m_player)
-	{
-		ex_platform_menu(parent, game);
-	}
-	else
-	{
-		ex_platform_pump_game(app, game, parent);
-	}
-}
-
-void ex_platform_pump(GameShell& app, Game& game)
-{
 #ifdef _PLATFORM_TOOLS
-	edit_context(app.m_ui->begin(), app.m_editor, true);
-	ex_platform_pump(app, game, *app.m_editor.m_screen, app.m_editor.m_dockbar);
+		edit_context(app.m_ui->begin(), app.m_editor, true);
+		pump(*app.m_editor.m_screen, app.m_editor.m_dockbar);
 #else
-	ex_platform_pump(app, game, game.m_screen ? *game.m_screen : app.m_ui->begin());
+		pump(game.m_screen ? *game.m_screen : app.m_ui->begin());
 #endif
-}
+	}
+};
 
 #ifdef _EX_PLATFORM_EXE
 int main(int argc, char *argv[])
 {
 	GameShell app(carray<cstring, 1>{ TOY_RESOURCE_PATH }, argc, argv);
 	
-	GameModule module = { _platform::m(), &ex_platform_init, &ex_platform_start, &ex_platform_pump, &ex_platform_scene };
+	PlatformModule module = { _platform::m() };
 	app.run_game(module);
 	//app.run_editor(module);
 }

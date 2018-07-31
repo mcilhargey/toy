@@ -253,48 +253,57 @@ void ex_minimal_game_hud(Viewer& viewer, GameScene& scene, Human& human)
 	}
 }
 
-void ex_minimal_init(GameShell& app, Game& game)
+class ExMinimal : public GameModule
 {
-	UNUSED(game);
-	app.m_gfx_system->add_resource_path("examples/ex_minimal/");
-	app.m_gfx_system->add_resource_path("examples/05_character/");
+public:
+	ExMinimal(Module& module) : GameModule(module) {}
 
-	global_pool<Human>();
-	global_pool<Crate>();
-}
+	virtual void init(GameShell& app, Game& game) final
+	{
+		UNUSED(game);
+		app.m_gfx_system->add_resource_path("examples/ex_minimal/");
+		app.m_gfx_system->add_resource_path("examples/05_character/");
 
-void ex_minimal_start(GameShell& app, Game& game)
-{
-	DefaultWorld& world = global_pool<DefaultWorld>().construct("Arcadia");
-	game.m_world = &world.m_world;
+		global_pool<Human>();
+		global_pool<Crate>();
+	}
 
-	static Player player = { *game.m_world };
-	game.m_player = Ref(&player);
-}
+	virtual void start(GameShell& app, Game& game) final
+	{
+		DefaultWorld& world = global_pool<DefaultWorld>().construct("Arcadia");
+		game.m_world = &world.m_world;
 
-void ex_minimal_pump(GameShell& app, Game& game, Widget& parent, Dockbar* dockbar = nullptr)
-{
-	static GameScene& scene = app.add_scene();
-	scene.next_frame();
+		static Player player = { *game.m_world };
+		game.m_player = Ref(&player);
+	}
 
-	Viewer& viewer = ui::viewer(parent, scene.m_scene);
-	viewer.m_filters.m_glow.m_enabled = true;
+	virtual void pump(GameShell& app, Game& game) final
+	{
+		if(!game.m_world)
+			this->start(app, game);
 
-	Player& player = val<Player>(game.m_player);
-	ex_minimal_game_hud(viewer, scene, *player.m_human);
-}
+		auto pump = [&](Widget& parent, Dockbar* dockbar = nullptr)
+		{
+			static GameScene& scene = app.add_scene();
+			scene.next_frame();
 
-void ex_minimal_pump(GameShell& app, Game& game)
-{
-	ex_minimal_pump(app, game, game.m_screen ? *game.m_screen : app.m_ui->begin());
-}
+			Viewer& viewer = ui::viewer(parent, scene.m_scene);
+			viewer.m_filters.m_glow.m_enabled = true;
+
+			Player& player = val<Player>(game.m_player);
+			ex_minimal_game_hud(viewer, scene, *player.m_human);
+		};
+
+		pump(game.m_screen ? *game.m_screen : app.m_ui->begin());
+	}
+};
 
 #ifdef _EX_MINIMAL_EXE
 int main(int argc, char *argv[])
 {
 	GameShell app(carray<cstring, 1>{ TOY_RESOURCE_PATH }, argc, argv);
 	
-	GameModule module = { _minimal::m(), &ex_minimal_init, &ex_minimal_start, &ex_minimal_pump, &ex_minimal_scene };
+	ExMinimal module = { _minimal::m() };
 	app.run_game(module);
 }
 #endif

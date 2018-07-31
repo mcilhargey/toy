@@ -12,10 +12,7 @@ using namespace toy;
 
 extern "C"
 {
-	_MINIMAL_EXPORT void ex_minimal_init(GameShell& app, Game& game);
-	_MINIMAL_EXPORT void ex_minimal_start(GameShell& app, Game& game);
-	_MINIMAL_EXPORT void ex_minimal_pump(GameShell& app, Game& game);
-	_MINIMAL_EXPORT void ex_minimal_scene(GameShell& app, GameScene& scene);
+	//_MINIMAL_EXPORT void ex_minimal_game(GameShell& app, Game& game);
 }
 
 class refl_ _MINIMAL_EXPORT Bullet : public Complex, public ColliderObject

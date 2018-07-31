@@ -139,7 +139,7 @@ Once the script is written, we can bootstrap the project, and regenerate project
 - `toy\mud\bin\<plaftorm>\genie <generator>` with a generator one of `gmake`, `vs2015`, `vs2017` depending on the target build system
 - `toy\mud\bin\<plaftorm>\genie reflect`
 
-## minimal game code
+## creating  the app
 ```cpp
 class MyGame : public GameModule
 {
@@ -162,16 +162,17 @@ int main()
 }
 ```
 
-That's it for the minimal toy game : we have a running app, with a black screen :)
+This is the minimal code required to start a game with toy: it yields a running app, with a black screen :)
 The `GameModule` interface provides four main hooks for writing your game logic:
-- `init()` is called when initializing the game
-- `start()` is called when the game session is started
+- `init()` is called right after the app has initialized
+- `start()` is called when a game is started
 - `pump()` is called on each frame
-- `scene()` is called everytime a scene is created
+- `scene()` is called every time a scene is created
 
-Note: `GameModule` and `GameShell` are merely helper class: you aren't in any way constrained to use them. If you want complete control over your application flow, you can borrow the setup logic from the [`Shell.cpp`](src/shell/Shell.cpp) file, and setup a working application in a couple dozen lines of code.
+Note: `GameModule` and `GameShell` are merely helper classes: you aren't in any way constrained to use them. If you want complete control over your application flow, you can borrow the setup logic from the [`Shell.cpp`](src/shell/Shell.cpp) file, and setup a working application in a couple dozen lines of code.
 
 ## rendering a cube
+Once you have an app running, rendering objects is simply a matter of creating a `Scene`, a `Viewer`, and submitting some geometry to the `Scene`. The `scene_viewer()` function declares a special kind of Viewer in the user interface graph that holds its own `Scene` inside. If you created your Scene separately, just call the `viewer()` function instead.
 
 ```cpp
 class MyGame : public GameModule

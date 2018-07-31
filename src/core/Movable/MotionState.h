@@ -35,13 +35,13 @@ using namespace mud; namespace toy
 		vec3 m_offset;
 		size_t m_last_updated;
 
-		struct Transform { vec3 m_position; quat m_rotation; vec3 m_linear_velocity; vec3 m_angular_velocity; };
+		struct Transform { vec3 m_position; quat m_rotation; };
 
 		Transform transform()
 		{
 			quat rotation = m_entity.absolute_rotation();
 			vec3 position = m_entity.absolute_position() + rotate(rotation, m_offset);
-			return{ position, rotation };
+			return { position, rotation };
 		}
 
 		void sync_transform(const vec3& position, const quat& rotation)

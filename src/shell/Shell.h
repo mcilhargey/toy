@@ -50,6 +50,7 @@ using namespace mud; namespace toy
 		User* m_user = nullptr;
 		GameMode m_mode = GameMode::Play;
 		GameShell* m_shell = nullptr;
+		GameModule* m_module = nullptr;
 		Ref m_player = {};
 		World* m_world = nullptr;
 		Widget* m_screen = nullptr;
@@ -65,15 +66,17 @@ using namespace mud; namespace toy
 	class TOY_SHELL_EXPORT GameModule
 	{
 	public:
-		GameModule(Module& module, GameCallback on_init, GameCallback on_start, GameCallback on_pump, SceneCallback on_scene)
-			: m_module(&module), m_on_init(on_init), m_on_start(on_start), m_on_pump(on_pump), m_on_scene(on_scene)
+		GameModule(Module& module)
+			: m_module(&module)
 		{}
+
 		string m_module_path = "";
 		Module* m_module = nullptr;
-		GameCallback m_on_init = nullptr;
-		GameCallback m_on_start = nullptr;
-		GameCallback m_on_pump = nullptr;
-		SceneCallback m_on_scene = nullptr;
+
+		virtual void init(GameShell& shell, Game& game) = 0;
+		virtual void start(GameShell& shell, Game& game) = 0;
+		virtual void pump(GameShell& shell, Game& game) = 0;
+		virtual void scene(GameShell& shell, GameScene& scene) { UNUSED(shell); UNUSED(scene); }
 	};
 
 	TOY_SHELL_EXPORT Viewer& game_viewport(Widget& parent, GameScene& scene, Camera& camera);

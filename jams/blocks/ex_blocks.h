@@ -12,10 +12,7 @@ using namespace toy;
 
 extern "C"
 {
-	_BLOCKS_EXPORT void ex_blocks_init(GameShell& app, Game& game);
-	_BLOCKS_EXPORT void ex_blocks_start(GameShell& app, Game& game);
-	_BLOCKS_EXPORT void ex_blocks_pump(GameShell& app, Game& game);
-	_BLOCKS_EXPORT void ex_blocks_scene(GameShell& app, GameScene& scene);
+	//_BLOCKS_EXPORT void ex_blocks_game(GameShell& app, Game& game);
 }
 
 enum CustomCollisionGroup : short int

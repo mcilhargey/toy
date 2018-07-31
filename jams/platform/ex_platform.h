@@ -12,10 +12,7 @@ using namespace toy;
 
 extern "C"
 {
-	_PLATFORM_EXPORT void ex_platform_init(GameShell& app, Game& game);
-	_PLATFORM_EXPORT void ex_platform_start(GameShell& app, Game& game);
-	_PLATFORM_EXPORT void ex_platform_pump(GameShell& app, Game& game);
-	_PLATFORM_EXPORT void ex_platform_scene(GameShell& app, GameScene& scene);
+	//_PLATFORM_EXPORT void ex_platform_game(GameShell& app, Game& game);
 }
 
 class refl_ _PLATFORM_EXPORT TileWorld : public Complex

@@ -149,8 +149,9 @@ using namespace mud; namespace toy
 
 	void GameShell::load(GameModule& game_module)
 	{
+		m_game.m_module = &game_module;
 		m_game_module = &game_module;
-		m_game_module->m_on_init(*this, m_game);
+		m_game_module->init(*this, m_game);
 
 		System::instance().load_module(*game_module.m_module);
 
@@ -166,14 +167,14 @@ using namespace mud; namespace toy
 			return;
 		}
 
-		GameCallback init  = (GameCallback)module_function(*module, (module_name + "_init").c_str());
-		GameCallback start = (GameCallback)module_function(*module, (module_name + "_start").c_str());
-		GameCallback pump  = (GameCallback)module_function(*module, (module_name + "_pump").c_str());
-		SceneCallback scene = (SceneCallback)module_function(*module, (module_name + "_scene").c_str());
+		//GameCallback init  = (GameCallback)module_function(*module, (module_name + "_init").c_str());
+		//GameCallback start = (GameCallback)module_function(*module, (module_name + "_start").c_str());
+		//GameCallback pump  = (GameCallback)module_function(*module, (module_name + "_pump").c_str());
+		//SceneCallback scene = (SceneCallback)module_function(*module, (module_name + "_scene").c_str());
 
-		m_game_module_alloc = make_unique<GameModule>(*module, init, start, pump, scene);
+		//m_game_module_alloc = make_unique<GameModule>(*module);
 
-		this->load(*m_game_module_alloc);
+		//this->load(*m_game_module_alloc);
 	}
 
 	void GameShell::run(size_t iterations)
@@ -238,15 +239,15 @@ using namespace mud; namespace toy
 
 	void GameShell::start_game()
 	{
-		m_game_module->m_on_start(*this, m_game);
-		m_game_module->m_on_pump(*this, m_game);
+		m_game_module->start(*this, m_game);
+		m_game_module->pump(*this, m_game);
 	}
 
 	void GameShell::pump_game()
 	{
 		if(m_game.m_world)
 			m_game.m_world->next_frame();
-		m_game_module->m_on_pump(*this, m_game);
+		m_game_module->pump(*this, m_game);
 	}
 
 	void GameShell::pump_editor()
@@ -261,7 +262,7 @@ using namespace mud; namespace toy
 		{
 			if(m_game.m_world)
 				m_game.m_world->next_frame();
-			m_game_module->m_on_pump(*this, m_game);
+			m_game_module->pump(*this, m_game);
 			m_editor.m_viewer = nullptr;
 		}
 		else if(m_game.m_scenes.size() > 0 && m_game.m_screen)
@@ -281,7 +282,7 @@ using namespace mud; namespace toy
 	{
 		GameScene& scene = m_game.add_scene();
 		m_editor.m_scenes.push_back(&scene.m_scene);
-		m_game_module->m_on_scene(*this, scene);
+		m_game_module->scene(*this, scene);
 		return scene;
 	}
 

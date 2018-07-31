@@ -100,6 +100,7 @@ using namespace mud; namespace toy
 	{
 	public:
 		Solid(Entity& entity, ColliderObject& object, const CollisionShape& collision_shape, Medium& medium, CollisionGroup group, bool isstatic, float mass = 0.f);
+		Solid(Entity& entity, ColliderObject& object, const CollisionShape& collision_shape, bool isstatic, float mass = 0.f);
 		~Solid();
 
 		bool m_static;

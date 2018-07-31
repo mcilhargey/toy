@@ -16,10 +16,7 @@ using namespace toy;
 
 extern "C"
 {
-_SPACE_EXPORT void ex_space_init(GameShell& app, Game& game);
-_SPACE_EXPORT void ex_space_start(GameShell& app, Game& game);
-_SPACE_EXPORT void ex_space_scene(GameShell& app, GameScene& scene);
-_SPACE_EXPORT void ex_space_pump(GameShell& app, Game& game);
+	//_SPACE_EXPORT void ex_space_game(GameShell& app, Game& game);
 }
 
 struct Turn;
