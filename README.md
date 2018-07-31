@@ -4,7 +4,6 @@
 | ------------- | ------------- | --------- |
 [![Build Status](https://travis-ci.org/hugoam/toy.svg?branch=master)](https://travis-ci.org/hugoam/toy) [![Build status](https://ci.appveyor.com/api/projects/status/4a77n3scl71ybcgj?svg=true)](https://ci.appveyor.com/project/hugoam/toy) | [![Community](https://img.shields.io/discourse/https/discourse.toyengine.io/posts.svg)](https://discourse.toyengine.io) [![Gitter](https://badges.gitter.im/hugoam/mud.svg)](https://gitter.im/hugoam/mud) | [![Patreon](https://img.shields.io/badge/donate-patreon-orange.svg)](https://www.patreon.com/bePatron?u=11301355)
 
-# toy
 toy is a **thin and modular c++ game engine**. it aims to provide the **thinnest and simplest stack of technology** for making games **directly from c++**. toy offers **simple expressive c++ idioms** for [user interface](), [rendering](), [audio](),  and the seamless extension of your game code with **zero-cost** [tools](), [editors]() and [scripting](), to design full featured 2d or 3d games in **fast iterations**.
 
 toy simplicity and modularity makes it deeply **hackable**, **extensible** and **versatile**. toy is perfect to build games with **atypical constraint**: complex user interface and rendering schemes, procedural generation, etc. it provides a **fully programmable 3d renderer**, with full control over *shaders, materials and render paths*, as well as higher level primitives and systems such as **entities**, **physics**, **navmesh generation and navigation**, and **procedural generation** helpers.
@@ -42,6 +41,9 @@ by supporting mud you will help us implement the following features:
 - **node-based shader language**: the mud node editor is a perfect tool to start playing with node-based shader and render pipeline definitions.
 - **multi-threading**: implement efficient job/fibers system and parallelize everything that can be.
 - **performance-focused ECS**: implement an ECS skeleton focused towards heavily parallelized performance, to implement typical scenarios such as the boid example.
+
+### manuals
+If you want to get started, you can start by having a look at the extensive [manual]().
 
 ### examples
 
