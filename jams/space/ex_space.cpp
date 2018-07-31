@@ -1048,6 +1048,7 @@ void ex_space_menu(Widget& parent, Game& game)
 
 class ExSpaceModule : public GameModule
 {
+public:
 	ExSpaceModule(Module& module) : GameModule(module) {}
 
 	virtual void scene(GameShell& app, GameScene& scene) final
@@ -1075,60 +1076,61 @@ class ExSpaceModule : public GameModule
 		player.m_camera->m_entity.m_position = player.m_commander->m_capital->m_entity.m_position;
 	}
 
-virtual void init(GameShell& app, Game& game) final
-{
-	app.m_gfx_system->add_resource_path("examples/ex_space/");
-	game.m_editor.m_custom_brushes.emplace_back(make_unique<CommanderBrush>(game.m_editor.m_tool_context));
-}
-
-virtual void start(GameShell& app, Game& game) final
-{
-	global_pool<Universe>();
-	global_pool<Galaxy>();
-	global_pool<Star>();
-	global_pool<Commander>();
-	global_pool<Fleet>();
-	global_pool<OCamera>();
-
-	Universe& universe = global_pool<Universe>().construct("Arcadia");
-	game.m_world = &universe.m_world;
-
-	VisualScript& generator = space_generator(app);
-	generator(carray<Var, 2>{ Ref(game.m_world), Ref(&game.m_world->origin()) });
-
-	Galaxy& galaxy = *universe.m_galaxies[0];
-
-	static Player player = { &galaxy, galaxy.m_commanders[0] };
-	game.m_player = Ref(&player);
-
-	for(Commander* commander : galaxy.m_commanders)
-		commander->update_scans();
-}
-
-virtual void pump(GameShell& app, Game& game) final
-{
-	auto pump = [&](Widget& parent, Dockbar* dockbar = nullptr)
+	virtual void init(GameShell& app, Game& game) final
 	{
-		UNUSED(dockbar);
-		if(!game.m_player)
+		app.m_gfx_system->add_resource_path("examples/ex_space/");
+		game.m_editor.m_custom_brushes.emplace_back(make_unique<CommanderBrush>(game.m_editor.m_tool_context));
+	}
+
+	virtual void start(GameShell& app, Game& game) final
+	{
+		global_pool<Universe>();
+		global_pool<Galaxy>();
+		global_pool<Star>();
+		global_pool<Commander>();
+		global_pool<Fleet>();
+		global_pool<OCamera>();
+
+		Universe& universe = global_pool<Universe>().construct("Arcadia");
+		game.m_world = &universe.m_world;
+
+		VisualScript& generator = space_generator(app);
+		generator(carray<Var, 2>{ Ref(game.m_world), Ref(&game.m_world->origin()) });
+
+		Galaxy& galaxy = *universe.m_galaxies[0];
+
+		static Player player = { &galaxy, galaxy.m_commanders[0] };
+		game.m_player = Ref(&player);
+
+		for(Commander* commander : galaxy.m_commanders)
+			commander->update_scans();
+	}
+
+	virtual void pump(GameShell& app, Game& game) final
+	{
+		auto pump = [&](Widget& parent, Dockbar* dockbar = nullptr)
 		{
-			ex_space_menu(parent, game);
-		}
-		else
-		{
-			static GameScene& scene = app.add_scene();
-			scene.next_frame();
-			ex_space_ui(parent, scene);
-		}
-	};
+			UNUSED(dockbar);
+			if(!game.m_player)
+			{
+				ex_space_menu(parent, game);
+			}
+			else
+			{
+				static GameScene& scene = app.add_scene();
+				scene.next_frame();
+				ex_space_ui(parent, scene);
+			}
+		};
 
 #ifdef _SPACE_TOOLS
-	edit_context(app.m_ui->begin(), app.m_editor, true);
-	pump(*app.m_editor.m_screen, *app.m_editor.m_dockbar);
+		edit_context(app.m_ui->begin(), app.m_editor, true);
+		pump(*app.m_editor.m_screen, *app.m_editor.m_dockbar);
 #else
-	pump(game.m_screen ? *game.m_screen : app.m_ui->begin());
+		pump(game.m_screen ? *game.m_screen : app.m_ui->begin());
 #endif
-}
+	}
+};
 
 #ifdef _EX_SPACE_EXE
 int main(int argc, char *argv[])
