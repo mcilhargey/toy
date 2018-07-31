@@ -45,7 +45,7 @@ by supporting mud you will help us implement the following features:
 
 ### get started
 - have a look at the extensive [manual](Manual.md).
-- clone and build toy(#how-to-build)
+- clone and [build toy](#how-to-build)
 
 ### examples
 
