@@ -43,8 +43,9 @@ by supporting mud you will help us implement the following features:
 - **performance-focused ECS**: implement an ECS skeleton focused towards heavily parallelized performance, to implement typical scenarios such as the boid example.
 - **networking**: investigate how a networking solution can be integrated with reflection, how to automatically expose objects procedures and fields through a networking API, to provide seamless basic multiplayer support, then implement it.
 
-### manuals
-If you want to get started, you can start by having a look at the extensive [manual]().
+### get started
+- have a look at the extensive [manual](Manual.md).
+- clone and build toy(#how-to-build)
 
 ### examples
 
