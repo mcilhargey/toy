@@ -14,6 +14,7 @@ using namespace mud; namespace toy
 	public:
 		FPSCameraController(Viewer& viewer, Camera& camera);
 
+		virtual void process(Widget& widget) { UNUSED(widget); }
 		virtual void process(Viewer& viewer);
 	};
 }

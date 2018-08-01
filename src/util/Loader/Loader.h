@@ -86,6 +86,7 @@ using namespace mud; namespace toy
 		Id allocate();
 		void erase(Ref object, Id id);
 
+
 		// Loading
 		virtual void select(Id id);
 		virtual bool selectNext();
@@ -104,6 +105,9 @@ using namespace mud; namespace toy
 
 		void save(Ref object, Id id);
 		Id saveId(Ref object);
+
+		// Erasing
+		using Loader::erase;
 
 		void debugPrint(Ref object, size_t depth, cstring message);
 
