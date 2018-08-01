@@ -63,11 +63,11 @@ by supporting mud you will help us implement the following features:
 - generate the project files for your target
   - `bin/linux/genie --gcc=linux-gcc gmake` for gmake/linux
   - `bin/windows/genie vs2015` for Visual Studio 2015
-  - `bin/windows/genie vs2015` for Visual Studio 2017
+  - `bin/windows/genie vs2017` for Visual Studio 2017
 - go to the generated folder
   - `cd build/projects/gmake-linux` for gmake/linux
   - `cd build/projects/vs2015` for Visual Studio 2015
-  - `cd build/projects/vs2015` for Visual Studio 2017
+  - `cd build/projects/vs2017` for Visual Studio 2017
 - build
   - `make config=debug64 -j8` for gmake/linux 64bit
   - open `toy.sln` and build for Visual Studio
