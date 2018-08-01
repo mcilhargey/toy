@@ -58,13 +58,16 @@ by supporting mud you will help us implement the following features:
 | [![](media/editor.png)](https://hugoam.github.io/toy-io/examples/ex_editor.html) | [![](media/space.png)](https://hugoam.github.io/toy-io/examples/ex_space.html)  |
 
 ### how to build
-
-on linux :
-
-```bash
-git clone https://github.com/hugoam/toy --recursive
-cd toy
-bin/genie --gcc=linux-gcc gmake
-cd build/projects/gmake-linux
-make config=debug64 -j8
-```
+- `git clone https://github.com/hugoam/toy --recursive`
+- `cd toy`
+- generate the project files for your target
+  - `bin/linux/genie --gcc=linux-gcc gmake` for gmake/linux
+  - `bin/windows/genie vs2015` for Visual Studio 2015
+  - `bin/windows/genie vs2015` for Visual Studio 2017
+- go to the generated folder
+  - `cd build/projects/gmake-linux` for gmake/linux
+  - `cd build/projects/vs2015` for Visual Studio 2015
+  - `cd build/projects/vs2015` for Visual Studio 2017
+- build
+  - `make config=debug64 -j8` for gmake/linux 64bit
+  - open `toy.sln` and build for Visual Studio
