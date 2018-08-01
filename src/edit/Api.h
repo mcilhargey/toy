@@ -8,7 +8,6 @@
 #include <edit/Edit/Editor.h>
 #include <edit/Edit/ReactiveEdit.h>
 #include <edit/Edit/Viewport.h>
-#include <edit/Editor/Brush.h>
 #include <edit/Editor/Editor.h>
 #include <edit/Editor/Toolbox.h>
 
