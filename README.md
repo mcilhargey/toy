@@ -10,6 +10,10 @@ toy simplicity and modularity makes it deeply **hackable**, **extensible** and *
 
 As a collection of game programming **building blocks**, toy aims to foster an ecosystem of **simple minimal reusable components** suited for **building your own game technology**.
 
+Warning: toy is under heavy development, not yet stable, fully documented or production ready.
+
+Note: toy is temporarily available under the **GPL v3.0** license. the underlying mud library is **Zlib**. in the long-term, if toy receives enough interest and support to guarantee its future as an open-source game engine, we wish to release it under a more permissive license.
+
 ### principles
 - **simple and lightweight**, simplicity is the core aim and philosophy behind toy. the codebase is about one-tenth the size of competing engines, and toy is so light, the whole editor runs in your browser !
 - **modular**, each functionality is enclosed in a small, simple, easy to understand code building block. most of these blocks lie in the underlying mud library.
@@ -44,7 +48,7 @@ by supporting mud you will help us implement the following features:
 - **networking**: investigate how a networking solution can be integrated with reflection, how to automatically expose objects procedures and fields through a networking API, to provide seamless basic multiplayer support, then implement it.
 
 ### get started
-- have a look at the extensive [manual](Manual.md)
+- have a look at the [manual](Manual.md)
 - clone and [build toy](#how-to-build)
 
 ### examples
@@ -58,13 +62,17 @@ by supporting mud you will help us implement the following features:
 | [![](media/editor.png)](https://hugoam.github.io/toy-io/examples/ex_editor.html) | [![](media/space.png)](https://hugoam.github.io/toy-io/examples/ex_space.html)  |
 
 ### how to build
-
-on linux :
-
-```bash
-git clone https://github.com/hugoam/toy --recursive
-cd toy
-bin/genie --gcc=linux-gcc gmake
-cd build/projects/gmake-linux
-make config=debug64 -j8
-```
+- `git clone https://github.com/hugoam/toy --recursive`
+- `cd toy`
+- generate the project files for your target
+  - `bin/linux/genie --gcc=linux-gcc gmake` for gmake/linux
+  - `bin/windows/genie vs2015` for Visual Studio 2015
+  - `bin/windows/genie vs2017` for Visual Studio 2017
+- go to the generated folder
+  - `cd build/projects/gmake-linux` for gmake/linux
+  - `cd build/projects/vs2015` for Visual Studio 2015
+  - `cd build/projects/vs2017` for Visual Studio 2017
+- build
+  - `make config=debug64 -j8` for gmake/linux 64bit
+  - open `toy.sln` and build for Visual Studio
+- run the examples: `ex_platform`, `ex_space`, `ex_blocks`
