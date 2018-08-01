@@ -15,6 +15,7 @@
 #include <thread>
 #include <mutex>
 #include <algorithm>
+#include <functional>
 #endif
 
 using namespace mud; namespace toy
