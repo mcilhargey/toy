@@ -30,7 +30,7 @@ using namespace mud; namespace toy
 
 	bool spin_2d(Entity& entity, const vec3& axis, const vec3& target, float velocity, float time_step, float margin)
 	{
-		UNUSED(time_step);
+		UNUSED(time_step); UNUSED(margin);
 		vec3 direction = normalize(target - entity.m_position);
 		float total_angle = angle_flat(entity.front(), direction);
 		float angle = min(sign(total_angle) * velocity, total_angle);
@@ -41,7 +41,7 @@ using namespace mud; namespace toy
 
 	bool lookat_2d(Entity& entity, const vec3& axis, const vec3& target, float velocity, float time_step, float margin)
 	{
-		UNUSED(axis); UNUSED(velocity); UNUSED(time_step);
+		UNUSED(axis); UNUSED(velocity); UNUSED(time_step); UNUSED(margin);
 		vec3 direction = normalize(target - entity.m_position);
 		float targetAngle = angle_flat(-Z3, direction);
 		quat rotation = angle_axis(targetAngle, Y3);
@@ -51,6 +51,7 @@ using namespace mud; namespace toy
 
 	vec3 project_move_2d(Entity& entity, const vec3& target, float velocity, float time_step, float margin)
 	{
+		UNUSED(margin);
 		vec3 direction = normalize(target - entity.m_position);
 		direction.y = 0.f;
 
@@ -76,7 +77,7 @@ using namespace mud; namespace toy
 
 	bool move_2d(Movable& movable, const vec3& target, float velocity, float time_step, float margin)
 	{
-		UNUSED(time_step);
+		UNUSED(time_step); UNUSED(margin);
 		if(target == movable.m_entity.m_position)
 			return true;
 		movable.set_linear_velocity(normalize(target - movable.m_entity.m_position) * velocity);
@@ -99,6 +100,7 @@ using namespace mud; namespace toy
 
 		const float seek_force = 0.5f;
 		const float approach_radius = 0.35f;
+		UNUSED(approach_radius);
 
 		vec3 desired = segment / distance * velocity;
 		vec3 steer = desired - movable.m_direction;
