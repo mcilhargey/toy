@@ -172,7 +172,41 @@ The `GameModule` interface provides four main hooks for writing your game logic:
 Note: `GameModule` and `GameShell` are merely helper classes: you aren't in any way constrained to use them. If you want complete control over your application flow, you can borrow the setup logic from the [`Shell.cpp`](src/shell/Shell.cpp) file, and setup a working application in a couple dozen lines of code.
 
 ## rendering a cube
-Once you have an app running, rendering objects is simply a matter of creating a `Scene`, a `Viewer`, and submitting some geometry to the `Scene`. The `scene_viewer()` function declares a special kind of Viewer in the user interface graph that holds its own `Scene` inside. If you created your Scene separately, just call the `viewer()` function instead.
+Rendering objects is simply a matter of creating a `Scene`, a `Viewer`, and submitting some geometry to the `Scene`.
+- initialize the UI graph by calling `begin()` on the ui root
+- add a `Viewer` to the UI graph by calling `scene_viewer()`
+- initialize the render graph by calling `begin()` on the scene
+- (optionally) add a `Node` to the render graph by calling `node()`
+- add a `Cube` to the render graph by calling `shape()`
+
+Note: The `scene_viewer()` function declares a special kind of `Viewer` that holds its own `Scene` inside. If you created a `Scene` separately, just call the `viewer()` function instead.
+
+```cpp
+class MyGame : public GameModule
+{
+public:
+    // ...
+    
+    virtual void pump(GameShell& app, Game& game)
+    {
+        Widget& ui = app.m_ui.begin();
+        Viewer& viewer = ui::scene_viewer(ui);
+        
+        Gnode& scene = viewer.m_scene.begin();
+        
+        Gnode& node = gfx::node(scene, {}, vec3(0.f, 0.f, 0.f));
+        gfx::shape(node, Cube(1.f), Symbol(Colour::Pink));
+    }
+};
+```
+
+## rendering a model
+Rendering a 3d `Model` is almost as simple as rendering a shape. Instead of calling `shape()`, you need to fetch the Model before calling `item()`.
+- get the `Model` asset store by calling `models()` on the application `GfxSystem`
+- fetch the `Model` by calling `file()` on the asset store
+- draw the `Model` by calling `item()`
+
+Note: You might want to get the `Model` once and store it somewhere.
 
 ```cpp
 class MyGame : public GameModule
@@ -180,40 +214,77 @@ class MyGame : public GameModule
 public:
     virtual void pump(GameShell& app, Game& game)
     {
-        Viewer& viewer = ui::scene_viewer(parent);
-        Gnode& scene = scene.m_graph.begin();
-        gfx::shape(scene, Cube(1.f), Symbol(Colour::Pink));
+        // ... (initialize the viewer)
+        
+        Model& model = app.m_gfx_system.models().file("my_model.obj");
+        
+        Gnode& node = gfx::node(scene, {}, vec3(0.f, 0.f, 0.f));
+        gfx::item(node, model);
+    }
+};
+```
+
+## reacting to input
+<h3>Reacting to Input</h3>
+Querying events is done on the `Widget` object returned by the widget declaration, using the following functions (in this case on the `Viewer`):
+
+- `key_event()` by passing the key code and the type of input event to check for
+- `mouse_event()` by passing the mouse button and the type of input event to check for
+
+Note: To fully grasp event dispatching you need to get familiar with how toy deals with the concepts of modal receivers, and focused receivers.
+
+```cpp
+class MyGame : public GameModule
+{
+public:
+    virtual void pump(GameShell& app, Game& game)
+    {
+        static vec3 position = Zero3;
+        
+        Widget& ui = app.m_ui.begin();
+        Viewer& viewer = ui::scene_viewer(ui);
+        
+        if(viewer.key_event(KC_A, EventType::Pressed))
+            position += X3;
+        if(viewer.key_event(KC_D, EventType::Pressed))
+            position -= X3;
     }
 };
 ```
 
 ## defining an entity type
-In toy we separate the game entities and the rendered objects (models, meshes, particles).
-Entities represent objects on the game logic side, localized in space, aggregating an array of components of your choice.
 
-A very simple example of an entity could look like this :
+An `Entity` in toy is a spatial object with children. It's convenient to define **game objects types** composed around an `Entity` as well as other components:
+- an `Entity` component has a position, a rotation, and a list of children
+- a `Movable` component has a linear and angular velocity
+
+
 ```cpp
-class Human : public Complex
+class Monster : public Complex
 {
 public:
-    Human(Id id, Entity& parent, const vec3& position);
+	Monster(Id id, Entity& parent, const vec3& position)
+        : m_entity(id, parent, position)
+        , m_movable(m_entity)
+    {}
 
-    Entity m_entity;
-    Movable m_movable;
+	Entity m_entity;
+	Movable m_movable;
 };
 ```
 
-toy doesn't feature flexible entity which you add and remove components to on-the-fly, because we prefer the convenience and safety of defining entity types.
-this feature will be added in the future for users wishing to assemble dynamic entities in the editor.
-
-The Entity component holds the 3d transform of an object, and a list of child entities.
-It is the root component for organizing a nested hierarchy of objects.
 To move an entity, you can directly modify the `position`, `rotation` members, or use the mutating functions.
 
-The Movable component is used for objects that move in space over time.
-It holds a linear velocity and an angular velocity.
+Note: toy doesn't feature flexible entity which you add and remove components to on-the-fly, because we prefer the convenience and safety of defining entity types. this feature might be added in the future for users wishing to assemble dynamic entities directly in the editor.
 
-## drawing entities
+## drawing all entities
+<h3>Drawing all Entities</h3>
+An optional way to draw `Entities` is to create a `GameScene`, and to add a `Painter` to it. Each frame, for each `Painter` you attached to it, the `GameScene` goes over all `Entities` of the given type, and send them to the given draw function.
+
+- create a `GameScene` by calling `add_scene()` on the `Game` object
+- in the `scene()` handler function, add one `Painter` for each type of entity you want to draw, passing the function (`paint_monster()` in the example)
+- call `next_frame()` on the `GameScene`, each frame
+
 
 ```cpp
 void paint_monster(Gnode& parent, Monster& monster)
@@ -224,11 +295,44 @@ void paint_monster(Gnode& parent, Monster& monster)
 class MyGame : public GameModule
 {
 public:
+    virtual void pump(GameShell& app, Game& game)
+    {
+        static GameScene& scene = game.add_scene();
+        Viewer& viewer = ui::viewer(app.m_ui.begin(), scene);
+        scene.next_frame();
+    }
+    
     virtual void scene(GameShell& app, GameScene& scene)
     {
         static OmniVision vision = { *scene.m_game.m_world };
-        scene.entity_painter("Monsters", vision.m_store, paint_monster);
+        scene.entity_painter<Monster>("Monsters", vision.m_store, paint_monster);
     }
+};
+```
+
+## defining a physics entity type
+
+To give `Rigid Body` dynamics to an `Entity` you can add a `Solid` component to it, with the following parameters:
+
+- the `Entity` itself
+- the geometric `Shape` of the body
+- whether it is a `static` body
+- the `mass` of the body
+
+
+```cpp
+class Crate : public Complex
+{
+public:
+	Crate(Id id, Entity& parent, const vec3& position)
+        : m_entity(id, *this, parent, position)
+        , m_movable(m_entity)
+        , m_solid(m_entity, *this, Cube(1.f), false, 1.f))
+    {}
+
+	Entity m_entity;
+	Movable m_movable;
+    Solid m_solid;
 };
 ```
 
