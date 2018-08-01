@@ -12,7 +12,7 @@ As a collection of game programming **building blocks**, toy aims to foster an e
 
 Warning: toy is under heavy development, not yet stable, fully documented or production ready.
 
-Note: toy is temporarily available under the **GPL v3.0** license. the underlying mud library is **Zlib**. in the long-term, if toy receives enough interest and support to guarantee its future as an open-source game engine, we wish to release it under a more permissive license.
+Note: I've released toy, for the time being, under the **GPL v3.0** license, hoping for it to evolve into a truly free and open-source technology, by releasing under a **more permissive license**: however this can only happen if it secures a regular financial support, to ensure it's funded as an open-source project: this is where your help comes into play :)
 
 ### principles
 - **simple and lightweight**, simplicity is the core aim and philosophy behind toy. the codebase is about one-tenth the size of competing engines, and toy is so light, the whole editor runs in your browser !
