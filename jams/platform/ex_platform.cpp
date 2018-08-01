@@ -712,6 +712,7 @@ void ex_platform_game_hud(Viewer& viewer, GameScene& scene, Human& human)
 			//ui::fill_bar(row, ratio);
 		};
 
+		ui::label(left_panel, "Press ARROWS to move, CTRL to activate shield, SHIFT to switch headlight, SPACE to jump, and LEFT CLICK to fire");
 		if(false)
 		{
 			bar(left_panel, health_bar_style(), "(health64)", human.m_life);
