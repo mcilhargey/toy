@@ -311,9 +311,10 @@ using namespace mud; namespace toy
 		return false;
 	}
 #else
-	void sound(Gnode& parent, const string& sound, bool loop, float volume)
+	bool sound(Gnode& parent, const string& sound, bool loop, float volume)
 	{
 		UNUSED(parent); UNUSED(sound); UNUSED(loop); UNUSED(volume);
+		return false;
 	}
 #endif
 

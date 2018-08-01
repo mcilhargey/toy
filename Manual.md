@@ -284,7 +284,7 @@ An optional way to draw `Entities` is to create a `GameScene`, and to add a `Pai
 ```cpp
 void paint_monster(Gnode& parent, Monster& monster)
 {
-	gfx::shape(parent, Cube(1.f), Symbol(Colour::Pink));
+    gfx::shape(parent, Cube(1.f), Symbol(Colour::Pink));
 }
 
 class MyGame : public GameModule
