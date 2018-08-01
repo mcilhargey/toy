@@ -44,7 +44,7 @@ by supporting mud you will help us implement the following features:
 - **networking**: investigate how a networking solution can be integrated with reflection, how to automatically expose objects procedures and fields through a networking API, to provide seamless basic multiplayer support, then implement it.
 
 ### get started
-- have a look at the extensive [manual](Manual.md)
+- have a look at the [manual](Manual.md)
 - clone and [build toy](#how-to-build)
 
 ### examples
