@@ -10,6 +10,10 @@ toy simplicity and modularity makes it deeply **hackable**, **extensible** and *
 
 As a collection of game programming **building blocks**, toy aims to foster an ecosystem of **simple minimal reusable components** suited for **building your own game technology**.
 
+Warning: toy is under heavy development, not yet stable, fully documented or production ready.
+
+Note: toy is currently available under the **GPL v3.0** license, and the underlying mud library is **Zlib**. in the long-term, if toy receives enough support to guarantee its future as an open-source game engine, we wish to release it under a more permissive license as well.
+
 ### principles
 - **simple and lightweight**, simplicity is the core aim and philosophy behind toy. the codebase is about one-tenth the size of competing engines, and toy is so light, the whole editor runs in your browser !
 - **modular**, each functionality is enclosed in a small, simple, easy to understand code building block. most of these blocks lie in the underlying mud library.
