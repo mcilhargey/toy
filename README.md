@@ -35,9 +35,12 @@ Note: I've released toy, for the time being, under the **GPL v3.0** license, hop
 - navigation
 
 ### roadmap
-toy is mostly feature complete in terms of the basic features we wanted for a minimal viable engine.
-but there are many things to improve.
-by supporting mud you will help us implement the following features:
+toy is mostly feature complete in terms of the basic features we wanted for a minimal viable engine. this mean it could finally be open-sourced. but toy is still a bit unstable and undocumented: that means it is in a transitory phase, where the pace can settle down for a while, allowing to:
+- iron out all the bugs, crashes, instabilities
+- thoroughly document all the classes and functionalities which will remain stable
+this is the step that toy will be during the next month or so.
+
+after that, when toy is a robust, stable and fully documented game engine foundation, there are many features which will bring toy in a more cutting-edge category: this is what I will be working on next, and by supporting mud you will help us implement the following features:
 - **tool applications**: implement minimal tooling apps, including: a model painter, an animation editor, a particle editor, a prefab/scene editor. most of these features are partly implemented, but a set of standalone apps would be a great addition.
 - **scripting languages**: implement support for Wren, Javascript, and C# scripting.
 - **clustered rendering**: implement state-of-the-art clustered rendering techniques, along with a deferred rendering pipeline.
