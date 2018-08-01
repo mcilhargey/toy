@@ -71,3 +71,4 @@ by supporting mud you will help us implement the following features:
 - build
   - `make config=debug64 -j8` for gmake/linux 64bit
   - open `toy.sln` and build for Visual Studio
+- run the examples: `ex_platform`, `ex_space`, `ex_blocks`
