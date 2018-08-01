@@ -139,7 +139,7 @@ Once the script is written, we can bootstrap the project, and regenerate project
 - `toy\mud\bin\<plaftorm>\genie <generator>` with a generator one of `gmake`, `vs2015`, `vs2017` depending on the target build system
 - `toy\mud\bin\<plaftorm>\genie reflect`
 
-## creating  the app
+## creating the app
 ```cpp
 class MyGame : public GameModule
 {
@@ -225,9 +225,7 @@ public:
 ```
 
 ## reacting to input
-<h3>Reacting to Input</h3>
 Querying events is done on the `Widget` object returned by the widget declaration, using the following functions (in this case on the `Viewer`):
-
 - `key_event()` by passing the key code and the type of input event to check for
 - `mouse_event()` by passing the mouse button and the type of input event to check for
 
@@ -253,7 +251,6 @@ public:
 ```
 
 ## defining an entity type
-
 An `Entity` in toy is a spatial object with children. It's convenient to define **game objects types** composed around an `Entity` as well as other components:
 - an `Entity` component has a position, a rotation, and a list of children
 - a `Movable` component has a linear and angular velocity
@@ -278,9 +275,7 @@ To move an entity, you can directly modify the `position`, `rotation` members, o
 Note: toy doesn't feature flexible entity which you add and remove components to on-the-fly, because we prefer the convenience and safety of defining entity types. this feature might be added in the future for users wishing to assemble dynamic entities directly in the editor.
 
 ## drawing all entities
-<h3>Drawing all Entities</h3>
 An optional way to draw `Entities` is to create a `GameScene`, and to add a `Painter` to it. Each frame, for each `Painter` you attached to it, the `GameScene` goes over all `Entities` of the given type, and send them to the given draw function.
-
 - create a `GameScene` by calling `add_scene()` on the `Game` object
 - in the `scene()` handler function, add one `Painter` for each type of entity you want to draw, passing the function (`paint_monster()` in the example)
 - call `next_frame()` on the `GameScene`, each frame
@@ -311,9 +306,7 @@ public:
 ```
 
 ## defining a physics entity type
-
 To give `Rigid Body` dynamics to an `Entity` you can add a `Solid` component to it, with the following parameters:
-
 - the `Entity` itself
 - the geometric `Shape` of the body
 - whether it is a `static` body
