@@ -33,7 +33,7 @@ void generate_npcs(TileBlock& block)
 
 	for(const vec3& position : positions)
 	{
-		block.m_entity.m_world.origin().construct<Human>(block.m_entity.m_position + position + Y3 * 20.f, Faction::Enemy);
+		block.m_entity.m_world.origin().construct<Human>(block.m_entity.m_position + position + Y3 * 10.f, Faction::Enemy);
 	}
 }
 

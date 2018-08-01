@@ -34,6 +34,10 @@ using namespace mud; namespace toy
 		inline const StoreContainer& store() const { return m_store; }
 		inline StoreContainer& store() { return m_store; }
 
+		using StoreBase<CountStore<T>, T>::has;
+		using StoreBase<CountStore<T>, T>::remove;
+		using StoreBase<CountStore<T>, T>::add;
+
 		inline void add(T& object)
 		{
 			this->resize(object);
