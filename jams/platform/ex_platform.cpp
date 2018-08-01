@@ -73,7 +73,10 @@ void TileWorld::generate_block(GfxSystem& gfx_system, const ivec2& coord)
 
 	m_blocks[coord] = &block;
 
-	for(size_t x : { 0U, block.m_wfc_block.m_tiles.m_x - 1 })
+	// @todo why u clang no accept this ?
+	// for(size_t x : { 0U, block.m_wfc_block.m_tiles.m_x - 1 })
+	std::vector<size_t> xs = { 0U, block.m_wfc_block.m_tiles.m_x - 1 };
+	for(size_t x : xs)
 	for(size_t y = 0; y < block.m_wfc_block.m_tiles.m_y; ++y)
 	for(size_t z = 0; z < block.m_wfc_block.m_tiles.m_z; ++z)
 	{
